@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>More Than Fitness</title>
   <style>
     body {
@@ -18,7 +19,8 @@
       padding: 40px;
       border-radius: 12px;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-      width: 300px;
+      width: 90%;
+      max-width: 320px;
       text-align: center;
     }
     .login-card h1 {
@@ -27,14 +29,15 @@
     }
     .login-card input {
       width: 100%;
-      padding: 10px;
+      padding: 12px;
       margin: 10px 0;
       border: 1px solid #ccc;
       border-radius: 6px;
+      font-size: 16px;
     }
     .login-card button {
       width: 100%;
-      padding: 10px;
+      padding: 12px;
       background-color: #007BFF;
       color: white;
       border: none;
@@ -67,7 +70,7 @@
       const password = document.getElementById('password').value;
       if (username === 'admin' && password === '1234') {
         alert('로그인 성공!');
-        // 대시보드로 이동 (나중에 대시보드 화면 연결할 거야)
+        // 여기서 대시보드 페이지로 이동 처리할 예정
       } else {
         document.getElementById('error-message').innerText = '아이디 또는 비밀번호가 올바르지 않습니다.';
       }
