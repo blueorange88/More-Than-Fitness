@@ -98,12 +98,22 @@
     </div>
   </div>
 
-  <script>
-    function logout() {
-      alert('로그아웃되었습니다!');
-      window.location.href = '/';
+<script>
+  function login() {
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    if (username === 'admin' && password === '1234') {
+      window.location.href = '/dashboard.html';
+    } else {
+      document.getElementById('error-message').innerText = '아이디 또는 비밀번호가 올바르지 않습니다.';
     }
-  </script>
+  }
 
+  function logout() {
+    alert('로그아웃되었습니다!');
+    window.location.href = '/';
+  }
+</script>
+      
 </body>
 </html>
