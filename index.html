@@ -1,47 +1,89 @@
-<div class="login-container">
-  <h2>More Than Fitness 로그인</h2>
-  <input type="text" id="email" placeholder="이메일 입력" />
-  <input type="password" id="password" placeholder="비밀번호 입력" />
-  <button onclick="login()">로그인</button>
-</div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>More Than Fitness 로그인</title>
 
-<style>
-body {
-  background-color: #f5f5f5;
-  font-family: Arial, sans-serif;
-  margin: 0;
-  padding: 20px;
-}
+  <style>
+    body {
+      background-color: #f5f5f5;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
 
-.login-container {
-  max-width: 400px;
-  margin: 100px auto;
-  padding: 20px;
-  background: white;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
-  border-radius: 10px;
-  text-align: center;
-}
+    .login-container {
+      width: 90%;
+      max-width: 400px;
+      background: white;
+      padding: 30px 20px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      border-radius: 12px;
+      text-align: center;
+    }
 
-.login-container input {
-  width: 80%;
-  padding: 10px;
-  margin: 10px 0;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-}
+    .login-container h2 {
+      margin-bottom: 20px;
+      font-size: 24px;
+      color: #333;
+    }
 
-.login-container button {
-  background-color: #007bff; /* 파란색 */
-  color: white;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 16px;
-}
+    .login-container input {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+    }
 
-.login-container button:hover {
-  background-color: #0056b3; /* 진한 파란색 */
-}
-</style>
+    .login-container button {
+      width: 100%;
+      background-color: #007bff;
+      color: white;
+      padding: 14px;
+      margin-top: 10px;
+      border: none;
+      border-radius: 8px;
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    .login-container button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="login-container">
+    <h2>More Than Fitness 로그인</h2>
+    <input type="text" id="email" placeholder="이메일 입력" />
+    <input type="password" id="password" placeholder="비밀번호 입력" />
+    <button onclick="login()">로그인</button>
+  </div>
+
+  <script>
+    function login() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      const correctEmail = 'test@example.com';
+      const correctPassword = '1234';
+
+      if (email === correctEmail && password === correctPassword) {
+        window.location.href = 'dashboard.html';
+      } else {
+        alert('이메일 또는 비밀번호가 올바르지 않습니다.');
+      }
+    }
+  </script>
+
+</body>
+</html>
