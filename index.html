@@ -1,120 +1,40 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>More Than Fitness </title>
-  <style>
-    body {
-      background-color: #f5f5f5;
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 20px;
-    }
-    .header {
-      text-align: center;
-      margin-bottom: 30px;
-    }
-    .header h1 {
-      color: #007BFF;
-    }
-    .menu {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin-bottom: 30px;
-    }
-    .menu button {
-      padding: 10px 20px;
-      font-size: 16px;
-      background-color: #007BFF;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    .menu button:hover {
-      background-color: #0056b3;
-    }
-    .lesson-list {
-      max-width: 500px;
-      margin: 0 auto;
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    }
-    .lesson-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 15px;
-    }
-    .lesson-item button {
-      margin-left: 5px;
-      padding: 5px 10px;
-      font-size: 14px;
-      border-radius: 6px;
-      border: none;
-      cursor: pointer;
-    }
-    .attend {
-      background-color: #28a745;
-      color: white;
-    }
-    .absent {
-      background-color: #dc3545;
-      color: white;
-    }
-  </style>
-</head>
-<body>
+<style>
+body {
+  background-color: #f5f5f5;
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 20px;
+}
 
-  <div class="header">
-    <h1>More Than Fitness</h1>
-  </div>
+.login-container {
+  max-width: 400px;
+  margin: 100px auto;
+  padding: 20px;
+  background: white;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  border-radius: 10px;
+  text-align: center;
+}
 
-  <div class="menu">
-    <button>회원 관리</button>
-    <button>스케줄 관리</button>
-    <button onclick="logout()">로그아웃</button>
-  </div>
+.login-container input {
+  width: 80%;
+  padding: 10px;
+  margin: 10px 0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
 
-  <div class="lesson-list">
-    <h2>오늘 레슨</h2>
-    <div class="lesson-item">
-      김철수 (10:00)
-      <div>
-        <button class="attend">출석</button>
-        <button class="absent">결석</button>
-      </div>
-    </div>
-    <div class="lesson-item">
-      이영희 (11:00)
-      <div>
-        <button class="attend">출석</button>
-        <button class="absent">결석</button>
-      </div>
-    </div>
-  </div>
+.login-container button {
+  background-color: #007bff; /* 파란색 */
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+}
 
-<script>
-  
-  function login() {
-  const username = document.getElementById('username').value;
-  const password = document.getElementById('password').value;
-  if (username === 'admin' && password === '1234') {
-    window.location.href = '/dashboard'; // <-- 여기!
-  } else {
-    document.getElementById('error-message').innerText = '아이디 또는 비밀번호가 올바르지 않습니다.';
-  }
-  }
-
-  function logout() {
-    alert('로그아웃되었습니다!');
-    window.location.href = '/';
-  }
-</script>
-      
-</body>
-</html>
+.login-container button:hover {
+  background-color: #0056b3; /* 진한 파란색 */
+}
+</style>
