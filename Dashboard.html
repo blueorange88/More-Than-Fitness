@@ -1,0 +1,21 @@
+<body>
+  <div class="login-card">
+    <h1>More Than Fitness</h1>
+    <input type="text" id="username" placeholder="아이디">
+    <input type="password" id="password" placeholder="비밀번호">
+    <button onclick="login()">로그인</button>
+    <div id="error-message" class="error"></div>
+  </div>
+
+  <script>
+    function login() {
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      if (username === 'admin' && password === '1234') {
+        window.location.href = '/dashboard.html';
+      } else {
+        document.getElementById('error-message').innerText = '아이디 또는 비밀번호가 올바르지 않습니다.';
+      }
+    }
+  </script>
+</body>
