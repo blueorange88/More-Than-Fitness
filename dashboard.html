@@ -3,129 +3,53 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>More Than Fitness - Dashboard</title>
+  <title>주간 시간표</title>
   <style>
-    /* (네가 쓴 CSS는 그대로 잘 유지) */
-    body {
-      background-color: #f5f5f5;
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 20px;
-    }
-    .header {
-      text-align: center;
-      margin-bottom: 30px;
-    }
-    .header h1 {
-      color: #007BFF;
-    }
-    .menu {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin-bottom: 30px;
-    }
-    .menu button {
-      padding: 10px 20px;
-      font-size: 16px;
-      background-color: #007BFF;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    .menu button:hover {
-      background-color: #0056b3;
-    }
-    .lesson-list {
-      max-width: 500px;
-      margin: 0 auto;
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-      margin-bottom: 30px;
-    }
-    .lesson-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 15px;
-    }
-    .lesson-item button {
-      margin-left: 5px;
-      padding: 5px 10px;
-      font-size: 14px;
-      border-radius: 6px;
-      border: none;
-      cursor: pointer;
-    }
-    .attend {
-      background-color: #28a745;
-      color: white;
-    }
-    .absent {
-      background-color: #dc3545;
-      color: white;
-    }
     .schedule {
-      max-width: 700px;
-      margin: 0 auto;
+      width: 100%;
+      max-width: 1000px;
+      margin: 30px auto;
       background: white;
       padding: 20px;
       border-radius: 12px;
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
-    .schedule table {
+    table {
       width: 100%;
       border-collapse: collapse;
     }
-    .schedule th, .schedule td {
-      border: 1px solid #ddd;
-      padding: 12px;
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
       text-align: center;
+      min-width: 100px;
     }
-    .schedule th {
+    th {
       background-color: #007BFF;
       color: white;
+    }
+    td {
+      background-color: #f9f9f9;
+      cursor: pointer;
+    }
+    td:focus {
+      outline: 2px solid #007BFF;
+      background-color: #e0f0ff;
+    }
+    .time-cell {
+      background-color: #f1f1f1;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
 
-  <div class="header">
-    <h1>More Than Fitness</h1>
-  </div>
-
-  <div class="menu">
-    <button>회원 관리</button>
-    <button>스케줄 관리</button>
-    <button onclick="logout()">로그아웃</button>
-  </div>
-
-  <div class="lesson-list">
-    <h2>오늘 레슨</h2>
-    <div class="lesson-item">
-      김철수 (10:00)
-      <div>
-        <button class="attend">출석</button>
-        <button class="absent">결석</button>
-      </div>
-    </div>
-    <div class="lesson-item">
-      이영희 (11:00)
-      <div>
-        <button class="attend">출석</button>
-        <button class="absent">결석</button>
-      </div>
-    </div>
-  </div>
-
 <div class="schedule">
-  <h2>주간 시간표</h2>
-  <table>
+  <h2 style="text-align:center; color:#007BFF;">주간 시간표</h2>
+  <table id="scheduleTable">
     <thead>
       <tr>
+        <th>시간</th>
         <th>월</th>
         <th>화</th>
         <th>수</th>
@@ -136,15 +60,40 @@
       </tr>
     </thead>
     <tbody>
-      <tr>
-        <td>PT (10:00)</td>
-        <td>필라테스 (11:00)</td>
-        <td>골프 (10:00)</td>
-        <td>-</td>
-        <td>PT (9:00)</td>
-        <td>휴무</td>
-        <td>휴무</td>
-      </tr>
+      <!-- 자바스크립트로 10분단위 시간 생성 -->
     </tbody>
   </table>
 </div>
+
+<script>
+  const tbody = document.querySelector('#scheduleTable tbody');
+  const startHour = 6;  // 시작시간 6:00
+  const endHour = 23;   // 종료시간 23:00
+  const interval = 10;  // 10분 간격
+
+  for (let h = startHour; h <= endHour; h++) {
+    for (let m = 0; m < 60; m += interval) {
+      const row = document.createElement('tr');
+
+      // 시간 셀
+      const timeCell = document.createElement('td');
+      const hour = String(h).padStart(2, '0');
+      const minute = String(m).padStart(2, '0');
+      timeCell.textContent = `${hour}:${minute}`;
+      timeCell.className = 'time-cell';
+      row.appendChild(timeCell);
+
+      // 요일 셀 (월~일)
+      for (let i = 0; i < 7; i++) {
+        const cell = document.createElement('td');
+        cell.setAttribute('contenteditable', 'true');  // 클릭해서 수정 가능
+        row.appendChild(cell);
+      }
+
+      tbody.appendChild(row);
+    }
+  }
+</script>
+
+</body>
+</html>
