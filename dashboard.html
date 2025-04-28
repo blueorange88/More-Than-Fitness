@@ -3,26 +3,83 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>주간 시간표</title>
+  <title>More Than Fitness - Dashboard</title>
   <style>
-    .schedule {
-      width: 100%;
-      max-width: 1000px;
-      margin: 30px auto;
+    body {
+      background-color: #f5f5f5;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .header h1 {
+      color: #007BFF;
+    }
+    .menu {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .menu button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .menu button:hover {
+      background-color: #0056b3;
+    }
+    .today-lessons {
+      max-width: 600px;
+      margin: 0 auto 20px auto;
       background: white;
       padding: 20px;
       border-radius: 12px;
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
+    .today-lessons h2 {
+      margin-bottom: 10px;
+      color: #007BFF;
+    }
+    .today-lessons ul {
+      list-style: none;
+      padding: 0;
+    }
+    .today-lessons li {
+      margin-bottom: 8px;
+      font-size: 16px;
+    }
+    .schedule {
+      max-width: 1000px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .schedule h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #007BFF;
+      cursor: pointer;
+    }
     table {
       width: 100%;
       border-collapse: collapse;
+      font-size: 14px;
     }
     th, td {
       border: 1px solid #ccc;
       padding: 8px;
       text-align: center;
-      min-width: 100px;
+      min-width: 80px;
     }
     th {
       background-color: #007BFF;
@@ -39,61 +96,133 @@
     .time-cell {
       background-color: #f1f1f1;
       font-weight: bold;
+      cursor: default;
+    }
+
+    /* 모바일 최적화 */
+    @media (max-width: 768px) {
+      .menu {
+        flex-direction: column;
+        gap: 5px;
+      }
+      table, thead, tbody, th, td, tr {
+        font-size: 12px;
+      }
     }
   </style>
 </head>
 <body>
 
-<div class="schedule">
-  <h2 style="text-align:center; color:#007BFF;">주간 시간표</h2>
-  <table id="scheduleTable">
-    <thead>
-      <tr>
-        <th>시간</th>
-        <th>월</th>
-        <th>화</th>
-        <th>수</th>
-        <th>목</th>
-        <th>금</th>
-        <th>토</th>
-        <th>일</th>
-      </tr>
-    </thead>
-    <tbody>
-      <!-- 자바스크립트로 10분단위 시간 생성 -->
-    </tbody>
-  </table>
-</div>
+  <div class="header">
+    <h1>More Than Fitness</h1>
+  </div>
 
-<script>
-  const tbody = document.querySelector('#scheduleTable tbody');
-  const startHour = 6;  // 시작시간 6:00
-  const endHour = 23;   // 종료시간 23:00
-  const interval = 10;  // 10분 간격
+  <div class="menu">
+    <button>회원 관리</button>
+    <button>스케줄 관리</button>
+    <button onclick="logout()">로그아웃</button>
+  </div>
 
-  for (let h = startHour; h <= endHour; h++) {
-    for (let m = 0; m < 60; m += interval) {
+  <!-- 오늘 레슨 -->
+  <div class="today-lessons">
+    <h2>오늘 레슨</h2>
+    <ul id="todayLessonList">
+      <!-- 여기 자동으로 2개 표시 -->
+    </ul>
+  </div>
+
+  <!-- 주간 시간표 -->
+  <div class="schedule">
+    <h2 id="scheduleTitle" contenteditable="true">주간 시간표</h2>
+    <table id="scheduleTable">
+      <thead>
+        <tr>
+          <th>시간</th>
+          <th>월</th>
+          <th>화</th>
+          <th>수</th>
+          <th>목</th>
+          <th>금</th>
+          <th>토</th>
+          <th>일</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- 시간표 자동 생성 -->
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    function logout() {
+      alert('로그아웃되었습니다!');
+      window.location.href = '/login.html';
+    }
+
+    // 시간표 생성
+    const tbody = document.querySelector('#scheduleTable tbody');
+    const startHour = 6;
+    const endHour = 22;
+
+    for (let h = startHour; h <= endHour; h++) {
       const row = document.createElement('tr');
 
       // 시간 셀
       const timeCell = document.createElement('td');
-      const hour = String(h).padStart(2, '0');
-      const minute = String(m).padStart(2, '0');
-      timeCell.textContent = `${hour}:${minute}`;
+      timeCell.textContent = `${h}:00`;
       timeCell.className = 'time-cell';
       row.appendChild(timeCell);
 
-      // 요일 셀 (월~일)
+      // 요일 셀
       for (let i = 0; i < 7; i++) {
         const cell = document.createElement('td');
-        cell.setAttribute('contenteditable', 'true');  // 클릭해서 수정 가능
+        cell.setAttribute('contenteditable', 'true');
         row.appendChild(cell);
       }
 
       tbody.appendChild(row);
     }
-  }
-</script>
+
+    // 오늘 레슨 자동 표시
+    const lessons = [
+      { time: "11:00", name: "박은경" },
+      { time: "12:00", name: "장기철" },
+      { time: "15:00", name: "김서연" },
+      { time: "17:00", name: "이준호" }
+    ];
+
+    function updateTodayLessons() {
+      const now = new Date();
+      const currentMinutes = now.getHours() * 60 + now.getMinutes();
+      
+      // 현재시간 이후의 레슨만 뽑기
+      const upcomingLessons = lessons
+        .map(l => ({
+          ...l,
+          totalMinutes: parseInt(l.time.split(":")[0]) * 60 + parseInt(l.time.split(":")[1])
+        }))
+        .filter(l => l.totalMinutes >= currentMinutes)
+        .sort((a, b) => a.totalMinutes - b.totalMinutes)
+        .slice(0, 2);
+
+      const lessonList = document.getElementById('todayLessonList');
+      lessonList.innerHTML = '';
+
+      if (upcomingLessons.length > 0) {
+        upcomingLessons.forEach(l => {
+          const li = document.createElement('li');
+          li.textContent = `${l.time} ${l.name}`;
+          lessonList.appendChild(li);
+        });
+      } else {
+        const li = document.createElement('li');
+        li.textContent = '오늘 예정된 레슨이 없습니다.';
+        lessonList.appendChild(li);
+      }
+    }
+
+    updateTodayLessons();
+  </script>
 
 </body>
 </html>
