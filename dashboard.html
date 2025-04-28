@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>More Than Fitness - Dashboard</title>
   <style>
+    /* (네가 쓴 CSS는 그대로 잘 유지) */
     body {
       background-color: #f5f5f5;
       font-family: Arial, sans-serif;
@@ -43,6 +44,7 @@
       padding: 20px;
       border-radius: 12px;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      margin-bottom: 30px;
     }
     .lesson-item {
       display: flex;
@@ -64,6 +66,27 @@
     }
     .absent {
       background-color: #dc3545;
+      color: white;
+    }
+    .schedule {
+      max-width: 700px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .schedule table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .schedule th, .schedule td {
+      border: 1px solid #ddd;
+      padding: 12px;
+      text-align: center;
+    }
+    .schedule th {
+      background-color: #007BFF;
       color: white;
     }
   </style>
@@ -98,12 +121,43 @@
     </div>
   </div>
 
-    <script>
-  function logout() {
-    alert('로그아웃되었습니다!');
-    window.location.href = '/login.html';
-  }
-</script>
+  <!-- 여기부터 주간 시간표 -->
+  <div class="schedule">
+    <h2>주간 시간표</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>요일</th>
+          <th>시간</th>
+          <th>수업 내용</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>월요일</td>
+          <td>10:00</td>
+          <td>퍼스널 트레이닝 (김철수)</td>
+        </tr>
+        <tr>
+          <td>화요일</td>
+          <td>11:00</td>
+          <td>필라테스 (이영희)</td>
+        </tr>
+        <tr>
+          <td>수요일</td>
+          <td>10:00</td>
+          <td>골프 트레이닝 (박민수)</td>
+        </tr>
+        <!-- 나머지 요일 추가 가능 -->
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    function logout() {
+      alert('로그아웃되었습니다!');
+      window.location.href = '/login.html';
+    }
   </script>
 
 </body>
