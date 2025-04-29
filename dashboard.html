@@ -222,13 +222,17 @@ th {
     <option value="40">40분</option>
     <option value="50">50분</option>
   </select>
+ <div class="button-group">
   <button onclick="saveMinute()">저장</button>
   <button onclick="closePopup()">취소</button>
+</div>
 </div><div class="popup" id="popup">
   <h3>이름 입력</h3>
   <input type="text" id="nameInput" placeholder="이름 입력">
+ <div class="button-group">
   <button onclick="saveLesson()">저장</button>
   <button onclick="closePopup()">취소</button>
+</div>
 </div><script>
 let currentCell = null;
 
