@@ -1,228 +1,94 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>More Than Fitness - Dashboard</title>
   <style>
     body {
-      background-color: #f5f5f5;
-      font-family: Arial, sans-serif;
       margin: 0;
-      padding: 20px;
-    }
-    .header {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    .header h1 {
-      color: #007BFF;
-    }
-    .menu {
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
       display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin-bottom: 20px;
     }
-    .menu button {
-      padding: 10px 20px;
-      font-size: 16px;
+    .sidebar {
+      width: 200px;
       background-color: #007BFF;
+      height: 100vh;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      padding: 20px 10px;
+    }
+    .sidebar button {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 16px;
+      margin: 10px 0;
+      cursor: pointer;
+      text-align: left;
+    }
+    .topbar {
+      position: fixed;
+      top: 0;
+      left: 200px;
+      right: 0;
+      height: 60px;
+      background-color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      z-index: 100;
+    }
+    .topbar h1 {
+      color: #007BFF;
+      font-size: 20px;
+    }
+    .logout-btn {
+      background-color: #dc3545;
       color: white;
       border: none;
+      padding: 8px 16px;
       border-radius: 6px;
       cursor: pointer;
     }
-    .menu button:hover {
-      background-color: #0056b3;
-    }
-    .today-lessons {
-      max-width: 600px;
-      margin: 0 auto 20px auto;
-      background: white;
+    .main {
+      margin-left: 200px;
+      margin-top: 80px;
       padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      width: calc(100% - 200px);
     }
-    .today-lessons h2 {
-      margin-bottom: 10px;
-      color: #007BFF;
-    }
-    .today-lessons ul {
-      list-style: none;
-      padding: 0;
-    }
-    .today-lessons li {
-      margin-bottom: 8px;
-      font-size: 16px;
-    }
-    .schedule {
-      max-width: 1000px;
-      margin: 0 auto;
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-    .schedule h2 {
-      text-align: center;
-      margin-bottom: 20px;
-      color: #007BFF;
-      cursor: pointer;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 14px;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 8px;
-      text-align: center;
-      min-width: 80px;
-    }
-    th {
-      background-color: #007BFF;
-      color: white;
-    }
-    td {
-      background-color: #f9f9f9;
-      cursor: pointer;
-    }
-    td:focus {
-      outline: 2px solid #007BFF;
-      background-color: #e0f0ff;
-    }
-    .time-cell {
-      background-color: #f1f1f1;
-      font-weight: bold;
-      cursor: default;
-    }
-
-    /* 모바일 최적화 */
     @media (max-width: 768px) {
-      .menu {
-        flex-direction: column;
-        gap: 5px;
+      .sidebar {
+        display: none;
       }
-      table, thead, tbody, th, td, tr {
-        font-size: 12px;
+      .topbar {
+        left: 0;
+      }
+      .main {
+        margin-left: 0;
       }
     }
   </style>
 </head>
 <body>
-
-  <div class="header">
-    <h1>More Than Fitness</h1>
-  </div>
-
-  <div class="menu">
+  <div class="sidebar">
     <button>회원 관리</button>
     <button>스케줄 관리</button>
-    <button onclick="logout()">로그아웃</button>
   </div>
-
-  <!-- 오늘 레슨 -->
-  <div class="today-lessons">
-    <h2>오늘 레슨</h2>
-    <ul id="todayLessonList">
-      <!-- 여기 자동으로 2개 표시 -->
-    </ul>
+  <div class="topbar">
+    <h1>More Than Fitness</h1>
+    <button class="logout-btn" onclick="logout()">로그아웃</button>
   </div>
-
-  <!-- 주간 시간표 -->
-  <div class="schedule">
-    <h2 id="scheduleTitle" contenteditable="true">주간 시간표</h2>
-    <table id="scheduleTable">
-      <thead>
-        <tr>
-          <th>시간</th>
-          <th>월</th>
-          <th>화</th>
-          <th>수</th>
-          <th>목</th>
-          <th>금</th>
-          <th>토</th>
-          <th>일</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- 시간표 자동 생성 -->
-      </tbody>
-    </table>
-  </div>
-
-  <script>
+  <div class="main">
+    <!-- 여기에 오늘 레슨, 시간표, 팝업 등 기존 콘텐츠 넣으면 됨 -->
+    <p>여기에 오늘 레슨, 주간 시간표 등이 들어갈 자리입니다.</p>
+  </div>  <script>
     function logout() {
-      alert('로그아웃되었습니다!');
-      window.location.href = '/login.html';
+      alert("로그아웃되었습니다!");
+      window.location.href = "/login.html";
     }
-
-    // 시간표 생성
-    const tbody = document.querySelector('#scheduleTable tbody');
-    const startHour = 6;
-    const endHour = 22;
-
-    for (let h = startHour; h <= endHour; h++) {
-      const row = document.createElement('tr');
-
-      // 시간 셀
-      const timeCell = document.createElement('td');
-      timeCell.textContent = `${h}:00`;
-      timeCell.className = 'time-cell';
-      row.appendChild(timeCell);
-
-      // 요일 셀
-      for (let i = 0; i < 7; i++) {
-        const cell = document.createElement('td');
-        cell.setAttribute('contenteditable', 'true');
-        row.appendChild(cell);
-      }
-
-      tbody.appendChild(row);
-    }
-
-    // 오늘 레슨 자동 표시
-    const lessons = [
-      { time: "11:00", name: "박은경" },
-      { time: "12:00", name: "장기철" },
-      { time: "15:00", name: "김서연" },
-      { time: "17:00", name: "이준호" }
-    ];
-
-    function updateTodayLessons() {
-      const now = new Date();
-      const currentMinutes = now.getHours() * 60 + now.getMinutes();
-      
-      // 현재시간 이후의 레슨만 뽑기
-      const upcomingLessons = lessons
-        .map(l => ({
-          ...l,
-          totalMinutes: parseInt(l.time.split(":")[0]) * 60 + parseInt(l.time.split(":")[1])
-        }))
-        .filter(l => l.totalMinutes >= currentMinutes)
-        .sort((a, b) => a.totalMinutes - b.totalMinutes)
-        .slice(0, 2);
-
-      const lessonList = document.getElementById('todayLessonList');
-      lessonList.innerHTML = '';
-
-      if (upcomingLessons.length > 0) {
-        upcomingLessons.forEach(l => {
-          const li = document.createElement('li');
-          li.textContent = `${l.time} ${l.name}`;
-          lessonList.appendChild(li);
-        });
-      } else {
-        const li = document.createElement('li');
-        li.textContent = '오늘 예정된 레슨이 없습니다.';
-        lessonList.appendChild(li);
-      }
-    }
-
-    updateTodayLessons();
-  </script>
-
-</body>
+  </script></body>
 </html>
