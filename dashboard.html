@@ -257,6 +257,7 @@ function openTimePopup(cell) {
 
 function openPopup(e) {
   currentCell = e.target;
+  document.getElementById('nameInput').value = '';  //
   document.getElementById('popup').style.display = 'flex';
   document.getElementById('overlay').style.display = 'block';
 }
