@@ -1,149 +1,108 @@
-<!DOCTYPE html><html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>More Than Fitness - Dashboard</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background-color: #f5f5f5;
-      display: flex;
+<!-- 기존 <head> 섹션까지 유지됨 --></head>
+<body>
+  <div class="sidebar">
+    <button>회원 관리</button>
+    <button>스케줄 관리</button>
+  </div>
+  <div class="topbar">
+    <h1>More Than Fitness</h1>
+    <button class="logout-btn" onclick="logout()">로그아웃</button>
+  </div>
+  <div class="main">
+    <div class="schedule">
+      <h2 contenteditable="true">주간 시간표</h2>
+      <table id="scheduleTable">
+        <thead>
+          <tr>
+            <th>시간</th>
+            <th>월</th>
+            <th>화</th>
+            <th>수</th>
+            <th>목</th>
+            <th>금</th>
+            <th>토</th>
+            <th>일</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>  <!-- 팝업 및 오버레이 -->  <div class="overlay" id="overlay"></div>
+  <div class="popup-time" id="popupTime">
+    <h3>세부 시간 선택</h3>
+    <select id="minuteSelect">
+      <option value="10">10분</option>
+      <option value="20">20분</option>
+      <option value="30">30분</option>
+      <option value="40">40분</option>
+      <option value="50">50분</option>
+    </select>
+    <button onclick="saveMinute()">저장</button>
+    <button onclick="closePopup()">취소</button>
+  </div>
+  <div class="popup" id="popup">
+    <h3>회차 및 이름 입력</h3>
+    <input type="text" id="nameInput" placeholder="이름 입력">
+    <button onclick="saveLesson()">저장</button>
+    <button onclick="closePopup()">취소</button>
+  </div>  <script>
+    let currentCell = null;
+
+    function logout() {
+      alert("로그아웃되었습니다!");
+      window.location.href = "/login.html";
     }
-    .sidebar {
-      width: 200px;
-      background-color: #007BFF;
-      height: 100vh;
-      color: white;
-      display: flex;
-      flex-direction: column;
-      padding: 20px 10px;
-      position: fixed;
-      top: 0;
-      left: 0;
-    }
-    .sidebar button {
-      background: none;
-      border: none;
-      color: white;
-      font-size: 16px;
-      margin: 10px 0;
-      cursor: pointer;
-      text-align: left;
-    }
-    .topbar {
-      position: fixed;
-      top: 0;
-      left: 200px;
-      right: 0;
-      height: 60px;
-      background-color: white;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0 20px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      z-index: 100;
-    }
-    .topbar h1 {
-      color: #007BFF;
-      font-size: 20px;
-    }
-    .logout-btn {
-      background-color: #dc3545;
-      color: white;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    .main {
-      margin-top: 80px;
-      margin-left: 200px;
-      padding: 20px;
-      width: calc(100% - 200px);
-      overflow-x: auto;
-    }
-    .schedule {
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      min-width: 800px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 14px;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 8px;
-      text-align: center;
-      cursor: pointer;
-    }
-    th {
-      background-color: #007BFF;
-      color: white;
-    }
-    td {
-      background-color: #f9f9f9;
-    }
-    .time-cell {
-      background-color: #f1f1f1;
-      font-weight: bold;
-    }
-    .popup, .popup-time {
-      display: none;
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-      z-index: 1000;
-    }
-    .popup input, .popup select, .popup-time select {
-      margin-bottom: 10px;
-      padding: 8px;
-      width: 100%;
-      font-size: 16px;
-      border-radius: 4px;
-      border: 1px solid #ccc;
-    }
-    .popup button, .popup-time button {
-      padding: 10px 20px;
-      background-color: #007BFF;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    .popup button:hover, .popup-time button:hover {
-      background-color: #0056b3;
-    }
-    .overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.5);
-      display: none;
-      z-index: 999;
-    }
-    @media (max-width: 768px) {
-      .sidebar {
-        display: none;
+
+    // 시간표 생성
+    const tbody = document.querySelector('#scheduleTable tbody');
+    const startHour = 6;
+    const endHour = 22;
+
+    for (let h = startHour; h <= endHour; h++) {
+      const row = document.createElement('tr');
+      const timeCell = document.createElement('td');
+      timeCell.textContent = `${h}:00`;
+      timeCell.className = 'time-cell';
+      timeCell.onclick = () => openTimePopup(timeCell);
+      row.appendChild(timeCell);
+
+      for (let i = 0; i < 7; i++) {
+        const cell = document.createElement('td');
+        cell.onclick = (e) => openPopup(e);
+        row.appendChild(cell);
       }
-      .topbar {
-        left: 0;
-      }
-      .main {
-        margin-left: 0;
-      }
+      tbody.appendChild(row);
     }
-  </style>
-</head>
+
+    function openTimePopup(cell) {
+      currentCell = cell;
+      document.getElementById('popupTime').style.display = 'block';
+      document.getElementById('overlay').style.display = 'block';
+    }
+
+    function saveMinute() {
+      const minute = document.getElementById('minuteSelect').value;
+      currentCell.textContent = `${currentCell.textContent.split(':')[0]}:${minute}`;
+      closePopup();
+    }
+
+    function openPopup(e) {
+      currentCell = e.target;
+      document.getElementById('popup').style.display = 'block';
+      document.getElementById('overlay').style.display = 'block';
+    }
+
+    function saveLesson() {
+      const name = document.getElementById('nameInput').value;
+      currentCell.textContent = `19/30 ${name}`;
+      closePopup();
+    }
+
+    function closePopup() {
+      document.getElementById('popup').style.display = 'none';
+      document.getElementById('popupTime').style.display = 'none';
+      document.getElementById('overlay').style.display = 'none';
+      document.getElementById('nameInput').value = '';
+    }
+  </script></body>
+</html>
