@@ -163,7 +163,7 @@
     <button>상품 구매</button>
   </div>
 
-  <<div class="topbar">
+  <div class="topbar">
   <button class="hamburger" id="hamburger">&#9776;</button>
   <h1>More Than Fitness</h1>
   <button class="logout-btn" onclick="logout()">로그아웃</button>
@@ -228,13 +228,21 @@
     // 시간표 자동 생성
     const tbody = document.querySelector('#scheduleTable tbody');
     for (let h = 6; h <= 22; h++) {
-      const row = document.createElement('tr');
-      const timeCell = document.createElement('td');
-      timeCell.textContent = `${h}:00`;
-      timeCell.className = 'time-cell';
-      timeCell.onclick = () => openTimePopup(timeCell);
-      row.appendChild(timeCell);
-    }
+  const row = document.createElement('tr');
+  const timeCell = document.createElement('td');
+  timeCell.textContent = `${h}:00`;
+  timeCell.className = 'time-cell';
+  timeCell.onclick = () => openTimePopup(timeCell);
+  row.appendChild(timeCell);
+
+  for (let i = 0; i < 7; i++) {
+    const cell = document.createElement('td');
+    cell.onclick = (e) => openPopup(e);
+    row.appendChild(cell);
+  }
+
+  tbody.appendChild(row);
+}
 
     function openTimePopup(cell) {
       currentCell = cell;
@@ -306,8 +314,6 @@
         lessonList.appendChild(li);
       });
     }
-
-  <script>
     // 여기! 햄버거 버튼 관련 자바스크립트 추가
     const sidebar = document.getElementById('sidebar');
     const hamburger = document.getElementById('hamburger');
@@ -316,4 +322,5 @@
       sidebar.classList.toggle('active');
     });
   </script>
+</body>
 </html>
