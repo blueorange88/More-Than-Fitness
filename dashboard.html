@@ -89,11 +89,27 @@
       cursor: pointer;
     }
     @media (max-width: 768px) {
-      .sidebar { display: none; }
-      .topbar { left: 0; }
-      .main { margin-left: 0; }
-      table { font-size: 10px; }
-      th, td { padding: 4px; }
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+  .sidebar.active {
+    transform: translateX(0);
+  }
+  .hamburger {
+    display: block;
+    background: none;
+    border: none;
+    color: #007BFF;
+    font-size: 26px;
+    cursor: pointer;
+  }
+  .topbar {
+    left: 0;
+  }
+  .main {
+    margin-left: 0;
+  }
     }
     .popup, .popup-time {
       display: none;
@@ -296,6 +312,15 @@
         lessonList.appendChild(li);
       });
     }
+
+  <script>
+    // 여기! 햄버거 버튼 관련 자바스크립트 추가
+    const sidebar = document.getElementById('sidebar');
+    const hamburger = document.getElementById('hamburger');
+
+    hamburger.addEventListener('click', () => {
+      sidebar.classList.toggle('active');
+    });
   </script>
 
 </body>
