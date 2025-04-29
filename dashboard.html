@@ -6,71 +6,27 @@
   <style>
     * { box-sizing: border-box; }
     body { margin: 0; font-family: Arial, sans-serif; background-color: #f5f5f5; }
-    .sidebar {
-      position: fixed; top: 0; left: 0; bottom: 0;
-      width: 200px; background-color: #007BFF;
-      color: white; padding: 20px 10px;
-      display: flex; flex-direction: column;
-    }
-    .sidebar button {
-      background: none; border: none;
-      color: white; font-size: 16px;
-      margin: 10px 0; text-align: left;
-      cursor: pointer;
-    }
-    .topbar {
-      position: fixed; top: 0; left: 200px; right: 0;
-      height: 60px; background: white;
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 0 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      z-index: 10;
-    }
+    .sidebar { position: fixed; top: 0; left: 0; bottom: 0; width: 200px; background-color: #007BFF; color: white; padding: 20px 10px; display: flex; flex-direction: column; }
+    .sidebar button { background: none; border: none; color: white; font-size: 16px; margin: 10px 0; text-align: left; cursor: pointer; }
+    .topbar { position: fixed; top: 0; left: 200px; right: 0; height: 60px; background: white; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 10; }
     .topbar h1 { font-size: 20px; color: #007BFF; }
-    .logout-btn {
-      background-color: #dc3545; color: white;
-      border: none; padding: 8px 16px;
-      border-radius: 6px; cursor: pointer;
-    }
-    .main {
-      margin-left: 200px; margin-top: 80px;
-      padding: 20px; overflow-x: auto;
-    }
-    .schedule { min-width: 800px; background: white; padding: 20px; border-radius: 12px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-    table { width: 100%; border-collapse: collapse; }
-    th, td {
-      border: 1px solid #ccc; padding: 8px; text-align: center;
-      min-width: 80px; cursor: pointer;
-    }
+    .logout-btn { background-color: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
+    .main { margin-left: 200px; margin-top: 80px; padding: 20px; overflow-x: auto; }
+    .today-lessons { margin-bottom: 20px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+    .today-lessons h2 { margin-top: 0; color: #007BFF; }
+    .today-lessons ul { list-style: none; padding: 0; }
+    .today-lessons li { margin-bottom: 8px; font-size: 16px; }
+    .schedule { min-width: 800px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { border: 1px solid #ccc; padding: 6px; text-align: center; min-width: 80px; cursor: pointer; }
     th { background-color: #007BFF; color: white; }
-    .time-cell { background-color: #f1f1f1; font-weight: bold; cursor: pointer; }.popup, .popup-time {
-  display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-  background: white; padding: 20px; border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.3); z-index: 1001;
-}
-.popup input, .popup-time select {
-  width: 100%; padding: 8px; margin-bottom: 10px;
-  font-size: 16px; border-radius: 4px; border: 1px solid #ccc;
-}
-.popup button, .popup-time button {
-  padding: 8px 16px; margin-right: 10px;
-  background-color: #007BFF; color: white;
-  border: none; border-radius: 4px; cursor: pointer;
-}
-.popup button:hover, .popup-time button:hover {
-  background-color: #0056b3;
-}
-.overlay {
-  display: none; position: fixed; top: 0; left: 0;
-  width: 100%; height: 100%;
-  background-color: rgba(0,0,0,0.5); z-index: 1000;
-}
-@media (max-width: 768px) {
-  .sidebar { display: none; }
-  .topbar { left: 0; }
-  .main { margin-left: 0; }
-}
-
+    .time-cell { background-color: #f1f1f1; font-weight: bold; cursor: pointer; }
+    .popup, .popup-time { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); z-index: 1001; width: 300px; max-width: 90%; }
+    .popup input, .popup-time select { width: 100%; padding: 8px; margin-bottom: 10px; font-size: 16px; border-radius: 4px; border: 1px solid #ccc; }
+    .popup button, .popup-time button { padding: 8px 16px; margin-right: 10px; background-color: #007BFF; color: white; border: none; border-radius: 4px; cursor: pointer; }
+    .popup button:hover, .popup-time button:hover { background-color: #0056b3; }
+    .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000; }
+    @media (max-width: 768px) { .sidebar { display: none; } .topbar { left: 0; } .main { margin-left: 0; } }
   </style>
 </head>
 <body>
@@ -83,6 +39,10 @@
     <button class="logout-btn" onclick="logout()">로그아웃</button>
   </div>
   <div class="main">
+    <div class="today-lessons">
+      <h2>오늘 레슨</h2>
+      <ul id="todayLessonList"></ul>
+    </div>
     <div class="schedule">
       <h2 contenteditable="true">주간 시간표</h2>
       <table id="scheduleTable">
@@ -113,16 +73,13 @@
     <button onclick="saveMinute()">저장</button>
     <button onclick="closePopup()">취소</button>
   </div>  <div class="popup" id="popup">
-    <h3>회차 및 이름 입력</h3>
+    <h3>이름 입력</h3>
     <input type="text" id="nameInput" placeholder="이름 입력">
     <button onclick="saveLesson()">저장</button>
     <button onclick="closePopup()">취소</button>
   </div>  <script>
     let currentCell = null;
-    function logout() {
-      alert("로그아웃되었습니다!");
-      window.location.href = "/login.html";
-    }
+    function logout() { alert("로그아웃되었습니다!"); window.location.href = "/login.html"; }
 
     const tbody = document.querySelector('#scheduleTable tbody');
     for (let h = 6; h <= 22; h++) {
@@ -162,9 +119,10 @@
     function saveLesson() {
       const name = document.getElementById('nameInput').value;
       if (name.trim() !== '') {
-        currentCell.textContent = `19/30 ${name}`;
+        currentCell.textContent = `${name} 19/30`;
       }
       closePopup();
+      updateTodayLessons();
     }
 
     function closePopup() {
@@ -172,6 +130,41 @@
       document.getElementById('popupTime').style.display = 'none';
       document.getElementById('overlay').style.display = 'none';
       document.getElementById('nameInput').value = '';
+    }
+
+    function updateTodayLessons() {
+      const cells = Array.from(document.querySelectorAll('#scheduleTable td'));
+      const lessons = [];
+
+      cells.forEach(cell => {
+        const text = cell.textContent.trim();
+        if (text.includes(':') && text.includes('19/30')) {
+          const parts = text.split(' ');
+          if (parts.length >= 2) {
+            lessons.push({
+              time: parts[0],
+              name: parts[1]
+            });
+          }
+        }
+      });
+
+      const now = new Date();
+      const currentMinutes = now.getHours() * 60 + now.getMinutes();
+      const upcomingLessons = lessons.map(l => ({
+        ...l,
+        totalMinutes: parseInt(l.time.split(':')[0]) * 60 + parseInt(l.time.split(':')[1])
+      })).filter(l => l.totalMinutes >= currentMinutes)
+        .sort((a, b) => a.totalMinutes - b.totalMinutes)
+        .slice(0, 2);
+
+      const lessonList = document.getElementById('todayLessonList');
+      lessonList.innerHTML = '';
+      upcomingLessons.forEach(l => {
+        const li = document.createElement('li');
+        li.textContent = `${l.time} ${l.name} 19/30`;
+        lessonList.appendChild(li);
+      });
     }
   </script></body>
 </html>
