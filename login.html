@@ -109,14 +109,20 @@
 
   <div class="footer-text">- BEYOND LIMITED -</div>
 
-  <script>
+ <script>
   function login(event) {
-    event.preventDefault();  // 폼 기본 제출 막고
-    // 로그인 처리 (지금은 그냥 바로 이동)
-    window.location.href = "/dashboard.html";  // 로그인 성공 시 이동할 페이지
+    event.preventDefault();
+    
+    const id = document.querySelector('input[type="text"]').value;
+    const pw = document.querySelector('input[type="password"]').value;
+
+    if (id === "admin" && pw === "1234") {
+      window.location.href = "/dashboard.html"; 
+    } else {
+      alert("아이디 또는 비밀번호가 잘못되었습니다.");
+    }
     return false;
   }
 </script>
-
 </body>
 </html>
