@@ -101,13 +101,22 @@
     <h2>MOVEMENT STUDIO</h2>
   </div>
 
-  <form class="login-form">
+  <form class="login-form" onsubmit="return login(event)">
     <input type="text" placeholder="아이디를 입력하세요" />
     <input type="password" placeholder="비밀번호를 입력하세요" />
     <button type="submit">로그인</button>
   </form>
 
   <div class="footer-text">- BEYOND LIMITED -</div>
+
+  <script>
+  function login(event) {
+    event.preventDefault();  // 폼 기본 제출 막고
+    // 로그인 처리 (지금은 그냥 바로 이동)
+    window.location.href = "/dashboard.html";  // 로그인 성공 시 이동할 페이지
+    return false;
+  }
+</script>
 
 </body>
 </html>
