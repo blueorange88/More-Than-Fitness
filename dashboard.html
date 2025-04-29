@@ -101,7 +101,7 @@
     background: none;
     border: none;
     color: #007BFF;
-    font-size: 26px;
+    font-size: 26px;    
     cursor: pointer;
   }
   .topbar {
@@ -234,13 +234,6 @@
       timeCell.className = 'time-cell';
       timeCell.onclick = () => openTimePopup(timeCell);
       row.appendChild(timeCell);
-
-      for (let i = 0; i < 7; i++) {
-        const cell = document.createElement('td');
-        cell.onclick = (e) => openPopup(e);
-        row.appendChild(cell);
-      }
-      tbody.appendChild(row);
     }
 
     function openTimePopup(cell) {
