@@ -258,7 +258,18 @@ function openTimePopup(cell) {
 
 function openPopup(e) {
   currentCell = e.target;
-  document.getElementById('nameInput').value = '';  //
+
+  // 기존 셀에 값이 있으면 input에 채워주기
+  const text = currentCell.textContent.trim();
+  if (text.includes('19/30')) {
+    const parts = text.split(' ');
+    if (parts.length >= 2) {
+      document.getElementById('nameInput').value = parts[1]; // 이름만 추출해서 넣기
+    }
+  } else {
+    document.getElementById('nameInput').value = ''; // 새 셀이면 비우기
+  }
+
   document.getElementById('popup').style.display = 'flex';
   document.getElementById('overlay').style.display = 'block';
 }
@@ -303,6 +314,23 @@ function updateTodayLessons() {
   const lessons = [];
   const now = new Date();
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+function deleteLesson() {
+  if (!currentCell) return;
+
+  const time = currentCell.parentElement.firstChild.textContent;
+  const dayIndex = currentCell.cellIndex;
+
+  // localStorage에서 해당 셀 제거
+  const saved = JSON.parse(localStorage.getItem('scheduleData')) || [];
+  const updated = saved.filter(l => !(l.time === time && l.dayIndex === dayIndex));
+  localStorage.setItem('scheduleData', JSON.stringify(updated));
+
+  // 셀 비우기
+  currentCell.textContent = '';
+  closePopup();
+  updateTodayLessons();
+  }
 
   cells.forEach(cell => {
     const text = cell.textContent.trim();
