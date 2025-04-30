@@ -2,10 +2,37 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
   <title>More Than Fitness - Dashboard</title>
   <style>
-    /* ... 기존 CSS 그대로 ... */
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{display:flex;flex-direction:column;height:100vh;font-family:'Poppins',sans-serif;background:#f5f0e8;overflow:hidden}
+    .topbar{position:fixed;top:0;left:0;right:0;height:50px;background:#f5f0e8;display:flex;align-items:center;justify-content:space-between;padding:0 15px;box-shadow:0 2px 4px rgba(0,0,0,0.1);z-index:1001}
+    .topbar h1{font-size:18px;color:#0d1b2a}
+    .hamburger,.logout-btn{background:none;border:none;cursor:pointer;font-size:20px;color:#0d1b2a}
+    .sidebar{position:fixed;top:50px;left:0;bottom:0;width:180px;background:#0d1b2a;color:#fff;padding:15px;transform:translateX(-100%);transition:transform .3s ease;z-index:1002}
+    .sidebar.active{transform:translateX(0)}
+    .sidebar button{background:none;border:none;color:#fff;width:100%;text-align:left;margin:8px 0;cursor:pointer;font-size:14px}
+    .main{margin-top:50px;flex:1;overflow-y:auto;padding:8px}
+    @media(min-width:769px){.main{margin-left:180px}}
+    .today-lessons{background:#fff;padding:8px;border-radius:6px;box-shadow:0 2px 4px rgba(0,0,0,0.1);margin-bottom:8px}
+    .today-lessons h2{font-size:16px;color:#0d1b2a;margin-bottom:4px}
+    .section-title{margin:8px 0 4px;font-size:14px;color:#0d1b2a}
+    .schedule-wrapper{background:#fff;padding:8px;border-radius:6px;box-shadow:0 2px 4px rgba(0,0,0,0.1);margin-bottom:16px;overflow-x:auto}
+    table{width:100%;border-collapse:collapse;font-size:12px}
+    th,td{border:1px solid #ccc;padding:4px;text-align:center;min-width:50px;position:relative}
+    th{background:#0d1b2a;color:#fff}
+    th:first-child{background:#0d3b5a;cursor:pointer}
+    .time-cell{background:#f1f1f1;cursor:pointer}
+    .current-time-line{position:absolute;left:0;right:0;height:2px;background:#FF3B30;animation:pulse 5s ease-in-out infinite}
+    @keyframes pulse{0%,100%{opacity:0.4}50%{opacity:1}}
+    .overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000}
+    .popup{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:16px;border-radius:6px;z-index:1001;width:240px;max-width:90%;max-height:80vh;overflow-y:auto}
+    .button-group{display:flex;justify-content:space-between;margin-top:8px}
+    .button-group button{width:48%;padding:6px;background:#f5f0e8;border:none;border-radius:4px;cursor:pointer}
+    .bottom-nav{display:flex;position:fixed;bottom:0;left:0;right:0;background:#0d1b2a;justify-content:space-around;padding:8px 0}
+    .bottom-nav button{background:none;border:none;color:#fff;font-size:14px;cursor:pointer}
+    .main{padding-bottom:60px}
   </style>
 </head>
 <body>
@@ -14,9 +41,15 @@
     <h1>More Than Fitness</h1>
     <button class="logout-btn" id="btnLogout">로그아웃</button>
   </div>
+
   <div class="sidebar" id="sidebar">
-    <!-- 사이드바 버튼들 -->
+    <button>내 정보 관리</button>
+    <button>회원 관리</button>
+    <button>스케줄 관리</button>
+    <button>기록 관리</button>
+    <button>상품 구매</button>
   </div>
+
   <div class="main">
     <div class="today-lessons">
       <h2>오늘 다음 레슨</h2>
@@ -36,23 +69,41 @@
       </table>
     </div>
 
-    <!-- 다음 주, 지난 주 스케줄 테이블들 -->
+    <div class="section-title" contenteditable>다음 주 스케줄</div>
+    <div class="schedule-wrapper">
+      <table id="scheduleTableNext">
+        <thead>
+          <tr><th>시간</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th><th>일</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="section-title" contenteditable>지난 주 스케줄</div>
+    <div class="schedule-wrapper">
+      <table id="scheduleTableLast">
+        <thead>
+          <tr><th>시간</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th><th>일</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
   </div>
 
   <div class="overlay" id="overlay"></div>
 
-  <!-- 전체 범위 설정 팝업 -->
+  <!-- 전체 시간 범위 설정 팝업 -->
   <div class="popup" id="popupRange">
     <h3>시간 범위 설정</h3>
     <label>시작: <input type="time" id="rangeStart" value="06:00"></label><br>
-    <label>종료: <input type="time" id="rangeEnd"   value="12:00"></label>
+    <label>종료: <input type="time" id="rangeEnd" value="22:00"></label>
     <div class="button-group">
       <button onclick="applyRangeCurr()">적용</button>
       <button onclick="closePopup()">취소</button>
     </div>
   </div>
 
-  <!-- 분 선택 팝업 -->
+  <!-- 분 단위 설정 팝업 -->
   <div class="popup" id="popupMinute">
     <h3>분 단위 설정</h3>
     <select id="minuteSelect">
@@ -65,29 +116,59 @@
     </div>
   </div>
 
-  <!-- 레슨 정보 팝업 -->
+  <!-- 레슨 정보 입력 팝업 -->
   <div class="popup" id="popupLesson">
-    <!-- ... -->
+    <h3>레슨 정보</h3>
+    <input id="nameInput" placeholder="이름" style="width:100%;margin:8px 0;padding:6px"/>
+    <input id="enrolledInput" type="number" placeholder="참여" style="width:48%"/>
+    <input id="capacityInput" type="number" placeholder="정원" style="width:48%"/>
+    <div class="button-group">
+      <button onclick="saveLesson()">저장</button>
+      <button onclick="deleteLesson()">삭제</button>
+    </div>
+  </div>
+
+  <div class="bottom-nav">
+    <button id="btnHome">홈</button>
+    <button>스케줄</button>
+    <button>회원</button>
   </div>
 
   <script>
-    let currentCell = null,
-        scheduleStart = 6,
-        scheduleEnd   = 22;
+    let currentCell = null, scheduleStart = 6, scheduleEnd = 22;
     const overlay = document.getElementById('overlay');
 
+    // 햄버거 열기/닫기
+    document.getElementById('hamburger').onclick = () => {
+      const sb = document.getElementById('sidebar');
+      sb.classList.toggle('active');
+      overlay.style.display = sb.classList.contains('active') ? 'block' : 'none';
+    };
+    overlay.onclick = () => { document.getElementById('sidebar').classList.remove('active'); closePopup(); };
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') { document.getElementById('sidebar').classList.remove('active'); closePopup(); }
+    });
+    document.getElementById('btnHome').onclick = () => window.scrollTo({top:0,behavior:'smooth'});
+    document.getElementById('btnLogout').onclick = () => {
+      alert('로그아웃되었습니다!');
+      window.location.href = '/login.html';
+    };
+
+    document.addEventListener('DOMContentLoaded', init);
+
     function init() {
-      buildCurr();
-      buildNext();
-      buildLast();
+      buildCurr(); buildNext(); buildLast();
       loadCurr();
       highlightToday();
       updateToday();
       initTimeLine();
       setInterval(updateTimeLine, 60000);
+      // “시간” 헤더 클릭 리스너
+      document.getElementById('headerCurr').onclick = openRangeCurr;
     }
 
-    // 1) 이번 주 테이블 생성
+    /* === 테이블 생성 === */
     function buildCurr() {
       const tb = document.querySelector('#scheduleTableCurr tbody');
       tb.innerHTML = '';
@@ -98,7 +179,7 @@
         c0.className = 'time-cell';
         c0.onclick = () => openMinute(c0);
         r.append(c0);
-        for (let i = 0; i < 7; i++) {
+        for (let i=0; i<7; i++) {
           const c = document.createElement('td');
           c.onclick = () => openLesson(c);
           r.append(c);
@@ -106,51 +187,143 @@
         tb.append(r);
       }
     }
-    // buildNext, buildLast, loadCurr, openMinute, saveMinute, openLesson, saveLesson, deleteLesson,
-    // updateToday, initTimeLine, updateTimeLine, highlightToday 등 기존 함수들은 그대로 둡니다.
-
-    // → 여기서부터 팝업 관련 추가 함수
-
-    // 2) 전체 범위 설정 팝업 열기
-    function openRangeCurr() {
-      currentCell = null;
-      document.getElementById('popupRange').style.display = 'block';
-      overlay.style.display = 'block';
+    function buildNext() {
+      const tb = document.querySelector('#scheduleTableNext tbody');
+      tb.innerHTML='';
+      for(let h=scheduleStart;h<scheduleEnd;h++){
+        const r=document.createElement('tr');
+        r.append(Object.assign(document.createElement('td'),{textContent:`${h}:00`}));
+        for(let i=0;i<7;i++) r.append(document.createElement('td'));
+        tb.append(r);
+      }
+    }
+    function buildLast() {
+      const tb = document.querySelector('#scheduleTableLast tbody');
+      tb.innerHTML='';
+      for(let h=scheduleStart;h<scheduleEnd;h++){
+        const r=document.createElement('tr');
+        r.append(Object.assign(document.createElement('td'),{textContent:`${h}:00`}));
+        for(let i=0;i<7;i++) r.append(document.createElement('td'));
+        tb.append(r);
+      }
     }
 
-    // 3) 범위 적용
+    /* === 전체 시간 범위 설정 === */
+    function openRangeCurr() {
+      currentCell = null;
+      document.getElementById('rangeStart').value = String(scheduleStart).padStart(2,'0')+':00';
+      document.getElementById('rangeEnd').value   = String(scheduleEnd).padStart(2,'0')+':00';
+      document.getElementById('popupRange').style.display='block';
+      overlay.style.display='block';
+    }
     function applyRangeCurr() {
-      const startH = parseInt(document.getElementById('rangeStart').value.split(':')[0], 10);
-      const endH   = parseInt(document.getElementById('rangeEnd').value.split(':')[0],   10);
-      scheduleStart = startH;
-      scheduleEnd   = endH;
-      // 테이블 재생성
-      buildCurr();
-      loadCurr();
-      highlightToday();
-      updateToday();
-      initTimeLine();
+      const [sH] = document.getElementById('rangeStart').value.split(':');
+      const [eH] = document.getElementById('rangeEnd').value.split(':');
+      scheduleStart = parseInt(sH,10);
+      scheduleEnd   = parseInt(eH,10);
+      buildCurr(); loadCurr(); highlightToday(); updateToday(); initTimeLine();
       closePopup();
     }
 
-    // 4) 모든 팝업 닫기
-    function closePopup() {
-      document.querySelectorAll('.popup').forEach(p => p.style.display = 'none');
-      overlay.style.display = 'none';
+    /* === 분 단위 설정 === */
+    function openMinute(cell) {
+      currentCell = cell;
+      document.getElementById('popupMinute').style.display='block';
+      overlay.style.display='block';
+    }
+    function saveMinute() {
+      const m = document.getElementById('minuteSelect').value;
+      const h = currentCell.textContent.split(':')[0];
+      currentCell.textContent = `${h}:${m}`;
+      closePopup(); updateToday(); updateTimeLine();
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      init();
+    /* === 레슨 입력/삭제 === */
+    function openLesson(c) {
+      currentCell = c;
+      const d = c.dataset.info ? JSON.parse(c.dataset.info) : {};
+      document.getElementById('nameInput').value = d.name||'';
+      document.getElementById('enrolledInput').value = d.enrolled||'';
+      document.getElementById('capacityInput').value = d.cap||'';
+      document.getElementById('popupLesson').style.display='block'; overlay.style.display='block';
+    }
+    function saveLesson() {
+      const name = document.getElementById('nameInput').value;
+      const enrolled = +document.getElementById('enrolledInput').value||0;
+      const cap = +document.getElementById('capacityInput').value||0;
+      const time = currentCell.parentElement.firstChild.textContent, di = currentCell.cellIndex;
+      const obj = {name,enrolled,cap,time,di};
+      currentCell.textContent = `${time}\n${name} (${enrolled}/${cap})`;
+      currentCell.dataset.info = JSON.stringify(obj);
+      let arr = JSON.parse(localStorage.getItem('scheduleData')||'[]');
+      arr = arr.filter(x=>!(x.time===time&&x.di===di));
+      arr.push(obj);
+      localStorage.setItem('scheduleData', JSON.stringify(arr));
+      closePopup(); updateToday(); updateTimeLine();
+    }
+    function deleteLesson() {
+      if(!currentCell) return;
+      const info = currentCell.dataset.info ? JSON.parse(currentCell.dataset.info) : null;
+      if(info){
+        let arr = JSON.parse(localStorage.getItem('scheduleData')||'[]');
+        arr = arr.filter(x=>!(x.time===info.time&&x.di===info.di));
+        localStorage.setItem('scheduleData', JSON.stringify(arr));
+      }
+      currentCell.innerHTML = ''; delete currentCell.dataset.info;
+      closePopup(); updateToday(); updateTimeLine();
+    }
 
-      // “시간” 헤더 클릭 시 범위 설정 팝업
-      document.getElementById('headerCurr').onclick = openRangeCurr;
+    /* === 팝업 닫기 === */
+    function closePopup() {
+      document.querySelectorAll('.popup').forEach(p=>p.style.display='none');
+      overlay.style.display='none';
+    }
 
-      // 로그아웃
-      document.getElementById('btnLogout').onclick = () => {
-        alert('로그아웃되었습니다!');
-        window.location.href = location.origin + '/login.html';
-      };
-    });
+    /* === 오늘 레슨 목록 갱신 === */
+    function updateToday() {
+      const now=new Date(), nv=now.getHours()*60+now.getMinutes();
+      const list=[];
+      document.querySelectorAll('#scheduleTableCurr td').forEach(c=>{
+        if(c.dataset.info){
+          const v=JSON.parse(c.dataset.info), [h,m]=v.time.split(':').map(Number);
+          const t = h*60+m;
+          if(t>=nv) list.push({t,text:`${v.time} ${v.name} (${v.enrolled}/${v.cap})`});
+        }
+      });
+      list.sort((a,b)=>a.t-b.t);
+      const ul=document.getElementById('todayLessonList');
+      ul.innerHTML='';
+      list.slice(0,2).forEach(i=>{
+        const li=document.createElement('li');
+        li.textContent=i.text;
+        ul.append(li);
+      });
+    }
+
+    /* === 현재 시간선 === */
+    function initTimeLine(){ updateTimeLine(); }
+    function updateTimeLine(){
+      document.querySelectorAll('.current-time-line').forEach(e=>e.remove());
+      const now=new Date(), di=now.getDay(), nv=now.getHours()*60+now.getMinutes();
+      document.querySelectorAll('#scheduleTableCurr tbody tr').forEach(r=>{
+        const [hh,mm]=r.firstChild.textContent.split(':').map(Number);
+        const rowTime=hh*60+(mm||0), next=rowTime+60;
+        if(nv>=rowTime&&nv<next){
+          const pct=(nv-rowTime)/60*100;
+          const line=document.createElement('div');
+          line.className='current-time-line';
+          line.style.top=`${pct}%`;
+          r.children[di].append(line);
+        }
+      });
+    }
+
+    /* === 오늘 열 강조 === */
+    function highlightToday(){ 
+      const di=new Date().getDay();
+      document.querySelectorAll('#scheduleTableCurr th')[di].style.backgroundColor='#d4af37';
+      document.querySelectorAll('#scheduleTableCurr th')[di].style.color='#0d1b2a';
+    }
   </script>
 </body>
 </html>
