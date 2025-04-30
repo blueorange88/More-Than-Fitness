@@ -309,28 +309,61 @@ function closePopup() {
   document.getElementById('overlay').style.display = 'none';
 }
 
-function updateTodayLessons() {
-  const cells = Array.from(document.querySelectorAll('#scheduleTable td'));
-  const lessons = [];
-  const now = new Date();
-  const currentMinutes = now.getHours() * 60 + now.getMinutes();
-
 function deleteLesson() {
   if (!currentCell) return;
 
   const time = currentCell.parentElement.firstChild.textContent;
   const dayIndex = currentCell.cellIndex;
 
-  // localStorage에서 해당 셀 제거
   const saved = JSON.parse(localStorage.getItem('scheduleData')) || [];
   const updated = saved.filter(l => !(l.time === time && l.dayIndex === dayIndex));
   localStorage.setItem('scheduleData', JSON.stringify(updated));
 
-  // 셀 비우기
   currentCell.textContent = '';
   closePopup();
   updateTodayLessons();
-  }
+}
+
+function updateTodayLessons() {
+  const cells = Array.from(document.querySelectorAll('#scheduleTable td'));
+  const lessons = [];
+  const now = new Date();
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+  cells.forEach(cell => {
+    const text = cell.textContent.trim();
+    cell.style.opacity = "1";
+
+    if (text.includes('19/30')) {
+      const parts = text.split(' ');
+      if (parts.length >= 2) {
+        const timeParts = parts[0].split(':');
+        const totalMinutes = parseInt(timeParts[0]) * 60 + parseInt(timeParts[1]);
+
+        if (totalMinutes < currentMinutes) {
+          cell.style.opacity = "0.4";
+        }
+
+        lessons.push({ time: parts[0], name: parts[1] });
+      }
+    }
+  });
+
+  const upcomingLessons = lessons.map(l => ({
+    ...l,
+    totalMinutes: parseInt(l.time.split(':')[0]) * 60 + parseInt(l.time.split(':')[1])
+  })).filter(l => l.totalMinutes >= currentMinutes)
+    .sort((a, b) => a.totalMinutes - b.totalMinutes)
+    .slice(0, 2);
+
+  const lessonList = document.getElementById('todayLessonList');
+  lessonList.innerHTML = '';
+  upcomingLessons.forEach(l => {
+    const li = document.createElement('li');
+    li.textContent = `${l.time} ${l.name} 19/30`;
+    lessonList.appendChild(li);
+  });
+}
 
   cells.forEach(cell => {
     const text = cell.textContent.trim();
@@ -350,6 +383,1292 @@ function deleteLesson() {
       }
     }
   });
+
+  const upcomingLessons = lessons.map(l => ({
+    ...l,
+    totalMinutes: parseInt(l.time.split(':')[0]) * 60 + parseInt(l.time.split(':')[1])
+  })).filter(l => l.totalMinutes >= currentMinutes)
+    .sort((a, b) => a.totalMinutes - b.totalMinutes)
+    .slice(0, 2);
+
+  const lessonList = document.getElementById('todayLessonList');
+  lessonList.innerHTML = '';
+  upcomingLessons.forEach(l => {
+    const li = document.createElement('li');
+    li.textContent = `${l.time} ${l.name} 19/30`;
+    lessonList.appendChild(li);
+  });
+}
+
+   window.addEventListener('DOMContentLoaded', () => {
+  const saved = JSON.parse(localStorage.getItem('scheduleData')) || [];
+  saved.forEach(data => {
+    const rows = document.querySelectorAll('#scheduleTable tbody tr');
+    const row = Array.from(rows).find(r => r.firstChild.textContent === data.time);
+    if (row) row.children[data.dayIndex].textContent = data.content;
+  });
+
+  // 
+  updateTodayLessons(); // 
+});
+
+    const today = new Date().getDay(); // 일:0 ~ 토:6
+const headers = document.querySelectorAll('#scheduleTable th');
+
+if (headers[today]) {
+  headers[today].style.backgroundColor = '#d4af37'; // 골드 배경
+  headers[today].style.color = '#0d1b2a'; // 딥네이비 글씨
+}
+    
+const sidebar = document.getElementById('sidebar');
+const hamburger = document.getElementById('hamburger');
+hamburger.addEventListener('click', () => {
+  sidebar.classList.toggle('active');
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closePopup();
+});
+
+  </script>
+</body>
+</html>
+<!DOCTYPE html><html lang="ko"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>More Than Fitness - Dashboard</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: #f5f0e8;
+      font-family: 'Poppins', 'Pretendard', sans-serif;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }.sidebar {
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  width: 200px;
+  background-color: #0d1b2a;
+  color: white;
+  padding: 20px 10px;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s ease;
+}
+.sidebar button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 16px;
+  margin: 10px 0;
+  text-align: left;
+  cursor: pointer;
+}
+.sidebar.hidden { transform: translateX(-100%); }
+
+.topbar {
+  position: fixed;
+  top: 0; left: 200px; right: 0;
+  height: 60px;
+  background: #f5f0e8;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  z-index: 10;
+}
+.topbar h1 {
+  color: #0d1b2a;
+  font-size: 20px;
+}
+.hamburger {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 26px;
+  cursor: pointer;
+  color: #0d1b2a;
+}
+.logout-btn {
+  background: none;
+  border: none;
+  color: #0d1b2a;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.main {
+  margin-top: 80px;
+  margin-left: 200px;
+  padding: 20px;
+  flex: 1;
+  overflow-x: auto;
+}
+
+.today-lessons, .schedule {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+}
+
+.today-lessons h2, .schedule h2 {
+  color: #0d1b2a;
+  margin-bottom: 10px;
+  font-size: 18px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+th, td {
+  border: 1px solid #ccc;
+  padding: 6px;
+  text-align: center;
+  min-width: 60px;
+}
+
+th {
+  background-color: #0d1b2a;
+  color: #f5f0e8;
+}
+
+.time-cell {
+  background: #f1f1f1;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.popup, .popup-time {
+  display: none; 
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  z-index: 1001;
+  width: 280px;
+  max-width: 90%;
+
+  flex-direction: column;
+  align-items: center;
+}
+
+.popup .button-group, .popup-time .button-group {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.popup button, .popup-time button {
+  width: 48%;
+  background: radial-gradient(circle, #f9f2d0 0%, #f5f0e8 70%, #f5f0e8 100%);
+  color: #0d1b2a;
+  border: none;
+  padding: 10px;
+  margin: 2px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5);
+  z-index: 1000;
+}
+
+@media (max-width: 768px) {
+  .sidebar { transform: translateX(-100%); }
+  .sidebar.active { transform: translateX(0); }
+  .hamburger { display: block; }
+  .topbar { left: 0; }
+  .main { overflow-x: auto; margin-left: 0; }
+  table { font-size: 10px; }
+  th, td { padding: 3px; min-width: 40px }
+}
+
+  </style>
+</head>
+<body>
+  <div class="sidebar" id="sidebar">
+    <button>내 정보 관리</button>
+    <button>회원 관리</button>
+    <button>스케줄 관리</button>
+    <button>운동 기록일지 관리</button>
+    <button>상품 구매</button>
+  </div>
+  <div class="topbar">
+    <button class="hamburger" id="hamburger">&#9776;</button>
+    <h1>MORE THAN FITNESS</h1>
+    <button class="logout-btn" onclick="logout()">로그아웃</button>
+  </div>
+  <div class="main">
+    <div class="today-lessons">
+      <h2>오늘 다음 레슨</h2>
+      <ul id="todayLessonList"></ul>
+    </div>
+    <div class="schedule">
+      <h2 contenteditable="true">주간 시간표</h2>
+      <table id="scheduleTable">
+        <thead>
+          <tr>
+            <th>시간</th>
+            <th>월</th>
+            <th>화</th>
+            <th>수</th>
+            <th>목</th>
+            <th>금</th>
+            <th>토</th>
+            <th>일</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="overlay" id="overlay" onclick="closePopup()"></div>
+  <div class="popup-time" id="popupTime">
+    <h3>세부 시간 선택</h3>
+    <select id="minuteSelect">
+      <option value="00">00분</option>
+      <option value="10">10분</option>
+      <option value="20">20분</option>
+      <option value="30">30분</option>
+      <option value="40">40분</option>
+      <option value="50">50분</option>
+    </select>
+    <div class="button-group">
+      <button onclick="saveMinute()">저장</button>
+      <button onclick="closePopup()">취소</button>
+    </div>
+  </div>
+  <div class="popup" id="popup">
+    <h3>이름 입력</h3>
+    <input type="text" id="nameInput" placeholder="이름 입력">
+    <div class="button-group">
+      <button onclick="saveLesson()">저장</button>
+      <button onclick="closePopup()">취소</button>
+      <button onclick="deleteLesson()" style="color: red;">삭제</button>
+    </div>
+  </div>
+  <script>
+    let currentCell = null;function logout() {
+  alert('로그아웃되었습니다!');
+  window.location.href = '/login.html';
+}
+
+const tbody = document.querySelector('#scheduleTable tbody');
+for (let h = 6; h <= 22; h++) {
+  const row = document.createElement('tr');
+  const timeCell = document.createElement('td');
+  timeCell.textContent = `${h}:00`;
+  timeCell.className = 'time-cell';
+  timeCell.onclick = () => openTimePopup(timeCell);
+  row.appendChild(timeCell);
+  for (let i = 0; i < 7; i++) {
+    const cell = document.createElement('td');
+    cell.onclick = (e) => openPopup(e);
+    row.appendChild(cell);
+  }
+  tbody.appendChild(row);
+}
+
+function openTimePopup(cell) {
+  currentCell = cell;
+  document.getElementById('popupTime').style.display = 'flex';
+  document.getElementById('overlay').style.display = 'block';
+}
+
+function openPopup(e) {
+  currentCell = e.target;
+
+  // 기존 셀에 값이 있으면 input에 채워주기
+  const text = currentCell.textContent.trim();
+  if (text.includes('19/30')) {
+    const parts = text.split(' ');
+    if (parts.length >= 2) {
+      document.getElementById('nameInput').value = parts[1]; // 이름만 추출해서 넣기
+    }
+  } else {
+    document.getElementById('nameInput').value = ''; // 새 셀이면 비우기
+  }
+
+  document.getElementById('popup').style.display = 'flex';
+  document.getElementById('overlay').style.display = 'block';
+}
+
+function saveMinute() {
+  const minute = document.getElementById('minuteSelect').value;
+  const hour = currentCell.textContent.split(':')[0];
+  currentCell.textContent = `${hour}:${minute}`;
+  closePopup();
+}
+
+function saveLesson() {
+  const name = document.getElementById('nameInput').value;
+  if (name.trim() !== '') {
+    const time = currentCell.parentElement.firstChild.textContent; // 시간 (ex: 8:00)
+    const dayIndex = currentCell.cellIndex; // 요일 인덱스
+    const lessonData = { time, dayIndex, content: `${name} 19/30` };
+
+    currentCell.textContent = lessonData.content;
+    saveToLocalStorage(lessonData);
+  }
+  closePopup();
+  updateTodayLessons();
+}
+
+function saveToLocalStorage(lessonData) {
+  const saved = JSON.parse(localStorage.getItem('scheduleData')) || [];
+  //
+  const updated = saved.filter(l => !(l.time === lessonData.time && l.dayIndex === lessonData.dayIndex));
+  updated.push(lessonData);
+  localStorage.setItem('scheduleData', JSON.stringify(updated));
+}
+
+function closePopup() {
+  document.getElementById('popup').style.display = 'none';
+  document.getElementById('popupTime').style.display = 'none';
+  document.getElementById('overlay').style.display = 'none';
+}
+
+function deleteLesson() {
+  if (!currentCell) return;
+
+  const time = currentCell.parentElement.firstChild.textContent;
+  const dayIndex = currentCell.cellIndex;
+
+  const saved = JSON.parse(localStorage.getItem('scheduleData')) || [];
+  const updated = saved.filter(l => !(l.time === time && l.dayIndex === dayIndex));
+  localStorage.setItem('scheduleData', JSON.stringify(updated));
+
+  currentCell.textContent = '';
+  closePopup();
+  updateTodayLessons();
+}
+
+function updateTodayLessons() {
+  const cells = Array.from(document.querySelectorAll('#scheduleTable td'));
+  const lessons = [];
+  const now = new Date();
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+  cells.forEach(cell => {
+    const text = cell.textContent.trim();
+    cell.style.opacity = "1";
+
+    if (text.includes('19/30')) {
+      const parts = text.split(' ');
+      if (parts.length >= 2) {
+        const timeParts = parts[0].split(':');
+        const totalMinutes = parseInt(timeParts[0]) * 60 + parseInt(timeParts[1]);
+
+        if (totalMinutes < currentMinutes) {
+          cell.style.opacity = "0.4";
+        }
+
+        lessons.push({ time: parts[0], name: parts[1] });
+      }
+    }
+  });
+
+  const upcomingLessons = lessons.map(l => ({
+    ...l,
+    totalMinutes: parseInt(l.time.split(':')[0]) * 60 + parseInt(l.time.split(':')[1])
+  })).filter(l => l.totalMinutes >= currentMinutes)
+    .sort((a, b) => a.totalMinutes - b.totalMinutes)
+    .slice(0, 2);
+
+  const lessonList = document.getElementById('todayLessonList');
+  lessonList.innerHTML = '';
+  upcomingLessons.forEach(l => {
+    const li = document.createElement('li');
+    li.textContent = `${l.time} ${l.name} 19/30`;
+    lessonList.appendChild(li);
+  });
+}
+
+  cells.forEach(cell => {
+    const text = cell.textContent.trim();
+    cell.style.opacity = "1"; // 항상 초기화
+
+    if (text.includes('19/30')) {
+      const parts = text.split(' ');
+      if (parts.length >= 2) {
+        const timeParts = parts[0].split(':');
+        const totalMinutes = parseInt(timeParts[0]) * 60 + parseInt(timeParts[1]);
+
+        if (totalMinutes < currentMinutes) {
+          cell.style.opacity = "0.4";  // 지난 레슨 흐리게
+        }
+
+        lessons.push({ time: parts[0], name: parts[1] });
+      }
+    }
+  });
+
+  const upcomingLessons = lessons.map(l => ({
+    ...l,
+    totalMinutes: parseInt(l.time.split(':')[0]) * 60 + parseInt(l.time.split(':')[1])
+  })).filter(l => l.totalMinutes >= currentMinutes)
+    .sort((a, b) => a.totalMinutes - b.totalMinutes)
+    .slice(0, 2);
+
+  const lessonList = document.getElementById('todayLessonList');
+  lessonList.innerHTML = '';
+  upcomingLessons.forEach(l => {
+    const li = document.createElement('li');
+    li.textContent = `${l.time} ${l.name} 19/30`;
+    lessonList.appendChild(li);
+  });
+}
+
+   window.addEventListener('DOMContentLoaded', () => {
+  const saved = JSON.parse(localStorage.getItem('scheduleData')) || [];
+  saved.forEach(data => {
+    const rows = document.querySelectorAll('#scheduleTable tbody tr');
+    const row = Array.from(rows).find(r => r.firstChild.textContent === data.time);
+    if (row) row.children[data.dayIndex].textContent = data.content;
+  });
+
+  // 
+  updateTodayLessons(); // 
+});
+
+    const today = new Date().getDay(); // 일:0 ~ 토:6
+const headers = document.querySelectorAll('#scheduleTable th');
+
+if (headers[today]) {
+  headers[today].style.backgroundColor = '#d4af37'; // 골드 배경
+  headers[today].style.color = '#0d1b2a'; // 딥네이비 글씨
+}
+    
+const sidebar = document.getElementById('sidebar');
+const hamburger = document.getElementById('hamburger');
+hamburger.addEventListener('click', () => {
+  sidebar.classList.toggle('active');
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closePopup();
+});
+
+  </script>
+</body>
+</html>
+<!DOCTYPE html><html lang="ko"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>More Than Fitness - Dashboard</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: #f5f0e8;
+      font-family: 'Poppins', 'Pretendard', sans-serif;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }.sidebar {
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  width: 200px;
+  background-color: #0d1b2a;
+  color: white;
+  padding: 20px 10px;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s ease;
+}
+.sidebar button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 16px;
+  margin: 10px 0;
+  text-align: left;
+  cursor: pointer;
+}
+.sidebar.hidden { transform: translateX(-100%); }
+
+.topbar {
+  position: fixed;
+  top: 0; left: 200px; right: 0;
+  height: 60px;
+  background: #f5f0e8;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  z-index: 10;
+}
+.topbar h1 {
+  color: #0d1b2a;
+  font-size: 20px;
+}
+.hamburger {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 26px;
+  cursor: pointer;
+  color: #0d1b2a;
+}
+.logout-btn {
+  background: none;
+  border: none;
+  color: #0d1b2a;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.main {
+  margin-top: 80px;
+  margin-left: 200px;
+  padding: 20px;
+  flex: 1;
+  overflow-x: auto;
+}
+
+.today-lessons, .schedule {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+}
+
+.today-lessons h2, .schedule h2 {
+  color: #0d1b2a;
+  margin-bottom: 10px;
+  font-size: 18px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+th, td {
+  border: 1px solid #ccc;
+  padding: 6px;
+  text-align: center;
+  min-width: 60px;
+}
+
+th {
+  background-color: #0d1b2a;
+  color: #f5f0e8;
+}
+
+.time-cell {
+  background: #f1f1f1;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.popup, .popup-time {
+  display: none; 
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  z-index: 1001;
+  width: 280px;
+  max-width: 90%;
+
+  flex-direction: column;
+  align-items: center;
+}
+
+.popup .button-group, .popup-time .button-group {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.popup button, .popup-time button {
+  width: 48%;
+  background: radial-gradient(circle, #f9f2d0 0%, #f5f0e8 70%, #f5f0e8 100%);
+  color: #0d1b2a;
+  border: none;
+  padding: 10px;
+  margin: 2px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5);
+  z-index: 1000;
+}
+
+@media (max-width: 768px) {
+  .sidebar { transform: translateX(-100%); }
+  .sidebar.active { transform: translateX(0); }
+  .hamburger { display: block; }
+  .topbar { left: 0; }
+  .main { overflow-x: auto; margin-left: 0; }
+  table { font-size: 10px; }
+  th, td { padding: 3px; min-width: 40px }
+}
+
+  </style>
+</head>
+<body>
+  <div class="sidebar" id="sidebar">
+    <button>내 정보 관리</button>
+    <button>회원 관리</button>
+    <button>스케줄 관리</button>
+    <button>운동 기록일지 관리</button>
+    <button>상품 구매</button>
+  </div>
+  <div class="topbar">
+    <button class="hamburger" id="hamburger">&#9776;</button>
+    <h1>MORE THAN FITNESS</h1>
+    <button class="logout-btn" onclick="logout()">로그아웃</button>
+  </div>
+  <div class="main">
+    <div class="today-lessons">
+      <h2>오늘 다음 레슨</h2>
+      <ul id="todayLessonList"></ul>
+    </div>
+    <div class="schedule">
+      <h2 contenteditable="true">주간 시간표</h2>
+      <table id="scheduleTable">
+        <thead>
+          <tr>
+            <th>시간</th>
+            <th>월</th>
+            <th>화</th>
+            <th>수</th>
+            <th>목</th>
+            <th>금</th>
+            <th>토</th>
+            <th>일</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="overlay" id="overlay" onclick="closePopup()"></div>
+  <div class="popup-time" id="popupTime">
+    <h3>세부 시간 선택</h3>
+    <select id="minuteSelect">
+      <option value="00">00분</option>
+      <option value="10">10분</option>
+      <option value="20">20분</option>
+      <option value="30">30분</option>
+      <option value="40">40분</option>
+      <option value="50">50분</option>
+    </select>
+    <div class="button-group">
+      <button onclick="saveMinute()">저장</button>
+      <button onclick="closePopup()">취소</button>
+    </div>
+  </div>
+  <div class="popup" id="popup">
+    <h3>이름 입력</h3>
+    <input type="text" id="nameInput" placeholder="이름 입력">
+    <div class="button-group">
+      <button onclick="saveLesson()">저장</button>
+      <button onclick="closePopup()">취소</button>
+      <button onclick="deleteLesson()" style="color: red;">삭제</button>
+    </div>
+  </div>
+  <script>
+    let currentCell = null;function logout() {
+  alert('로그아웃되었습니다!');
+  window.location.href = '/login.html';
+}
+
+const tbody = document.querySelector('#scheduleTable tbody');
+for (let h = 6; h <= 22; h++) {
+  const row = document.createElement('tr');
+  const timeCell = document.createElement('td');
+  timeCell.textContent = `${h}:00`;
+  timeCell.className = 'time-cell';
+  timeCell.onclick = () => openTimePopup(timeCell);
+  row.appendChild(timeCell);
+  for (let i = 0; i < 7; i++) {
+    const cell = document.createElement('td');
+    cell.onclick = (e) => openPopup(e);
+    row.appendChild(cell);
+  }
+  tbody.appendChild(row);
+}
+
+function openTimePopup(cell) {
+  currentCell = cell;
+  document.getElementById('popupTime').style.display = 'flex';
+  document.getElementById('overlay').style.display = 'block';
+}
+
+function openPopup(e) {
+  currentCell = e.target;
+
+  // 기존 셀에 값이 있으면 input에 채워주기
+  const text = currentCell.textContent.trim();
+  if (text.includes('19/30')) {
+    const parts = text.split(' ');
+    if (parts.length >= 2) {
+      document.getElementById('nameInput').value = parts[1]; // 이름만 추출해서 넣기
+    }
+  } else {
+    document.getElementById('nameInput').value = ''; // 새 셀이면 비우기
+  }
+
+  document.getElementById('popup').style.display = 'flex';
+  document.getElementById('overlay').style.display = 'block';
+}
+
+function saveMinute() {
+  const minute = document.getElementById('minuteSelect').value;
+  const hour = currentCell.textContent.split(':')[0];
+  currentCell.textContent = `${hour}:${minute}`;
+  closePopup();
+}
+
+function saveLesson() {
+  const name = document.getElementById('nameInput').value;
+  if (name.trim() !== '') {
+    const time = currentCell.parentElement.firstChild.textContent; // 시간 (ex: 8:00)
+    const dayIndex = currentCell.cellIndex; // 요일 인덱스
+    const lessonData = { time, dayIndex, content: `${name} 19/30` };
+
+    currentCell.textContent = lessonData.content;
+    saveToLocalStorage(lessonData);
+  }
+  closePopup();
+  updateTodayLessons();
+}
+
+function saveToLocalStorage(lessonData) {
+  const saved = JSON.parse(localStorage.getItem('scheduleData')) || [];
+  //
+  const updated = saved.filter(l => !(l.time === lessonData.time && l.dayIndex === lessonData.dayIndex));
+  updated.push(lessonData);
+  localStorage.setItem('scheduleData', JSON.stringify(updated));
+}
+
+function closePopup() {
+  document.getElementById('popup').style.display = 'none';
+  document.getElementById('popupTime').style.display = 'none';
+  document.getElementById('overlay').style.display = 'none';
+}
+
+function deleteLesson() {
+  if (!currentCell) return;
+
+  const time = currentCell.parentElement.firstChild.textContent;
+  const dayIndex = currentCell.cellIndex;
+
+  const saved = JSON.parse(localStorage.getItem('scheduleData')) || [];
+  const updated = saved.filter(l => !(l.time === time && l.dayIndex === dayIndex));
+  localStorage.setItem('scheduleData', JSON.stringify(updated));
+
+  currentCell.textContent = '';
+  closePopup();
+  updateTodayLessons();
+}
+
+function updateTodayLessons() {
+  const cells = Array.from(document.querySelectorAll('#scheduleTable td'));
+  const lessons = [];
+  const now = new Date();
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+  cells.forEach(cell => {
+    const text = cell.textContent.trim();
+    cell.style.opacity = "1";
+
+    if (text.includes('19/30')) {
+      const parts = text.split(' ');
+      if (parts.length >= 2) {
+        const timeParts = parts[0].split(':');
+        const totalMinutes = parseInt(timeParts[0]) * 60 + parseInt(timeParts[1]);
+
+        if (totalMinutes < currentMinutes) {
+          cell.style.opacity = "0.4";
+        }
+
+        lessons.push({ time: parts[0], name: parts[1] });
+      }
+    }
+  });
+
+  const upcomingLessons = lessons.map(l => ({
+    ...l,
+    totalMinutes: parseInt(l.time.split(':')[0]) * 60 + parseInt(l.time.split(':')[1])
+  })).filter(l => l.totalMinutes >= currentMinutes)
+    .sort((a, b) => a.totalMinutes - b.totalMinutes)
+    .slice(0, 2);
+
+  const lessonList = document.getElementById('todayLessonList');
+  lessonList.innerHTML = '';
+  upcomingLessons.forEach(l => {
+    const li = document.createElement('li');
+    li.textContent = `${l.time} ${l.name} 19/30`;
+    lessonList.appendChild(li);
+  });
+}
+
+  cells.forEach(cell => {
+    const text = cell.textContent.trim();
+    cell.style.opacity = "1"; // 항상 초기화
+
+    if (text.includes('19/30')) {
+      const parts = text.split(' ');
+      if (parts.length >= 2) {
+        const timeParts = parts[0].split(':');
+        const totalMinutes = parseInt(timeParts[0]) * 60 + parseInt(timeParts[1]);
+
+        if (totalMinutes < currentMinutes) {
+          cell.style.opacity = "0.4";  // 지난 레슨 흐리게
+        }
+
+        lessons.push({ time: parts[0], name: parts[1] });
+      }
+    }
+  });
+
+  const upcomingLessons = lessons.map(l => ({
+    ...l,
+    totalMinutes: parseInt(l.time.split(':')[0]) * 60 + parseInt(l.time.split(':')[1])
+  })).filter(l => l.totalMinutes >= currentMinutes)
+    .sort((a, b) => a.totalMinutes - b.totalMinutes)
+    .slice(0, 2);
+
+  const lessonList = document.getElementById('todayLessonList');
+  lessonList.innerHTML = '';
+  upcomingLessons.forEach(l => {
+    const li = document.createElement('li');
+    li.textContent = `${l.time} ${l.name} 19/30`;
+    lessonList.appendChild(li);
+  });
+}
+
+   window.addEventListener('DOMContentLoaded', () => {
+  const saved = JSON.parse(localStorage.getItem('scheduleData')) || [];
+  saved.forEach(data => {
+    const rows = document.querySelectorAll('#scheduleTable tbody tr');
+    const row = Array.from(rows).find(r => r.firstChild.textContent === data.time);
+    if (row) row.children[data.dayIndex].textContent = data.content;
+  });
+
+  // 
+  updateTodayLessons(); // 
+});
+
+    const today = new Date().getDay(); // 일:0 ~ 토:6
+const headers = document.querySelectorAll('#scheduleTable th');
+
+if (headers[today]) {
+  headers[today].style.backgroundColor = '#d4af37'; // 골드 배경
+  headers[today].style.color = '#0d1b2a'; // 딥네이비 글씨
+}
+    
+const sidebar = document.getElementById('sidebar');
+const hamburger = document.getElementById('hamburger');
+hamburger.addEventListener('click', () => {
+  sidebar.classList.toggle('active');
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closePopup();
+});
+
+  </script>
+</body>
+</html>
+<!DOCTYPE html><html lang="ko"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>More Than Fitness - Dashboard</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: #f5f0e8;
+      font-family: 'Poppins', 'Pretendard', sans-serif;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }.sidebar {
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  width: 200px;
+  background-color: #0d1b2a;
+  color: white;
+  padding: 20px 10px;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s ease;
+}
+.sidebar button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 16px;
+  margin: 10px 0;
+  text-align: left;
+  cursor: pointer;
+}
+.sidebar.hidden { transform: translateX(-100%); }
+
+.topbar {
+  position: fixed;
+  top: 0; left: 200px; right: 0;
+  height: 60px;
+  background: #f5f0e8;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  z-index: 10;
+}
+.topbar h1 {
+  color: #0d1b2a;
+  font-size: 20px;
+}
+.hamburger {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 26px;
+  cursor: pointer;
+  color: #0d1b2a;
+}
+.logout-btn {
+  background: none;
+  border: none;
+  color: #0d1b2a;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.main {
+  margin-top: 80px;
+  margin-left: 200px;
+  padding: 20px;
+  flex: 1;
+  overflow-x: auto;
+}
+
+.today-lessons, .schedule {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+}
+
+.today-lessons h2, .schedule h2 {
+  color: #0d1b2a;
+  margin-bottom: 10px;
+  font-size: 18px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+th, td {
+  border: 1px solid #ccc;
+  padding: 6px;
+  text-align: center;
+  min-width: 60px;
+}
+
+th {
+  background-color: #0d1b2a;
+  color: #f5f0e8;
+}
+
+.time-cell {
+  background: #f1f1f1;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.popup, .popup-time {
+  display: none; 
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  z-index: 1001;
+  width: 280px;
+  max-width: 90%;
+
+  flex-direction: column;
+  align-items: center;
+}
+
+.popup .button-group, .popup-time .button-group {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.popup button, .popup-time button {
+  width: 48%;
+  background: radial-gradient(circle, #f9f2d0 0%, #f5f0e8 70%, #f5f0e8 100%);
+  color: #0d1b2a;
+  border: none;
+  padding: 10px;
+  margin: 2px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5);
+  z-index: 1000;
+}
+
+@media (max-width: 768px) {
+  .sidebar { transform: translateX(-100%); }
+  .sidebar.active { transform: translateX(0); }
+  .hamburger { display: block; }
+  .topbar { left: 0; }
+  .main { overflow-x: auto; margin-left: 0; }
+  table { font-size: 10px; }
+  th, td { padding: 3px; min-width: 40px }
+}
+
+  </style>
+</head>
+<body>
+  <div class="sidebar" id="sidebar">
+    <button>내 정보 관리</button>
+    <button>회원 관리</button>
+    <button>스케줄 관리</button>
+    <button>운동 기록일지 관리</button>
+    <button>상품 구매</button>
+  </div>
+  <div class="topbar">
+    <button class="hamburger" id="hamburger">&#9776;</button>
+    <h1>MORE THAN FITNESS</h1>
+    <button class="logout-btn" onclick="logout()">로그아웃</button>
+  </div>
+  <div class="main">
+    <div class="today-lessons">
+      <h2>오늘 다음 레슨</h2>
+      <ul id="todayLessonList"></ul>
+    </div>
+    <div class="schedule">
+      <h2 contenteditable="true">주간 시간표</h2>
+      <table id="scheduleTable">
+        <thead>
+          <tr>
+            <th>시간</th>
+            <th>월</th>
+            <th>화</th>
+            <th>수</th>
+            <th>목</th>
+            <th>금</th>
+            <th>토</th>
+            <th>일</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="overlay" id="overlay" onclick="closePopup()"></div>
+  <div class="popup-time" id="popupTime">
+    <h3>세부 시간 선택</h3>
+    <select id="minuteSelect">
+      <option value="00">00분</option>
+      <option value="10">10분</option>
+      <option value="20">20분</option>
+      <option value="30">30분</option>
+      <option value="40">40분</option>
+      <option value="50">50분</option>
+    </select>
+    <div class="button-group">
+      <button onclick="saveMinute()">저장</button>
+      <button onclick="closePopup()">취소</button>
+    </div>
+  </div>
+  <div class="popup" id="popup">
+    <h3>이름 입력</h3>
+    <input type="text" id="nameInput" placeholder="이름 입력">
+    <div class="button-group">
+      <button onclick="saveLesson()">저장</button>
+      <button onclick="closePopup()">취소</button>
+      <button onclick="deleteLesson()" style="color: red;">삭제</button>
+    </div>
+  </div>
+  <script>
+    let currentCell = null;function logout() {
+  alert('로그아웃되었습니다!');
+  window.location.href = '/login.html';
+}
+
+const tbody = document.querySelector('#scheduleTable tbody');
+for (let h = 6; h <= 22; h++) {
+  const row = document.createElement('tr');
+  const timeCell = document.createElement('td');
+  timeCell.textContent = `${h}:00`;
+  timeCell.className = 'time-cell';
+  timeCell.onclick = () => openTimePopup(timeCell);
+  row.appendChild(timeCell);
+  for (let i = 0; i < 7; i++) {
+    const cell = document.createElement('td');
+    cell.onclick = (e) => openPopup(e);
+    row.appendChild(cell);
+  }
+  tbody.appendChild(row);
+}
+
+function openTimePopup(cell) {
+  currentCell = cell;
+  document.getElementById('popupTime').style.display = 'flex';
+  document.getElementById('overlay').style.display = 'block';
+}
+
+function openPopup(e) {
+  currentCell = e.target;
+
+  // 기존 셀에 값이 있으면 input에 채워주기
+  const text = currentCell.textContent.trim();
+  if (text.includes('19/30')) {
+    const parts = text.split(' ');
+    if (parts.length >= 2) {
+      document.getElementById('nameInput').value = parts[1]; // 이름만 추출해서 넣기
+    }
+  } else {
+    document.getElementById('nameInput').value = ''; // 새 셀이면 비우기
+  }
+
+  document.getElementById('popup').style.display = 'flex';
+  document.getElementById('overlay').style.display = 'block';
+}
+
+function saveMinute() {
+  const minute = document.getElementById('minuteSelect').value;
+  const hour = currentCell.textContent.split(':')[0];
+  currentCell.textContent = `${hour}:${minute}`;
+  closePopup();
+}
+
+function saveLesson() {
+  const name = document.getElementById('nameInput').value;
+  if (name.trim() !== '') {
+    const time = currentCell.parentElement.firstChild.textContent; // 시간 (ex: 8:00)
+    const dayIndex = currentCell.cellIndex; // 요일 인덱스
+    const lessonData = { time, dayIndex, content: `${name} 19/30` };
+
+    currentCell.textContent = lessonData.content;
+    saveToLocalStorage(lessonData);
+  }
+  closePopup();
+  updateTodayLessons();
+}
+
+function saveToLocalStorage(lessonData) {
+  const saved = JSON.parse(localStorage.getItem('scheduleData')) || [];
+  //
+  const updated = saved.filter(l => !(l.time === lessonData.time && l.dayIndex === lessonData.dayIndex));
+  updated.push(lessonData);
+  localStorage.setItem('scheduleData', JSON.stringify(updated));
+}
+
+function closePopup() {
+  document.getElementById('popup').style.display = 'none';
+  document.getElementById('popupTime').style.display = 'none';
+  document.getElementById('overlay').style.display = 'none';
+}
+
+function deleteLesson() {
+  if (!currentCell) return;
+
+  const time = currentCell.parentElement.firstChild.textContent;
+  const dayIndex = currentCell.cellIndex;
+
+  const saved = JSON.parse(localStorage.getItem('scheduleData')) || [];
+  const updated = saved.filter(l => !(l.time === time && l.dayIndex === dayIndex));
+  localStorage.setItem('scheduleData', JSON.stringify(updated));
+
+  currentCell.textContent = '';
+  closePopup();
+  updateTodayLessons();
+}
+
+function updateTodayLessons() {
+  const cells = Array.from(document.querySelectorAll('#scheduleTable td'));
+  const lessons = [];
+  const now = new Date();
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+  cells.forEach(cell => {
+    const text = cell.textContent.trim();
+    cell.style.opacity = "1";
+
+    if (text.includes('19/30')) {
+      const parts = text.split(' ');
+      if (parts.length >= 2) {
+        const timeParts = parts[0].split(':');
+        const totalMinutes = parseInt(timeParts[0]) * 60 + parseInt(timeParts[1]);
+
+        if (totalMinutes < currentMinutes) {
+          cell.style.opacity = "0.4";
+        }
+
+        lessons.push({ time: parts[0], name: parts[1] });
+      }
+    }
+  });
+
+  const upcomingLessons = lessons.map(l => ({
+    ...l,
+    totalMinutes: parseInt(l.time.split(':')[0]) * 60 + parseInt(l.time.split(':')[1])
+  })).filter(l => l.totalMinutes >= currentMinutes)
+    .sort((a, b) => a.totalMinutes - b.totalMinutes)
+    .slice(0, 2);
+
+  const lessonList = document.getElementById('todayLessonList');
+  lessonList.innerHTML = '';
+  upcomingLessons.forEach(l => {
+    const li = document.createElement('li');
+    li.textContent = `${l.time} ${l.name} 19/30`;
+    lessonList.appendChild(li);
+  });
+}
 
   const upcomingLessons = lessons.map(l => ({
     ...l,
