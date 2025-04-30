@@ -5,33 +5,31 @@
   <title>More Than Fitness - Dashboard</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { display: flex; flex-direction: column; height: 100vh; font-family: 'Poppins', 'Pretendard', sans-serif; background: #f5f0e8; }
+    body { display: flex; flex-direction: column; height: 100vh; font-family: 'Poppins', sans-serif; background: #f5f0e8; overflow: hidden; }
     .topbar { position: fixed; top: 0; left: 0; right: 0; height: 60px; background: #f5f0e8; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 1001; }
-    .topbar h1 { color: #0d1b2a; }
     .hamburger, .logout-btn { background: none; border: none; cursor: pointer; font-size: 24px; color: #0d1b2a; }
     .sidebar { position: fixed; top: 60px; left: 0; bottom: 0; width: 200px; background: #0d1b2a; color: white; padding: 20px; transform: translateX(-100%); transition: transform .3s ease; z-index: 1002; }
     .sidebar.active { transform: translateX(0); }
-    .sidebar button { background: none; border: none; color: white; width: 100%; text-align: left; margin: 10px 0; cursor: pointer; }
-    .main { margin-top: 60px; margin-left: 0; padding: 10px; overflow-y: auto; flex: 1; }
-    @media(min-width: 769px) { .main { margin-left: 200px; } }
+    .sidebar button { background: none; border: none; color: white; width: 100%; text-align: left; margin: 10px 0; cursor: pointer; font-size: 16px; }
+    .main { margin-top: 60px; flex: 1; overflow-y: auto; padding: 10px; }
+    @media (min-width: 769px) { .main { margin-left: 200px; } }
     .today-lessons { background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 10px; }
     .today-lessons h2 { font-size: 18px; color: #0d1b2a; margin-bottom: 5px; }
     .section-title { margin: 10px 0 5px; font-size: 16px; color: #0d1b2a; }
-    .schedule-wrapper { background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
-    .schedule-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    th, td { border: 1px solid #ccc; padding: 6px; text-align: center; position: relative; }
+    .schedule-wrapper { background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { border: 1px solid #ccc; padding: 6px; text-align: center; min-width: 60px; position: relative; }
     th { background: #0d1b2a; color: white; }
     th:first-child { background: #0d3b5a; cursor: pointer; }
     .time-cell { background: #f1f1f1; cursor: pointer; }
     .current-time-line { position: absolute; left: 0; right: 0; height: 3px; background: #FF3B30; animation: pulse 5s ease-in-out infinite; }
     @keyframes pulse { 0%,100%{opacity:0.4;}50%{opacity:1;} }
-    .popup, .overlay { display: none; }
-    .overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); z-index: 1000; }
-    .popup { position: fixed; top:50%; left:50%; transform: translate(-50%, -50%); background: white; padding:20px; border-radius:8px; z-index:1001; width:280px; max-width:90%; }
+    .overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); z-index: 1000; }
+    .popup { display: none; position: fixed; top:50%; left:50%; transform: translate(-50%, -50%); background: white; padding:20px; border-radius:8px; z-index:1001; width:280px; max-width:90%; }
     .button-group { display: flex; justify-content: space-between; margin-top:10px; }
     .button-group button { width:48%; padding:8px; background: #f5f0e8; border:none; border-radius:6px; cursor:pointer; }
     .bottom-nav { display: flex; position: fixed; bottom: 0; left: 0; right: 0; background: #0d1b2a; justify-content: space-around; padding:10px 0; }
-    .bottom-nav button { background: none; border: none; color: white; font-size: 16px; }
+    .bottom-nav button { background: none; border: none; color: white; font-size: 16px; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -52,49 +50,67 @@
       <h2>오늘 다음 레슨</h2>
       <ul id="todayLessonList"></ul>
     </div>
-    <div>
-      <div class="section-title" contenteditable>이번 주 스케줄</div>
-      <div class="schedule-wrapper" id="currentSchedule">
-        <table class="schedule-table" id="scheduleTableCurr">
-          <thead><tr><th id="headerCurr">시간</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th><th>일</th></tr></thead>
-          <tbody></tbody>
-        </table>
-      </div>
-      <div class="section-title" contenteditable>다음 주 스케줄</div>
-      <div class="schedule-wrapper" id="nextSchedule">
-        <table class="schedule-table" id="scheduleTableNext">
-          <thead><tr><th>시간</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th><th>일</th></tr></thead>
-          <tbody></tbody>
-        </table>
-      </div>
-      <div class="section-title" contenteditable>지난 주 스케줄</div>
-      <div class="schedule-wrapper" id="lastSchedule">
-        <table class="schedule-table" id="scheduleTableLast">
-          <thead><tr><th>시간</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th><th>일</th></tr></thead>
-          <tbody></tbody>
-        </table>
-      </div>
+    <!-- 이번 주 -->
+    <div class="section-title" contenteditable>이번 주 스케줄</div>
+    <div class="schedule-wrapper">
+      <table id="scheduleTableCurr">
+        <thead>
+          <tr><th id="headerCurr">시간</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th><th>일</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
     </div>
-  </div>
-  <div class="overlay" id="overlay"></div>
-  <div class="popup" id="popupRange">
+    <!-- 다음 주 -->
+    <div class="section-title" contenteditable>다음 주 스케줄</div>
+    <div class="schedule-wrapper">
+      <table id="scheduleTableNext">
+        <thead>
+          <tr><th>시간</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th><th>일</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <!-- 지난 주 -->
+    <div class="section-title" contenteditable>지난 주 스케줄</div>
+    <div class="schedule-wrapper">
+      <table id="scheduleTableLast">
+        <thead>
+          <tr><th>시간</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th><th>일</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>  <div class="overlay" id="overlay"></div>  <div class="popup" id="popupRange">
     <h3>시간 범위 설정</h3>
-    <label>시작: <input type="time" id="rangeStartCurr"></label><br><label>종료: <input type="time" id="rangeEndCurr"></label>
-    <div class="button-group"><button onclick="applyRangeCurr()">적용</button><button onclick="closePopup()">취소</button></div>
-  </div>
-  <script>
+    <label>시작: <input type="time" id="rangeStart"></label><br>
+    <label>종료: <input type="time" id="rangeEnd"></label>
+    <div class="button-group">
+      <button onclick="applyRange()">적용</button>
+      <button onclick="closePopup()">취소</button>
+    </div>
+  </div>  <div class="bottom-nav">
+    <button id="btnHome">홈</button>
+    <button>스케줄</button>
+    <button>회원</button>
+  </div>  <script>
     const hamburger = document.getElementById('hamburger'), sidebar = document.getElementById('sidebar'), overlay = document.getElementById('overlay');
-    hamburger.onclick = ()=>{ sidebar.classList.toggle('active'); overlay.style.display = sidebar.classList.contains('active')?'block':'none'; };
+    hamburger.onclick = ()=>{ sidebar.classList.toggle('active'); overlay.style.display = sidebar.classList.contains('active') ? 'block' : 'none'; };
     overlay.onclick = ()=>{ sidebar.classList.remove('active'); closePopup(); overlay.style.display='none'; };
     document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ sidebar.classList.remove('active'); closePopup(); overlay.style.display='none'; }});
-    document.querySelector('.bottom-nav button').onclick = ()=>window.scrollTo(0,0);
-    function logout(){ alert('로그아웃'); }
+    document.getElementById('btnHome').onclick = ()=> window.scrollTo({ top: 0, behavior: 'smooth' });
+    function logout(){ alert('로그아웃되었습니다!'); }
     function closePopup(){ document.getElementById('popupRange').style.display='none'; }
-    // 일단 구조만: buildCurr(), buildNext(), buildLast()
-    ['Curr','Next','Last'].forEach(id=>{ const table = document.getElementById('scheduleTable'+id).querySelector('tbody'); for(let h=6;h<22;h++){ const tr=document.createElement('tr'); const tc=document.createElement('td'); tc.textContent=`${h}:00`; tc.className='time-cell'; tr.append(tc); for(let i=0;i<7;i++){ const td=document.createElement('td'); tr.append(td);} table.append(tr);} });
-  </script>
-  <div class="bottom-nav">
-    <button>홈</button><button>스케줄</button><button>회원</button>
-  </div>
-</body>
+    function applyRange(){ /* Range logic */ closePopup(); }
+    ['Curr','Next','Last'].forEach(id=>{
+      const tbody = document.getElementById('scheduleTable'+id).querySelector('tbody');
+      tbody.innerHTML='';
+      for(let h=6; h<=22; h++){
+        const tr = document.createElement('tr');
+        const tc = document.createElement('td'); tc.textContent = `${String(h).padStart(2,'0')}:00`; tc.className='time-cell'; tr.append(tc);
+        for(let i=0;i<7;i++){ tr.append(document.createElement('td')); }
+        tbody.append(tr);
+      }
+    });
+    // 초기 오늘 레슨 및 시간선 로직 생략
+  </script></body>
 </html>
