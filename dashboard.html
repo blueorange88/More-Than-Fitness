@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="ko"><head>  <meta charset="UTF-8">
+<!DOCTYPE html><html lang="ko">
+<head>
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>More Than Fitness - Dashboard</title>
   <style>
@@ -29,7 +31,8 @@
       height: 60px; background: #f5f0e8;
       display: flex; justify-content: space-between;
       align-items: center; padding: 0 20px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 1001;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      z-index: 10;
     }
     .topbar h1 { color: #0d1b2a; font-size: 20px; }
     .hamburger {
@@ -44,7 +47,8 @@
     }
     .main {
       margin-top: 80px; margin-left: 200px;
-      padding: 20px; flex: 1; overflow-x: auto;
+      padding: 20px; flex: 1;
+      overflow-x: auto;
       position: relative;
     }
     .today-lessons, .schedule {
@@ -54,11 +58,11 @@
       margin-bottom: 20px;
     }
     .today-lessons h2 {
-      color: #0d1b2a; margin-bottom: 10px; font-size: 18px;
+      color: #0d1b2a; font-size: 18px; margin-bottom: 10px;
     }
     table {
       width: 100%; border-collapse: collapse;
-      font-size: 13px;
+      font-size: 13px; position: relative;
     }
     th, td {
       border: 1px solid #ccc;
@@ -72,7 +76,7 @@
       top: 50%; left: 50%; transform: translate(-50%, -50%);
       background: white; padding: 20px; border-radius: 8px;
       box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-      z-index: 1003; width: 280px; max-width: 90%;
+      z-index: 1001; width: 280px; max-width: 90%;
       flex-direction: column; align-items: center;
     }
     .popup .button-group, .popup-time .button-group {
@@ -84,19 +88,6 @@
       margin: 2px; border-radius: 8px; cursor: pointer;
       font-weight: bold;
     }
-    @keyframes pulse {
-      0%, 100% { opacity: 0.3; }
-      50% { opacity: 1; }
-    }
-    .current-time-line-global {
-      position: absolute;
-      width: 100%;
-      height: 3px;
-      background: #FF3B30;
-      animation: pulse 5s ease-in-out infinite;
-      pointer-events: none;
-      z-index: 10;
-    }
     .overlay {
       display: none; position: fixed; top: 0; left: 0;
       width: 100%; height: 100%; background: rgba(0,0,0,0.5);
@@ -106,8 +97,7 @@
       .sidebar { transform: translateX(-100%); }
       .sidebar.active { transform: translateX(0); }
       .hamburger { display: block; }
-      .topbar { left: 0; }
-      .main { margin-left: 0; }
+      .main { margin-left: 0; z-index: 1; }
     }
   </style>
 </head>
@@ -145,27 +135,190 @@
         </thead>
         <tbody></tbody>
       </table>
-      <div id="globalTimeLine" class="current-time-line-global"></div>
+    </div>
+  </div>  <!-- 팝업들 -->  <div class="overlay" id="overlay" onclick="closePopup()"></div>
+  <div class="popup-time" id="popupTime">
+    <h3>세부 시간 선택</h3>
+    <select id="minuteSelect">
+      <option value="00">00분</option>
+      <option value="10">10분</option>
+      <option value="20">20분</option>
+      <option value="30">30분</option>
+      <option value="40">40분</option>
+      <option value="50">50분</option>
+    </select>
+    <div class="button-group">
+      <button onclick="saveMinute()">저장</button>
+      <button onclick="closePopup()">취소</button>
     </div>
   </div>
+  <div class="popup" id="popup">
+    <h3>이름 입력</h3>
+    <input type="text" id="nameInput" placeholder="이름 입력">
+    <div class="button-group">
+      <button onclick="saveLesson()">저장</button>
+      <button onclick="closePopup()">취소</button>
+      <button onclick="deleteLesson()" style="color: red;">삭제</button>
+    </div>
+  </div>  <script>
+    let currentCell = null;
+    function logout() {
+      alert('로그아웃되었습니다!');
+      window.location.href = '/login.html';
+    }
+
+    const tbody = document.querySelector('#scheduleTable tbody');
+    for (let h = 6; h <= 22; h++) {
+      const row = document.createElement('tr');
+      const timeCell = document.createElement('td');
+      timeCell.textContent = `${h}:00`;
+      timeCell.className = 'time-cell';
+      timeCell.onclick = () => openTimePopup(timeCell);
+      row.appendChild(timeCell);
+      for (let i = 0; i < 7; i++) {
+        const cell = document.createElement('td');
+        cell.onclick = (e) => openPopup(e);
+        row.appendChild(cell);
+      }
+      tbody.appendChild(row);
+    }
+
+    function openTimePopup(cell) {
+      currentCell = cell;
+      document.getElementById('popupTime').style.display = 'flex';
+      document.getElementById('overlay').style.display = 'block';
+    }
+
+    function openPopup(e) {
+      currentCell = e.target;
+      const text = currentCell.textContent.trim();
+      document.getElementById('nameInput').value = text.includes('19/30') ? text.split(' ')[1] : '';
+      document.getElementById('popup').style.display = 'flex';
+      document.getElementById('overlay').style.display = 'block';
+    }
+
+    function saveMinute() {
+      const minute = document.getElementById('minuteSelect').value;
+      const hour = currentCell.textContent.split(':')[0];
+      currentCell.textContent = `${hour}:${minute}`;
+      closePopup();
+    }
+
+    function saveLesson() {
+      const name = document.getElementById('nameInput').value;
+      if (name.trim() !== '') {
+        const time = currentCell.parentElement.firstChild.textContent;
+        const dayIndex = currentCell.cellIndex;
+        const lessonData = { time, dayIndex, content: `${name} 19/30` };
+        currentCell.textContent = lessonData.content;
+        saveToLocalStorage(lessonData);
+      }
+      closePopup();
+      updateTodayLessons();
+    }
+
+    function deleteLesson() {
+      if (!currentCell) return;
+      const time = currentCell.parentElement.firstChild.textContent;
+      const dayIndex = currentCell.cellIndex;
+      const saved = JSON.parse(localStorage.getItem('scheduleData')) || [];
+      const updated = saved.filter(l => !(l.time === time && l.dayIndex === dayIndex));
+      localStorage.setItem('scheduleData', JSON.stringify(updated));
+      currentCell.textContent = '';
+      closePopup();
+      updateTodayLessons();
+    }
+
+    function saveToLocalStorage(lessonData) {
+      const saved = JSON.parse(localStorage.getItem('scheduleData')) || [];
+      const updated = saved.filter(l => !(l.time === lessonData.time && l.dayIndex === lessonData.dayIndex));
+      updated.push(lessonData);
+      localStorage.setItem('scheduleData', JSON.stringify(updated));
+    }
+
+    function closePopup() {
+      document.getElementById('popup').style.display = 'none';
+      document.getElementById('popupTime').style.display = 'none';
+      document.getElementById('overlay').style.display = 'none';
+    }
+
+    function updateTodayLessons() {
+      const cells = Array.from(document.querySelectorAll('#scheduleTable td'));
+      const lessons = [];
+      const now = new Date();
+      const currentMinutes = now.getHours() * 60 + now.getMinutes();
+      cells.forEach(cell => {
+        const text = cell.textContent.trim();
+        cell.style.opacity = "1";
+        if (text.includes('19/30')) {
+          const parts = text.split(' ');
+          const timeParts = parts[0].split(':');
+          const totalMinutes = parseInt(timeParts[0]) * 60 + parseInt(timeParts[1]);
+          if (totalMinutes < currentMinutes) cell.style.opacity = "0.4";
+          lessons.push({ time: parts[0], name: parts[1], totalMinutes });
+        }
+      });
+      const upcomingLessons = lessons.filter(l => l.totalMinutes >= currentMinutes).sort((a, b) => a.totalMinutes - b.totalMinutes).slice(0, 2);
+      const lessonList = document.getElementById('todayLessonList');
+      lessonList.innerHTML = '';
+      upcomingLessons.forEach(l => {
+        const li = document.createElement('li');
+        li.textContent = `${l.time} ${l.name} 19/30`;
+        lessonList.appendChild(li);
+      });
+    }
+
+    function insertCurrentTimeLine() {
+      const now = new Date();
+      const currentHour = now.getHours();
+      const currentMinutes = now.getMinutes();
+      const totalMinutes = currentHour * 60 + currentMinutes;
+      const rows = document.querySelectorAll('#scheduleTable tbody tr');
+      rows.forEach(row => {
+        const rowTime = parseInt(row.firstChild.textContent.split(':')[0]) * 60;
+        const nextRowTime = rowTime + 60;
+        if (totalMinutes >= rowTime && totalMinutes < nextRowTime) {
+          const percent = (totalMinutes - rowTime) / 60 * 100;
+          const line = document.createElement('div');
+          line.style.position = 'absolute';
+          line.style.left = '0'; line.style.right = '0';
+          line.style.top = `${percent}%`;
+          line.style.height = '2px';
+          line.style.background = 'red';
+          line.style.zIndex = '5';
+          row.style.position = 'relative';
+          row.appendChild(line);
+        }
+      });
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const saved = JSON.parse(localStorage.getItem('scheduleData')) || [];
+      saved.forEach(data => {
+        const rows = document.querySelectorAll('#scheduleTable tbody tr');
+        const row = Array.from(rows).find(r => r.firstChild.textContent === data.time);
+        if (row) row.children[data.dayIndex].textContent = data.content;
+      });
+      updateTodayLessons();
+      insertCurrentTimeLine();
+    });
+
+    const today = new Date().getDay();
+    const headers = document.querySelectorAll('#scheduleTable th');
+    if (headers[today]) {
+      headers[today].style.backgroundColor = '#d4af37';
+      headers[today].style.color = '#0d1b2a';
+    }
+
+    const sidebar = document.getElementById('sidebar');
+    const hamburger = document.getElementById('hamburger');
+    hamburger.addEventListener('click', () => {
+      sidebar.classList.toggle('active');
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closePopup();
+    });
+  </script>
 </body>
-<script>
-function insertCurrentTimeLine() {
-  const now = new Date();
-  const currentHour = now.getHours();
-  const currentMinutes = now.getMinutes();
-  const totalMinutes = currentHour * 60 + currentMinutes;
-  const startHour = 6;
-  const rowHeight = document.querySelector('#scheduleTable tbody tr')?.offsetHeight || 0;
-  const offsetMinutes = totalMinutes - (startHour * 60);
-  const line = document.getElementById('globalTimeLine');
-  if (line && rowHeight) {
-    line.style.top = `${(offsetMinutes / 60) * rowHeight}px`;
-  }
-}
-window.addEventListener('DOMContentLoaded', () => {
-  insertCurrentTimeLine();
-  setInterval(insertCurrentTimeLine, 60000);
-});
-</script>
 </html>
