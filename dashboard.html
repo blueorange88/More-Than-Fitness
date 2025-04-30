@@ -41,6 +41,15 @@
       color: #0d1b2a; font-weight: bold;
       cursor: pointer;
     }
+    .current-time-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: #FF3B30;
+  z-index: 5;
+  animation: pulse 5s ease-in-out infinite;
+}
     .main {
       margin-top: 80px; margin-left: 200px;
       padding: 20px; flex: 1; overflow-x: auto;
@@ -132,9 +141,8 @@
             <th>일</th>
           </tr>
         </thead>
-        <tbody></tbody>
-      </table>
-    </div>
+        <tbody></tbody> 
+  </table>
   </div>  <div class="overlay" id="overlay" onclick="closePopup()"></div>
   <div class="popup-time" id="popupTime">
     <h3>세부 시간 선택</h3>
@@ -213,19 +221,34 @@ function saveLesson() {
   closePopup();
   updateTodayLessons();
 }
-
+   
 function deleteLesson() {
   if (!currentCell) return;
+
   const time = currentCell.parentElement.firstChild.textContent;
   const dayIndex = currentCell.cellIndex;
+
   const saved = JSON.parse(localStorage.getItem('scheduleData')) || [];
   const updated = saved.filter(l => !(l.time === time && l.dayIndex === dayIndex));
   localStorage.setItem('scheduleData', JSON.stringify(updated));
-  currentCell.textContent = '';
+
+  // 시간선 div 유지하면서 텍스트만 지우기
+  const timeline = currentCell.querySelector('.current-time-line');
+
+  // 모든 자식 제거
+  while (currentCell.firstChild) {
+    currentCell.removeChild(currentCell.firstChild);
+  }
+
+  // 시간선이 존재했다면 다시 추가
+  if (timeline) {
+    currentCell.appendChild(timeline);
+  }
+
   closePopup();
   updateTodayLessons();
-}
-
+  }
+    
 function saveToLocalStorage(lessonData) {
   const saved = JSON.parse(localStorage.getItem('scheduleData')) || [];
   const updated = saved.filter(l => !(l.time === lessonData.time && l.dayIndex === lessonData.dayIndex));
@@ -265,31 +288,53 @@ function updateTodayLessons() {
   });
 }
 
-function insertCurrentTimeLine() { const now = new Date(); const currentHour = now.getHours(); const currentMinutes = now.getMinutes(); const totalMinutes = currentHour * 60 + currentMinutes;
+function insertCurrentTimeLine() {
+  const now = new Date();
+  const currentHour = now.getHours();
+  const currentMinutes = now.getMinutes();
+  const totalMinutes = currentHour * 60 + currentMinutes;
+  const todayIndex = new Date().getDay(); // 0(일) ~ 6(토)
 
-const todayIndex = new Date().getDay(); // 현재 요일 인덱스 (0~6)
+  // 기존 시간선 제거
+  document.querySelectorAll('.current-time-line').forEach(line => line.remove());
 
-// 기존 시간선 제거 document.querySelectorAll('.current-time-line').forEach(line => line.remove());
+  const rows = document.querySelectorAll('#scheduleTable tbody tr');
+  rows.forEach(row => {
+    const rowTime = parseInt(row.firstChild.textContent.split(':')[0]) * 60;
+    const nextRowTime = rowTime + 60;
 
-const rows = document.querySelectorAll('#scheduleTable tbody tr'); rows.forEach(row => { const rowTime = parseInt(row.firstChild.textContent.split(':')[0]) * 60; const nextRowTime = rowTime + 60;
+    if (totalMinutes >= rowTime && totalMinutes < nextRowTime) {
+      const percent = ((totalMinutes - rowTime) / 60) * 100;
 
-if (totalMinutes >= rowTime && totalMinutes < nextRowTime) {
-  const percent = (totalMinutes - rowTime) / 60 * 100;
+      const line = document.createElement('div');
+      line.className = 'current-time-line';
+      line.style.position = 'absolute';
+      line.style.left = '0';
+      line.style.right = '0';
+      line.style.top = `${percent}%`;
+      line.style.height = '3px';
+      line.style.background = '#FF3B30';
+      line.style.zIndex = '5';
+      line.style.animation = 'pulse 5s ease-in-out infinite';
 
-  const line = document.createElement('div');
-  line.className = 'current-time-line';
-
-line.style.position = 'absolute'; line.style.left = '0'; line.style.right = '0'; line.style.top = ${percent}%; line.style.height = '3px'; line.style.background = '#FF3B30'; line.style.zIndex = '5'; line.style.animation = 'pulse 5s ease-in-out infinite'; // 5초 동안 부드럽게 반복
-
-// 요일에 해당하는 셀에만 표시
-  const cells = row.querySelectorAll('td');
-  if (cells[todayIndex]) {
-    cells[todayIndex].style.position = 'relative';
-    cells[todayIndex].appendChild(line);
-  }
+      const cells = row.querySelectorAll('td');
+      if (cells[todayIndex]) {
+        cells[todayIndex].style.position = 'relative';
+        cells[todayIndex].appendChild(line);
+      }
+    }
+  });
 }
-
-}); } window.addEventListener('DOMContentLoaded', () => { const saved = JSON.parse(localStorage.getItem('scheduleData')) || []; saved.forEach(data => { const rows = document.querySelectorAll('#scheduleTable tbody tr'); const row = Array.from(rows).find(r => r.firstChild.textContent === data.time); if (row) row.children[data.dayIndex].textContent = data.content; }); updateTodayLessons(); insertCurrentTimeLine(); });
+window.addEventListener('DOMContentLoaded', () => { 
+  const saved = JSON.parse(localStorage.getItem('scheduleData')) || [];
+  saved.forEach(data => { 
+    const rows = document.querySelectorAll('#scheduleTable tbody tr');
+    const row = Array.from(rows).find(r => r.firstChild.textContent === data.time);
+    if (row) row.children[data.dayIndex].textContent = data.content;
+  });
+  updateTodayLessons();
+  insertCurrentTimeLine();
+});
 
 const today = new Date().getDay();
 const headers = document.querySelectorAll('#scheduleTable th');
@@ -309,7 +354,8 @@ document.addEventListener('keydown', (e) => {
 });
 setInterval(() => {
 
-insertCurrentTimeLine(); }, 60000); // 60초마다 시간선 갱신 </script>
+insertCurrentTimeLine(); }, 60000); // 60초마다 시간선 갱신
 
+</script>
 </body>
 </html>
