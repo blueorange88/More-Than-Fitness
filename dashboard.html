@@ -1,5 +1,4 @@
-<!DOCTYPE html><html lang="ko">
-<head>
+<!DOCTYPE html><html lang="ko"><head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>More Than Fitness - Dashboard</title>
@@ -12,13 +11,15 @@
       flex-direction: column;
       min-height: 100vh;
     }
+    .schedule h2 {
+      margin-left: -20px;
+    }
     .sidebar {
       position: fixed; top: 0; left: 0; bottom: 0;
       width: 200px; background-color: #0d1b2a;
       color: white; padding: 20px 10px;
       display: flex; flex-direction: column;
       transition: transform 0.3s ease;
-      z-index: 1002;
     }
     .sidebar button {
       background: none; border: none;
@@ -31,8 +32,7 @@
       height: 60px; background: #f5f0e8;
       display: flex; justify-content: space-between;
       align-items: center; padding: 0 20px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      z-index: 10;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 10;
     }
     .topbar h1 { color: #0d1b2a; font-size: 20px; }
     .hamburger {
@@ -47,9 +47,7 @@
     }
     .main {
       margin-top: 80px; margin-left: 200px;
-      padding: 20px; flex: 1;
-      overflow-x: auto;
-      position: relative;
+      padding: 20px; flex: 1; overflow-x: auto;
     }
     .today-lessons, .schedule {
       background: white; padding: 20px;
@@ -57,8 +55,8 @@
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
       margin-bottom: 20px;
     }
-    .today-lessons h2 {
-      color: #0d1b2a; font-size: 18px; margin-bottom: 10px;
+    .today-lessons h2, .schedule h2 {
+      color: #0d1b2a; margin-bottom: 10px; font-size: 18px;
     }
     table {
       width: 100%; border-collapse: collapse;
@@ -97,7 +95,10 @@
       .sidebar { transform: translateX(-100%); }
       .sidebar.active { transform: translateX(0); }
       .hamburger { display: block; }
-      .main { margin-left: 0; z-index: 1; }
+      .topbar { left: 0; }
+      .main { margin-left: 0; }
+      table { font-size: 10px; }
+      th, td { padding: 3px; min-width: 40px; }
     }
   </style>
 </head>
@@ -120,6 +121,7 @@
       <ul id="todayLessonList"></ul>
     </div>
     <div class="schedule">
+      <h2 contenteditable="true">주간 시간표</h2>
       <table id="scheduleTable">
         <thead>
           <tr>
@@ -136,7 +138,7 @@
         <tbody></tbody>
       </table>
     </div>
-  </div>  <!-- 팝업들 -->  <div class="overlay" id="overlay" onclick="closePopup()"></div>
+  </div>  <div class="overlay" id="overlay" onclick="closePopup()"></div>
   <div class="popup-time" id="popupTime">
     <h3>세부 시간 선택</h3>
     <select id="minuteSelect">
@@ -283,8 +285,7 @@
           line.style.position = 'absolute';
           line.style.left = '0'; line.style.right = '0';
           line.style.top = `${percent}%`;
-          line.style.height = '2px';
-          line.style.background = 'red';
+          line.style.height = '2px'; line.style.background = 'red';
           line.style.zIndex = '5';
           row.style.position = 'relative';
           row.appendChild(line);
