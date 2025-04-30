@@ -50,6 +50,12 @@
   z-index: 5;
   animation: pulse 5s ease-in-out infinite;
 }
+    .schedule table {
+  width: 100%;
+  table-layout: fixed;
+  max-width: 100%;
+  overflow-x: auto;
+}
     .main {
       margin-top: 80px; margin-left: 200px;
       padding: 20px; flex: 1; overflow-x: auto;
@@ -215,7 +221,16 @@ function saveLesson() {
     const time = currentCell.parentElement.firstChild.textContent;
     const dayIndex = currentCell.cellIndex;
     const lessonData = { time, dayIndex, content: `${name} 19/30` };
-    currentCell.textContent = lessonData.content;
+
+    // 시간선 백업
+    const timeline = currentCell.querySelector('.current-time-line');
+
+    // 기존 내용 초기화
+    currentCell.innerHTML = lessonData.content;
+
+    // 시간선 복구
+    if (timeline) currentCell.appendChild(timeline);
+
     saveToLocalStorage(lessonData);
   }
   closePopup();
@@ -355,6 +370,21 @@ document.addEventListener('keydown', (e) => {
 setInterval(() => {
 
 insertCurrentTimeLine(); }, 60000); // 60초마다 시간선 갱신
+
+    // ESC 키로 사이드바 닫기
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    closePopup();
+    sidebar.classList.remove('active');
+  }
+});
+
+// 바깥 클릭 시 사이드바 닫기
+document.addEventListener('click', (e) => {
+  if (!sidebar.contains(e.target) && !hamburger.contains(e.target)) {
+    sidebar.classList.remove('active');
+  }
+});
 
 </script>
 </body>
