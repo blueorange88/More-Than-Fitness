@@ -5,44 +5,41 @@
   <title>More Than Fitness - Dashboard</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background-color: #f5f0e8; font-family: 'Poppins', 'Pretendard', sans-serif; display: flex; flex-direction: column; height: 100vh; }
-    .sidebar { position: fixed; top: 0; left: 0; bottom: 0; width: 200px; background-color: #0d1b2a; color: white; padding: 20px 10px; display: flex; flex-direction: column; transition: transform 0.3s ease; z-index: 1002; }
-    .sidebar button { background: none; border: none; color: white; font-size: 16px; margin: 10px 0; text-align: left; cursor: pointer; }
-    .topbar { position: fixed; top: 0; left: 200px; right: 0; height: 60px; background: #f5f0e8; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 1001; }
-    .topbar h1 { color: #0d1b2a; font-size: 20px; }
-    .hamburger { display: none; background: none; border: none; font-size: 26px; cursor: pointer; color: #0d1b2a; }
-    .logout-btn { background: none; border: none; color: #0d1b2a; font-weight: bold; cursor: pointer; }
-    .main { margin-top: 60px; margin-left: 200px; padding: 10px; flex: 1; display: flex; flex-direction: column; }
-    .today-lessons { background: white; padding: 10px; border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin-bottom: 10px; flex: 0 0 auto; }
-    .today-lessons h2 { color: #0d1b2a; font-size: 18px; margin-bottom: 5px; }
-    .schedule-container { flex: 1; overflow: hidden; background: white; border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-    .schedule { width: 100%; height: 100%; overflow: auto; }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    th, td { border: 1px solid #ccc; padding: 6px; text-align: center; min-width: 60px; position: relative; }
-    th { background-color: #0d1b2a; color: #f5f0e8; cursor: default; }
-    th:first-child { cursor: pointer; background-color: #0d3b5a; }
-    .time-cell { background: #f1f1f1; font-weight: bold; cursor: pointer; }
-    .current-time-line { position: absolute; left: 0; right: 0; height: 3px; background: #FF3B30; z-index: 5; animation: pulse 5s ease-in-out infinite; }
-    @keyframes pulse { 0%,100%{ opacity:0.4;} 50%{ opacity:1;} }
-    .popup, .popup-time, .popup-schedule-range { display: none; position: fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; padding:20px; border-radius:8px; box-shadow:0 4px 8px rgba(0,0,0,0.3); z-index:1003; width:280px; max-width:90%; max-height:80vh; overflow-y:auto; }
-    .popup-open { display: block !important; }
-    .overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; }
-    .button-group { display:flex; justify-content:space-between; margin-top:10px; }
-    .button-group button { width:48%; background:radial-gradient(circle,#f9f2d0 0%,#f5f0e8 70%); color:#0d1b2a; border:none; padding:10px; border-radius:8px; cursor:pointer; font-weight:bold; }
-    @media (max-width: 768px) {
-      body { height: auto; }
-      .sidebar { transform: translateX(-100%); }
-      .sidebar.active { transform: translateX(0); }
-      .hamburger { display: block; }
-      .topbar { left: 0; }
-      .main { margin-left: 0; margin-top: 60px; height: calc(100vh - 60px); }
-      .bottom-nav { display:flex; position:fixed; bottom:0; left:0; right:0; background:#0d1b2a; color:white; justify-content:space-around; padding:10px 0; z-index:1004; }
-      .bottom-nav button{ background:none; border:none; color:white; font-size:16px; }
-      .main { padding-bottom: 50px; }
-    }
+    body { display: flex; flex-direction: column; height: 100vh; font-family: 'Poppins', 'Pretendard', sans-serif; background: #f5f0e8; }
+    .topbar { position: fixed; top: 0; left: 0; right: 0; height: 60px; background: #f5f0e8; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 1001; }
+    .topbar h1 { color: #0d1b2a; }
+    .hamburger, .logout-btn { background: none; border: none; cursor: pointer; font-size: 24px; color: #0d1b2a; }
+    .sidebar { position: fixed; top: 60px; left: 0; bottom: 0; width: 200px; background: #0d1b2a; color: white; padding: 20px; transform: translateX(-100%); transition: transform .3s ease; z-index: 1002; }
+    .sidebar.active { transform: translateX(0); }
+    .sidebar button { background: none; border: none; color: white; width: 100%; text-align: left; margin: 10px 0; cursor: pointer; }
+    .main { margin-top: 60px; margin-left: 0; padding: 10px; overflow-y: auto; flex: 1; }
+    @media(min-width: 769px) { .main { margin-left: 200px; } }
+    .today-lessons { background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 10px; }
+    .today-lessons h2 { font-size: 18px; color: #0d1b2a; margin-bottom: 5px; }
+    .section-title { margin: 10px 0 5px; font-size: 16px; color: #0d1b2a; }
+    .schedule-wrapper { background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
+    .schedule-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { border: 1px solid #ccc; padding: 6px; text-align: center; position: relative; }
+    th { background: #0d1b2a; color: white; }
+    th:first-child { background: #0d3b5a; cursor: pointer; }
+    .time-cell { background: #f1f1f1; cursor: pointer; }
+    .current-time-line { position: absolute; left: 0; right: 0; height: 3px; background: #FF3B30; animation: pulse 5s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{opacity:0.4;}50%{opacity:1;} }
+    .popup, .overlay { display: none; }
+    .overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); z-index: 1000; }
+    .popup { position: fixed; top:50%; left:50%; transform: translate(-50%, -50%); background: white; padding:20px; border-radius:8px; z-index:1001; width:280px; max-width:90%; }
+    .button-group { display: flex; justify-content: space-between; margin-top:10px; }
+    .button-group button { width:48%; padding:8px; background: #f5f0e8; border:none; border-radius:6px; cursor:pointer; }
+    .bottom-nav { display: flex; position: fixed; bottom: 0; left: 0; right: 0; background: #0d1b2a; justify-content: space-around; padding:10px 0; }
+    .bottom-nav button { background: none; border: none; color: white; font-size: 16px; }
   </style>
 </head>
 <body>
+  <div class="topbar">
+    <button class="hamburger" id="hamburger">☰</button>
+    <h1>MORE THAN FITNESS</h1>
+    <button class="logout-btn" onclick="logout()">⏻</button>
+  </div>
   <div class="sidebar" id="sidebar">
     <button>내 정보 관리</button>
     <button>회원 관리</button>
@@ -50,60 +47,54 @@
     <button>운동 기록일지 관리</button>
     <button>상품 구매</button>
   </div>
-  <div class="topbar">
-    <button class="hamburger" id="hamburger">☰</button>
-    <h1>MORE THAN FITNESS</h1>
-    <button class="logout-btn" onclick="logout()">로그아웃</button>
-  </div>
   <div class="main">
-    <div class="today-lessons"><h2>오늘 다음 레슨</h2><ul id="todayLessonList"></ul></div>
-    <div class="schedule-container"><div class="schedule"><table id="scheduleTable"><thead><tr><th id="scheduleHeader">시간</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th><th>일</th></tr></thead><tbody></tbody></table></div></div>
+    <div class="today-lessons">
+      <h2>오늘 다음 레슨</h2>
+      <ul id="todayLessonList"></ul>
+    </div>
+    <div>
+      <div class="section-title" contenteditable>이번 주 스케줄</div>
+      <div class="schedule-wrapper" id="currentSchedule">
+        <table class="schedule-table" id="scheduleTableCurr">
+          <thead><tr><th id="headerCurr">시간</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th><th>일</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="section-title" contenteditable>다음 주 스케줄</div>
+      <div class="schedule-wrapper" id="nextSchedule">
+        <table class="schedule-table" id="scheduleTableNext">
+          <thead><tr><th>시간</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th><th>일</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="section-title" contenteditable>지난 주 스케줄</div>
+      <div class="schedule-wrapper" id="lastSchedule">
+        <table class="schedule-table" id="scheduleTableLast">
+          <thead><tr><th>시간</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th><th>일</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
   </div>
-  <div class="overlay" id="overlay"></div>  <!-- 레슨 팝업 -->  <div class="popup" id="popupLesson">
-    <h3>레슨 정보</h3>
-    <input type="text" id="nameInput" placeholder="이름 입력" style="width:100%;margin:10px 0;padding:8px;" />
-    <input type="number" id="enrolledInput" placeholder="참여 인원" style="width:48%;" />
-    <input type="number" id="capacityInput" placeholder="정원" style="width:48%;" />
-    <div class="button-group"><button onclick="saveLesson()">저장</button><button onclick="closeAll()">취소</button><button onclick="deleteLesson()" style="color:red;">삭제</button></div>
-  </div>  <!-- 분 팝업 -->  <div class="popup-time" id="popupMinute">
-    <h3>분 단위 선택</h3>
-    <select id="minuteSelect"><option value="00">00분</option><option value="10">10분</option><option value="20">20분</option><option value="30">30분</option><option value="40">40분</option><option value="50">50분</option></select>
-    <div class="button-group"><button onclick="saveMinute()">저장</button><button onclick="closeAll()">취소</button></div>
-  </div>  <!-- 스케줄 범위 팝업 -->  <div class="popup-schedule-range" id="popupScheduleRange">
+  <div class="overlay" id="overlay"></div>
+  <div class="popup" id="popupRange">
     <h3>시간 범위 설정</h3>
-    <div style="display:flex;justify-content:space-between;width:100%;margin:10px 0;"><div><label>시작:</label><input type="time" id="scheduleStart" /></div><div><label>종료:</label><input type="time" id="scheduleEnd" /></div></div>
-    <div class="button-group"><button onclick="applyScheduleRange()">적용</button><button onclick="closeAll()">취소</button></div>
-  </div>  <!-- 모바일 네비 -->  <div class="bottom-nav"><button>홈</button><button>스케줄</button><button>회원</button></div>  <script>
-    let currentCell=null;
-    let scheduleStart=6, scheduleEnd=22;
-
-    document.addEventListener('DOMContentLoaded', init);
-    document.getElementById('hamburger').addEventListener('click',()=>document.getElementById('sidebar').classList.toggle('active'));
-    document.getElementById('overlay').addEventListener('click',closeAll);
-    document.addEventListener('keydown',e=>{if(e.key==='Escape')closeAll();});
-    document.getElementById('scheduleHeader').addEventListener('click',openScheduleRange);
-
-    function init(){buildTable();loadData();highlightToday();updateTodayLessons();insertCurrentTimeLine();setInterval(insertCurrentTimeLine,60000);}
-
-    function buildTable(){const tbody=document.querySelector('#scheduleTable tbody');tbody.innerHTML='';for(let h=scheduleStart;h<scheduleEnd;h++){const row=document.createElement('tr');const timeCell=document.createElement('td');timeCell.textContent=`${String(h).padStart(2,'0')}:00`;timeCell.className='time-cell';timeCell.onclick=()=>openMinute(timeCell);row.appendChild(timeCell);for(let i=0;i<7;i++){const cell=document.createElement('td');cell.onclick=()=>openLesson(cell);row.appendChild(cell);}tbody.appendChild(row);} }
-
-    function openLesson(cell){currentCell=cell;const d=cell.dataset.info?JSON.parse(cell.dataset.info):{};document.getElementById('nameInput').value=d.name||'';document.getElementById('enrolledInput').value=d.enrolled||'';document.getElementById('capacityInput').value=d.capacity||'';document.getElementById('popupLesson').classList.add('popup-open');document.getElementById('overlay').style.display='block';}
-    function openMinute(cell){currentCell=cell;document.getElementById('popupMinute').classList.add('popup-open');document.getElementById('overlay').style.display='block';}
-    function openScheduleRange(){document.getElementById('scheduleStart').value=`${String(scheduleStart).padStart(2,'0')}:00`;document.getElementById('scheduleEnd').value=`${String(scheduleEnd).padStart(2,'0')}:00`;document.getElementById('popupScheduleRange').classList.add('popup-open');document.getElementById('overlay').style.display='block';}
-
-    function saveLesson(){const name=document.getElementById('nameInput').value,enrolled=+document.getElementById('enrolledInput').value||0,capacity=+document.getElementById('capacityInput').value||0;const time=currentCell.parentElement.firstChild.textContent,di=currentCell.cellIndex;const info={name,enrolled,capacity,time,di};currentCell.textContent=`${time}\n${name} (${enrolled}/${capacity})`;currentCell.dataset.info=JSON.stringify(info);saveStore(info);updateTodayLessons();insertCurrentTimeLine();closeAll();}
-    function saveMinute(){const m=document.getElementById('minuteSelect').value;const h=currentCell.textContent.split(':')[0];currentCell.textContent=`${h}:${m}`;insertCurrentTimeLine();closeAll();}
-    function applyScheduleRange(){const s=document.getElementById('scheduleStart').value.split(':')[0],e=document.getElementById('scheduleEnd').value.split(':')[0];scheduleStart=+s;scheduleEnd=+e;buildTable();loadData();highlightToday();updateTodayLessons();insertCurrentTimeLine();closeAll();}
-    function deleteLesson(){if(!currentCell)return;const d=JSON.parse(currentCell.dataset.info||'{}');let arr=JSON.parse(localStorage.getItem('scheduleData')||'[]');arr=arr.filter(x=>!(x.time===d.time&&x.di===d.di));localStorage.setItem('scheduleData',JSON.stringify(arr));currentCell.textContent='';delete currentCell.dataset.info;updateTodayLessons();insertCurrentTimeLine();closeAll();}
-
-    function closeAll(){document.querySelectorAll('.popup-open').forEach(el=>el.classList.remove('popup-open'));document.getElementById('overlay').style.display='none';}
-    function saveStore(info){let arr=JSON.parse(localStorage.getItem('scheduleData')||'[]');arr=arr.filter(x=>!(x.time===info.time&&x.di===info.di));arr.push(info);localStorage.setItem('scheduleData',JSON.stringify(arr));}
-    function loadData(){const arr=JSON.parse(localStorage.getItem('scheduleData')||'[]');arr.forEach(x=>{document.querySelectorAll('#scheduleTable tbody tr').forEach(r=>{if(r.firstChild.textContent===x.time){const c=r.children[x.di];c.textContent=`${x.time}\n${x.name} (${x.enrolled}/${x.capacity})`;c.dataset.info=JSON.stringify(x);}});});}
-
-    function updateTodayLessons(){const now=new Date(),nv=now.getHours()*60+now.getMinutes(),list=[];document.querySelectorAll('#scheduleTable td').forEach(c=>{if(c.dataset.info){const i=JSON.parse(c.dataset.info),[hh,mm]=i.time.split(':').map(Number),t=hh*60+mm;if(t>=nv)list.push({t,text:`${i.time} ${i.name} (${i.enrolled}/${i.capacity})`});}});list.sort((a,b)=>a.t-b.t);const ul=document.getElementById('todayLessonList');ul.innerHTML='';list.slice(0,2).forEach(i=>{const li=document.createElement('li');li.textContent=i.text;ul.appendChild(li);});}
-
-    function insertCurrentTimeLine(){document.querySelectorAll('.current-time-line').forEach(el=>el.remove());const now=new Date(),di=now.getDay(),nv=now.getHours()*60+now.getMinutes();document.querySelectorAll('#scheduleTable tbody tr').forEach(r=>{const st=Number(r.firstChild.textContent.split(':')[0])*60,en=st+60; if(nv>=st&&nv<en){const pct=((nv-st)/60)*100;const line=document.createElement('div');line.className='current-time-line';line.style.top=`${pct}%`;r.children[di].appendChild(line);}});}    
-    function highlightToday(){const di=new Date().getDay(),ths=document.querySelectorAll('#scheduleTable th');if(ths[di]){ths[di].style.backgroundColor='#d4af37';ths[di].style.color='#0d1b2a';}}
-    function logout(){alert('로그아웃되었습니다!');window.location.href='/login.html';}
-  </script></body>
+    <label>시작: <input type="time" id="rangeStartCurr"></label><br><label>종료: <input type="time" id="rangeEndCurr"></label>
+    <div class="button-group"><button onclick="applyRangeCurr()">적용</button><button onclick="closePopup()">취소</button></div>
+  </div>
+  <script>
+    const hamburger = document.getElementById('hamburger'), sidebar = document.getElementById('sidebar'), overlay = document.getElementById('overlay');
+    hamburger.onclick = ()=>{ sidebar.classList.toggle('active'); overlay.style.display = sidebar.classList.contains('active')?'block':'none'; };
+    overlay.onclick = ()=>{ sidebar.classList.remove('active'); closePopup(); overlay.style.display='none'; };
+    document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ sidebar.classList.remove('active'); closePopup(); overlay.style.display='none'; }});
+    document.querySelector('.bottom-nav button').onclick = ()=>window.scrollTo(0,0);
+    function logout(){ alert('로그아웃'); }
+    function closePopup(){ document.getElementById('popupRange').style.display='none'; }
+    // 일단 구조만: buildCurr(), buildNext(), buildLast()
+    ['Curr','Next','Last'].forEach(id=>{ const table = document.getElementById('scheduleTable'+id).querySelector('tbody'); for(let h=6;h<22;h++){ const tr=document.createElement('tr'); const tc=document.createElement('td'); tc.textContent=`${h}:00`; tc.className='time-cell'; tr.append(tc); for(let i=0;i<7;i++){ const td=document.createElement('td'); tr.append(td);} table.append(tr);} });
+  </script>
+  <div class="bottom-nav">
+    <button>홈</button><button>스케줄</button><button>회원</button>
+  </div>
+</body>
 </html>
