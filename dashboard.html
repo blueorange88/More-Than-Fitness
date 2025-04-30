@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="ko"><head>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>More Than Fitness - Dashboard</title>
@@ -58,31 +60,31 @@
     }
     table {
       width: 100%; border-collapse: collapse;
-      font-size: 13px; position: relative;
+      font-size: 13px;
     }
     th, td {
       border: 1px solid #ccc;
       padding: 6px; text-align: center;
-      min-width: 60px;
+      min-width: 40px;
     }
     th { background-color: #0d1b2a; color: #f5f0e8; }
     .time-cell { background: #f1f1f1; font-weight: bold; cursor: pointer; }
+
     @keyframes pulse {
-      0%, 100% { opacity: 0.4; }
+      0%, 100% { opacity: 0.3; }
       50% { opacity: 1; }
     }
+
     .current-time-line {
       position: absolute;
-      width: 100%; height: 3px;
+      left: 0; right: 0;
+      height: 3px;
       background: #FF3B30;
       animation: pulse 5s ease-in-out infinite;
-      pointer-events: none; z-index: 10;
+      z-index: 5;
+      pointer-events: none;
     }
-    .overlay {
-      display: none; position: fixed; top: 0; left: 0;
-      width: 100%; height: 100%; background: rgba(0,0,0,0.5);
-      z-index: 1000;
-    }
+
     @media (max-width: 768px) {
       .sidebar { transform: translateX(-100%); }
       .sidebar.active { transform: translateX(0); }
@@ -130,70 +132,67 @@
       </table>
     </div>
   </div>
+
   <script>
     const sidebar = document.getElementById('sidebar');
     const hamburger = document.getElementById('hamburger');
     hamburger.addEventListener('click', (e) => {
       e.stopPropagation();
       sidebar.classList.toggle('active');
-    });function logout() {
-  alert('로그아웃되었습니다!');
-  window.location.href = '/login.html';
-}
+    });
 
-const tbody = document.querySelector('#scheduleTable tbody');
-for (let h = 6; h <= 22; h++) {
-  const row = document.createElement('tr');
-  const timeCell = document.createElement('td');
-  timeCell.textContent = `${h}:00`;
-  timeCell.className = 'time-cell';
-  row.appendChild(timeCell);
-  for (let i = 0; i < 7; i++) {
-    row.appendChild(document.createElement('td'));
-  }
-  tbody.appendChild(row);
-}
-
-function insertCurrentTimeLine() {
-  const now = new Date();
-  const currentHour = now.getHours();
-  const currentMinutes = now.getMinutes();
-  const totalMinutes = currentHour * 60 + currentMinutes;
-  const todayIndex = now.getDay();
-
-  document.querySelectorAll('.current-time-line').forEach(line => line.remove());
-
-  const rows = document.querySelectorAll('#scheduleTable tbody tr');
-  rows.forEach(row => {
-    const rowTime = parseInt(row.firstChild.textContent.split(':')[0]) * 60;
-    const nextRowTime = rowTime + 60;
-    if (totalMinutes >= rowTime && totalMinutes < nextRowTime) {
-      const percent = (totalMinutes - rowTime) / 60 * 100;
-      const line = document.createElement('div');
-      line.className = 'current-time-line';
-      line.style.top = `${percent}%`;
-      line.style.position = 'absolute';
-      line.style.left = '0';
-      line.style.right = '0';
-      line.style.height = '3px';
-      line.style.background = '#FF3B30';
-      line.style.zIndex = '5';
-      line.style.animation = 'pulse 5s ease-in-out infinite';
-
-      const cells = row.querySelectorAll('td');
-      if (cells[todayIndex]) {
-        cells[todayIndex].style.position = 'relative';
-        cells[todayIndex].appendChild(line);
-      }
+    function logout() {
+      alert('로그아웃되었습니다!');
+      window.location.href = '/login.html';
     }
-  });
-}
 
-window.addEventListener('DOMContentLoaded', () => {
-  insertCurrentTimeLine();
-  setInterval(insertCurrentTimeLine, 60000);
-});
+    const tbody = document.querySelector('#scheduleTable tbody');
+    for (let h = 6; h <= 22; h++) {
+      const row = document.createElement('tr');
+      const timeCell = document.createElement('td');
+      timeCell.textContent = `${h}:00`;
+      timeCell.className = 'time-cell';
+      row.appendChild(timeCell);
+      for (let i = 0; i < 7; i++) {
+        row.appendChild(document.createElement('td'));
+      }
+      tbody.appendChild(row);
+    }
 
+    function insertCurrentTimeLine() {
+      const now = new Date();
+      const currentHour = now.getHours();
+      const currentMinutes = now.getMinutes();
+      const totalMinutes = currentHour * 60 + currentMinutes;
+      const todayIndex = new Date().getDay(); // 일:0 ~ 토:6
+
+      document.querySelectorAll('.current-time-line').forEach(line => line.remove());
+
+      const rows = document.querySelectorAll('#scheduleTable tbody tr');
+      rows.forEach(row => {
+        const rowTime = parseInt(row.firstChild.textContent.split(':')[0]) * 60;
+        const nextRowTime = rowTime + 60;
+
+        if (totalMinutes >= rowTime && totalMinutes < nextRowTime) {
+          const percent = (totalMinutes - rowTime) / 60 * 100;
+
+          const line = document.createElement('div');
+          line.className = 'current-time-line';
+          line.style.top = `${percent}%`;
+
+          const cells = row.querySelectorAll('td');
+          if (cells[todayIndex]) {
+            cells[todayIndex].style.position = 'relative';
+            cells[todayIndex].appendChild(line);
+          }
+        }
+      });
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      insertCurrentTimeLine();
+      setInterval(insertCurrentTimeLine, 60000);
+    });
   </script>
 </body>
 </html>
