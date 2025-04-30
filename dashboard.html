@@ -41,8 +41,8 @@
 <body>  
   <div class="topbar">  
     <button class="hamburger" id="hamburger">☰</button>  
-    <h1>MT FIT</h1>  
-    <button class="logout-btn" id="btnLogout">⏻</button>  
+    <h1>More Than Fitness</h1>  
+    <button class="logout-btn" id="btnLogout">로그아웃</button>  
   </div>  
   <div class="sidebar" id="sidebar">  
     <button>내 정보 관리</button>  
@@ -104,8 +104,8 @@
   <div class="popup" id="popupLesson">  
     <h3>레슨 정보</h3>  
     <input id="nameInput" placeholder="이름" style="width:100%;margin:8px 0;padding:6px" />  
-    <input id="enrolledInput" type="number" placeholder="참여" style="width:48%" />  
-    <input id="capacityInput" type="number" placeholder="정원" style="width:48%" />  
+    <input id="enrolledInput" type="number" placeholder="소진" style="width:48%" />  
+    <input id="capacityInput" type="number" placeholder="총" style="width:48%" />  
     <div class="button-group">  
       <button onclick="saveLesson()">저장</button><button onclick="deleteLesson()">삭제</button>  
     </div>  
@@ -118,8 +118,7 @@
     document.getElementById('hamburger').onclick=()=>{document.getElementById('sidebar').classList.toggle('active');overlay.style.display=document.getElementById('sidebar').classList.contains('active')?'block':'none'};  
     overlay.onclick=()=>{document.getElementById('sidebar').classList.remove('active');closePopup();overlay.style.display='none'};  
     document.addEventListener('keydown',e=>{if(e.key==='Escape'){document.getElementById('sidebar').classList.remove('active');closePopup();overlay.style.display='none'}});  
-    document.getElementById('btnHome').onclick=()=>window.scrollTo({top:0,behavior:'smooth'});  
-    document.getElementById('btnLogout').onclick=()=>{alert('로그아웃되었습니다!');window.location.href='/login.html'};  // 초기화  
+    document.getElementById('btnHome').onclick=()=>window.scrollTo({top:0,behavior:'smooth'}); 
 document.addEventListener('DOMContentLoaded',init);  
 function init(){ buildCurr(); buildNext(); buildLast(); loadCurr(); /*loadNext/loadLast*/ highlightToday(); updateToday(); initTimeLine(); setInterval(updateTimeLine,60000); }  
 
@@ -139,12 +138,16 @@ function saveMinute(){ const m=document.getElementById('minuteSelect').value; co
 function openLesson(c){ currentCell=c; const d=c.dataset.info?JSON.parse(c.dataset.info):{}; document.getElementById('nameInput').value=d.name||''; document.getElementById('enrolledInput').value=d.enrolled||''; document.getElementById('capacityInput').value=d.cap||''; document.getElementById('popupLesson').style.display='block'; overlay.style.display='block'; }  
 function saveLesson(){ const name=document.getElementById('nameInput').value, enrolled=+document.getElementById('enrolledInput').value||0, cap=+document.getElementById('capacityInput').value||0; const time=currentCell.parentElement.firstChild.textContent, di=currentCell.cellIndex; const i={name,enrolled,cap,time,di}; currentCell.textContent=`${time}\n${name} (${enrolled}/${cap})`; currentCell.dataset.info=JSON.stringify(i); let arr=JSON.parse(localStorage.getItem('scheduleData')||'[]'); arr=arr.filter(x=>!(x.time===i.time&&x.di===i.di)); arr.push(i); localStorage.setItem('scheduleData',JSON.stringify(arr)); updateToday(); updateTimeLine(); closePopup(); overlay.style.display='none'; }  
 function deleteLesson(){ if(!currentCell) return; const info=currentCell.dataset.info?JSON.parse(currentCell.dataset.info):null; if(info){ let data=JSON.parse(localStorage.getItem('scheduleData')||'[]'); data=data.filter(x=>!(x.time===info.time&&x.di===info.di)); localStorage.setItem('scheduleData',JSON.stringify(data)); } const line=currentCell.querySelector('.current-time-line'); if(line) line.remove(); currentCell.innerHTML=''; delete currentCell.dataset.info; updateToday(); updateTimeLine(); closePopup(); overlay.style.display='none'; }  
+function closePopup() {
+  document.querySelectorAll('.popup').forEach(p => p.style.display = 'none');
+  overlay.style.display = 'none';
+}
 
 // 오늘 레슨 목록  
 function updateToday(){ const now=new Date(), nv=now.getHours()*60+now.getMinutes(), list=[]; document.querySelectorAll('#scheduleTableCurr td').forEach(c=>{ if(c.dataset.info){ const v=JSON.parse(c.dataset.info), [h,m]=v.time.split(':').map(Number), t=h*60+m; if(t>=nv) list.push({t,text:`${v.time} ${v.name} (${v.enrolled}/${v.cap})`}); }}); list.sort((a,b)=>a.t-b.t); const ul=document.getElementById('todayLessonList'); ul.innerHTML=''; list.slice(0,2).forEach(i=>{ const li=document.createElement('li'); li.textContent=i.text; ul.append(li); }); }  
 
 // 시간선  
-function initTimeLine(){ updateTimeLine(); }  
+function initTimeLine(){ updateTimeLine() }  
 function updateTimeLine() {
 
 document.querySelectorAll('.current-time-line').forEach(e => e.remove());
@@ -168,11 +171,18 @@ if (nv >= rowTime && nv < nextRowTime) {
 
   r.children[di].appendChild(line);  
 }
-
 });
 }
 // 오늘 열 강조
 function highlightToday(){ const di=new Date().getDay(), ths=document.querySelectorAll('#scheduleTableCurr th'); if(ths[di]){ ths[di].style.backgroundColor='#d4af37'; ths[di].style.color='#0d1b2a'; }}
-</script></body>
+    
+ document.addEventListener('DOMContentLoaded', () => {
+  init();
+  document.getElementById('btnLogout').onclick = () => {
+    alert('로그아웃되었습니다!');
+    window.location.href = location.origin + '/login.html';
+  };
+});
+  </script></body>
 
 </html>
