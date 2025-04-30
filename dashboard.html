@@ -15,11 +15,12 @@
     .main { margin-top: 80px; margin-left: 200px; padding: 20px; flex: 1; overflow-x: auto; }
     .today-lessons, .schedule { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin-bottom: 20px; }
     .today-lessons h2 { color: #0d1b2a; margin-bottom: 10px; font-size: 18px; }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; position: relative; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
     th, td { border: 1px solid #ccc; padding: 6px; text-align: center; min-width: 60px; position: relative; }
     th { background-color: #0d1b2a; color: #f5f0e8; cursor: default; }
     th:first-child { cursor: pointer; background-color: #0d3b5a; }
     .time-cell { background: #f1f1f1; font-weight: bold; cursor: pointer; }
+    /* Current time line */
     .current-time-line { position: absolute; left: 0; right: 0; height: 3px; background: #FF3B30; z-index: 5; animation: pulse 5s ease-in-out infinite; }
     @keyframes pulse { 0%,100%{ opacity:0.4;} 50%{ opacity:1;} }
     .popup, .popup-time, .popup-range, .popup-schedule-range { display: none; position: fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; padding:20px; border-radius:8px; box-shadow:0 4px 8px rgba(0,0,0,0.3); z-index:1003; width:280px; max-width:90%; max-height:80vh; overflow-y:auto; flex-direction:column; align-items:center; }
@@ -74,7 +75,7 @@
     document.getElementById('hamburger').addEventListener('click',()=>document.getElementById('sidebar').classList.toggle('active'));
     document.getElementById('overlay').addEventListener('click',closeAll);
     document.addEventListener('keydown',e=>{if(e.key==='Escape')closeAll();});
-    document.getElementById('scheduleHeader').addEventListener('click',()=>openScheduleRange());
+    document.getElementById('scheduleHeader').addEventListener('click',openScheduleRange);
 
     function init(){buildTable();loadData();highlightToday();updateTodayLessons();insertCurrentTimeLine();setInterval(insertCurrentTimeLine,60000);}
 
@@ -84,10 +85,10 @@
     function openMinute(cell){currentCell=cell;show('popupMinute');}
     function openScheduleRange(){show('popupScheduleRange');document.getElementById('scheduleStart').value=`${String(scheduleStart).padStart(2,'0')}:00`;document.getElementById('scheduleEnd').value=`${String(scheduleEnd).padStart(2,'0')}:00`;}
 
-    function saveLesson(){const name=document.getElementById('nameInput').value,enrolled=+document.getElementById('enrolledInput').value||0,capacity=+document.getElementById('capacityInput').value||0;const time=currentCell.parentElement.firstChild.textContent,di=currentCell.cellIndex;const info={name,enrolled,capacity,time,di};currentCell.textContent=`${time}\n${name} (${enrolled}/${capacity})`;currentCell.dataset.info=JSON.stringify(info);saveStore(info);closeAll();updateTodayLessons();}
-    function saveMinute(){const m=document.getElementById('minuteSelect').value;const h=currentCell.textContent.split(':')[0];currentCell.textContent=`${h}:${m}`;closeAll();}
-    function applyScheduleRange(){const s=document.getElementById('scheduleStart').value.split(':')[0],e=document.getElementById('scheduleEnd').value.split(':')[0];scheduleStart=+s;scheduleEnd=+e;buildTable();loadData();closeAll();}
-    function deleteLesson(){if(!currentCell)return;const d=JSON.parse(currentCell.dataset.info||'{}');let arr=JSON.parse(localStorage.getItem('scheduleData')||'[]');arr=arr.filter(x=>!(x.time===d.time&&x.di===d.di));localStorage.setItem('scheduleData',JSON.stringify(arr));currentCell.textContent='';delete currentCell.dataset.info;closeAll();updateTodayLessons();}
+    function saveLesson(){const name=document.getElementById('nameInput').value,enrolled=+document.getElementById('enrolledInput').value||0,capacity=+document.getElementById('capacityInput').value||0;const time=currentCell.parentElement.firstChild.textContent,di=currentCell.cellIndex;const info={name,enrolled,capacity,time,di};currentCell.textContent=`${time}\n${name} (${enrolled}/${capacity})`;currentCell.dataset.info=JSON.stringify(info);saveStore(info);closeAll();updateTodayLessons();insertCurrentTimeLine();}
+    function saveMinute(){const m=document.getElementById('minuteSelect').value;const h=currentCell.textContent.split(':')[0];currentCell.textContent=`${h}:${m}`;closeAll();insertCurrentTimeLine();}
+    function applyScheduleRange(){const s=document.getElementById('scheduleStart').value.split(':')[0],e=document.getElementById('scheduleEnd').value.split(':')[0];scheduleStart=+s;scheduleEnd=+e;buildTable();loadData();highlightToday();updateTodayLessons();insertCurrentTimeLine();closeAll();}
+    function deleteLesson(){if(!currentCell)return;const d=JSON.parse(currentCell.dataset.info||'{}');let arr=JSON.parse(localStorage.getItem('scheduleData')||'[]');arr=arr.filter(x=>!(x.time===d.time&&x.di===d.di));localStorage.setItem('scheduleData',JSON.stringify(arr));currentCell.textContent='';delete currentCell.dataset.info;closeAll();updateTodayLessons();insertCurrentTimeLine();}
 
     function show(id){document.getElementById('overlay').style.display='block';document.getElementById(id).classList.add('popup-open');}
     function closeAll(){document.getElementById('overlay').style.display='none';document.querySelectorAll('.popup-open').forEach(el=>el.classList.remove('popup-open'));}
@@ -97,9 +98,21 @@
 
     function updateTodayLessons(){const now=new Date(),nv=now.getHours()*60+now.getMinutes(),list=[];document.querySelectorAll('#scheduleTable td').forEach(c=>{if(c.dataset.info){const i=JSON.parse(c.dataset.info),[hh,mm]=i.time.split(':').map(Number),t=hh*60+mm;if(t>=nv)list.push({t,text:`${i.time} ${i.name} (${i.enrolled}/${i.capacity})`});}});list.sort((a,b)=>a.t-b.t);const ul=document.getElementById('todayLessonList');ul.innerHTML='';list.slice(0,2).forEach(i=>{const li=document.createElement('li');li.textContent=i.text;ul.appendChild(li);});}
 
-    function insertCurrentTimeLine(){document.querySelectorAll('.current-time-line').forEach(el=>el.remove());const now=new Date(),di=now.getDay(),nv=now.getHours()*60+now.getMinutes();document.querySelectorAll('#scheduleTable tbody tr').forEach(r=>{const st=Number(r.firstChild.textContent.split(':')[0])*60,en=st+60;if(nv>=st&&nv<en){const pct=((nv-st)/60)*100;const line=document.createElement('div');line.className='current-time-line';line.style.top=`${pct}%`;r.children[di].appendChild(line);}});} 
+    function insertCurrentTimeLine(){document.querySelectorAll('.current-time-line').forEach(el=>el.remove());const now=new Date(),di=now.getDay(),nv=now.getHours()*60+now.getMinutes();
+      document.querySelectorAll('#scheduleTable tbody tr').forEach(r=>{
+        const st=Number(r.firstChild.textContent.split(':')[0])*60;
+        const en=st+60;
+        if(nv>=st&&nv<en){
+          const pct=((nv-st)/60)*100;
+          const line=document.createElement('div');
+          line.className='current-time-line';
+          line.style.top=`${pct}%`;
+          r.children[di].appendChild(line);
+        }
+      });
+    }
 
-    function highlightToday(){const di=new Date().getDay(),ths=document.querySelectorAll('#scheduleTable th');if(ths[di]){ths[di].style.backgroundColor='#d4af37';ths[di].style.color='#0d1b2a';}}  
+    function highlightToday(){const di=new Date().getDay(),ths=document.querySelectorAll('#scheduleTable th');if(ths[di]){ths[di].style.backgroundColor='#d4af37';ths[di].style.color='#0d1b2a';}}
     function logout(){alert('로그아웃되었습니다!');window.location.href='/login.html';}
   </script></body>
 </html>
