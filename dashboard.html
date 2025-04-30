@@ -1,5 +1,4 @@
-<!DOCTYPE html><html lang="ko"><head>
-  <meta charset="UTF-8">
+<!DOCTYPE html><html lang="ko"><head>  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>More Than Fitness - Dashboard</title>
   <style>
@@ -11,15 +10,13 @@
       flex-direction: column;
       min-height: 100vh;
     }
-    .schedule h2 {
-      margin-left: -20px;
-    }
     .sidebar {
       position: fixed; top: 0; left: 0; bottom: 0;
       width: 200px; background-color: #0d1b2a;
       color: white; padding: 20px 10px;
       display: flex; flex-direction: column;
       transition: transform 0.3s ease;
+      z-index: 1002;
     }
     .sidebar button {
       background: none; border: none;
@@ -32,7 +29,7 @@
       height: 60px; background: #f5f0e8;
       display: flex; justify-content: space-between;
       align-items: center; padding: 0 20px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 10;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 1001;
     }
     .topbar h1 { color: #0d1b2a; font-size: 20px; }
     .hamburger {
@@ -55,7 +52,7 @@
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
       margin-bottom: 20px;
     }
-    .today-lessons h2, .schedule h2 {
+    .today-lessons h2 {
       color: #0d1b2a; margin-bottom: 10px; font-size: 18px;
     }
     table {
@@ -74,7 +71,7 @@
       top: 50%; left: 50%; transform: translate(-50%, -50%);
       background: white; padding: 20px; border-radius: 8px;
       box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-      z-index: 1001; width: 280px; max-width: 90%;
+      z-index: 1003; width: 280px; max-width: 90%;
       flex-direction: column; align-items: center;
     }
     .popup .button-group, .popup-time .button-group {
@@ -86,6 +83,10 @@
       margin: 2px; border-radius: 8px; cursor: pointer;
       font-weight: bold;
     }
+    @keyframes pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
     .overlay {
       display: none; position: fixed; top: 0; left: 0;
       width: 100%; height: 100%; background: rgba(0,0,0,0.5);
@@ -97,8 +98,6 @@
       .hamburger { display: block; }
       .topbar { left: 0; }
       .main { margin-left: 0; }
-      table { font-size: 10px; }
-      th, td { padding: 3px; min-width: 40px; }
     }
   </style>
 </head>
@@ -121,7 +120,6 @@
       <ul id="todayLessonList"></ul>
     </div>
     <div class="schedule">
-      <h2 contenteditable="true">주간 시간표</h2>
       <table id="scheduleTable">
         <thead>
           <tr>
@@ -270,29 +268,45 @@
       });
     }
 
-    function insertCurrentTimeLine() {
-      const now = new Date();
-      const currentHour = now.getHours();
-      const currentMinutes = now.getMinutes();
-      const totalMinutes = currentHour * 60 + currentMinutes;
-      const rows = document.querySelectorAll('#scheduleTable tbody tr');
-      rows.forEach(row => {
-        const rowTime = parseInt(row.firstChild.textContent.split(':')[0]) * 60;
-        const nextRowTime = rowTime + 60;
-        if (totalMinutes >= rowTime && totalMinutes < nextRowTime) {
-          const percent = (totalMinutes - rowTime) / 60 * 100;
-          const line = document.createElement('div');
-          line.style.position = 'absolute';
-          line.style.left = '0'; line.style.right = '0';
-          line.style.top = `${percent}%`;
-          line.style.height = '2px'; line.style.background = 'red';
-          line.style.zIndex = '5';
-          row.style.position = 'relative';
-          row.appendChild(line);
-        }
-      });
-    }
+ function insertCurrentTimeLine() {
+  const now = new Date();
+  const currentHour = now.getHours();
+  const currentMinutes = now.getMinutes();
+  const totalMinutes = currentHour * 60 + currentMinutes;
 
+  const todayIndex = new Date().getDay(); // 현재 요일 인덱스 (0~6)
+
+  // 기존 시간선 제거
+  document.querySelectorAll('.current-time-line').forEach(line => line.remove());
+
+  const rows = document.querySelectorAll('#scheduleTable tbody tr');
+  rows.forEach(row => {
+    const rowTime = parseInt(row.firstChild.textContent.split(':')[0]) * 60;
+    const nextRowTime = rowTime + 60;
+
+    if (totalMinutes >= rowTime && totalMinutes < nextRowTime) {
+      const percent = (totalMinutes - rowTime) / 60 * 100;
+
+      const line = document.createElement('div');
+      line.className = 'current-time-line';
+line.style.position = 'absolute';
+line.style.left = '0';
+line.style.right = '0';
+line.style.top = `${percent}%`;
+line.style.height = '3px';
+line.style.background = '#FF3B30';
+line.style.zIndex = '5';
+line.style.animation = 'pulse 5s ease-in-out infinite'; // 5초 동안 부드럽게 반복
+
+      // 요일에 해당하는 셀에만 표시
+      const cells = row.querySelectorAll('td');
+      if (cells[todayIndex]) {
+        cells[todayIndex].style.position = 'relative';
+        cells[todayIndex].appendChild(line);
+      }
+    }
+  });
+}
     window.addEventListener('DOMContentLoaded', () => {
       const saved = JSON.parse(localStorage.getItem('scheduleData')) || [];
       saved.forEach(data => {
@@ -320,6 +334,9 @@
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') closePopup();
     });
+    setInterval(() => {
+  insertCurrentTimeLine();
+}, 60000); // 60초마다 시간선 갱신
   </script>
 </body>
 </html>
