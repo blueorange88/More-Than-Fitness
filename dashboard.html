@@ -314,19 +314,37 @@ function updateTodayLessons() {
   const lessons = [];
   const now = new Date();
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+  console.log("현재 분:", currentMinutes);
+
   cells.forEach(cell => {
     const text = cell.textContent.trim();
     cell.style.opacity = "1";
+
     if (text.includes('19/30')) {
       const parts = text.split(' ');
-      const timeParts = parts[0].split(':');
-      const totalMinutes = parseInt(timeParts[0]) * 60 + parseInt(timeParts[1]);
-      if (totalMinutes < currentMinutes) cell.style.opacity = "0.4";
-      lessons.push({ time: parts[0], name: parts[1], totalMinutes });
+      if (parts.length >= 2) {
+        const timeParts = parts[0].split(':');
+        const totalMinutes = parseInt(timeParts[0]) * 60 + parseInt(timeParts[1]);
+
+        console.log("레슨 감지됨:", text, "->", totalMinutes);
+
+        if (totalMinutes < currentMinutes) {
+          cell.style.opacity = "0.4";
+        }
+
+        lessons.push({ time: parts[0], name: parts[1], totalMinutes });
+      }
     }
   });
-  lessons.sort((a, b) => a.totalMinutes - b.totalMinutes);
-  const upcomingLessons = lessons.filter(l => l.totalMinutes >= currentMinutes).slice(0, 2);
+
+  const upcomingLessons = lessons
+    .filter(l => l.totalMinutes >= currentMinutes)
+    .sort((a, b) => a.totalMinutes - b.totalMinutes)
+    .slice(0, 2);
+
+  console.log("곧 다가올 레슨:", upcomingLessons);
+
   const lessonList = document.getElementById('todayLessonList');
   lessonList.innerHTML = '';
   upcomingLessons.forEach(l => {
@@ -334,6 +352,49 @@ function updateTodayLessons() {
     li.textContent = `${l.time} ${l.name} 19/30`;
     lessonList.appendChild(li);
   });
+}
+  
+  function insertCurrentTimeLine() {
+  const now = new Date();
+  const currentHour = now.getHours();
+  const currentMinutes = now.getMinutes();
+  const totalMinutes = currentHour * 60 + currentMinutes;
+
+  const rows = document.querySelectorAll('#scheduleTable tbody tr');
+  rows.forEach(row => {
+    const rowTime = parseInt(row.firstChild.textContent.split(':')[0]) * 60;
+    const nextRowTime = rowTime + 60;
+
+    if (totalMinutes >= rowTime && totalMinutes < nextRowTime) {
+      const percent = (totalMinutes - rowTime) / 60 * 100;
+
+      const line = document.createElement('div');
+      line.style.position = 'absolute';
+      line.style.left = '0';
+      line.style.right = '0';
+      line.style.top = `calc(${percent}% + 1px)`;
+      line.style.height = '2px';
+      line.style.background = 'red';
+      line.style.zIndex = '5';
+
+      row.style.position = 'relative';
+      row.appendChild(line);
+    }
+  });
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  // 기존 내용...
+  const saved = JSON.parse(localStorage.getItem('scheduleData')) || [];
+  saved.forEach(data => {
+    const rows = document.querySelectorAll('#scheduleTable tbody tr');
+    const row = Array.from(rows).find(r => r.firstChild.textContent === data.time);
+    if (row) row.children[data.dayIndex].textContent = data.content;
+  });
+
+  updateTodayLessons();
+  insertCurrentTimeLine(); // 여기 추가!
+});
 }
 
 window.addEventListener('DOMContentLoaded', () => {
