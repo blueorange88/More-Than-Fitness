@@ -32,6 +32,12 @@
     .button-group button{width:48%;padding:6px;background:#f5f0e8;border:none;border-radius:4px;cursor:pointer}
     .bottom-nav{display:flex;position:fixed;bottom:0;left:0;right:0;background:#0d1b2a;justify-content:space-around;padding:8px 0}
     .bottom-nav button{background:none;border:none;color:#fff;font-size:14px;cursor:pointer}
+    .main {
+  padding-bottom: 60px; /* bottom nav 만큼 확보 */
+}
+.schedule-wrapper {
+  overflow-x: auto;
+}
   </style>
 </head>
 <body>
@@ -133,7 +139,7 @@
     function openRangeCurr(){ currentCell=null; document.getElementById('popupRange').style.display='block'; overlay.style.display='block'; }
     function applyRangeCurr(){ const s=document.getElementById('rangeStart').value.split(':')[0], e=document.getElementById('rangeEnd').value.split(':')[0]; scheduleStart=+s; scheduleEnd=+e; buildCurr(); loadCurr(); highlightToday(); updateToday(); initTimeLine(); closePopup(); overlay.style.display='none'; }
     function openMinute(cell){ currentCell=cell; document.getElementById('popupMinute').style.display='block'; overlay.style.display='block'; }
-    function saveMinute(){ const m=document.getElementById('minuteSelect').value; const h=currentCell.textContent.split(':')[0]; currentCell.textContent=`${h}:${m}`; initTimeLine(); closePopup(); overlay.style.display='none'; }
+    function saveMinute(){ const m=document.getElementById('minuteSelect').value; const h=currentCell.textContent.split(':')[0]; currentCell.textContent=`${h}:${m}`; initTimeLine(); closePopup(); overlay.style.display='none'; updateToday(); updateTimeLine();}
     function openLesson(c){ currentCell=c; const d=c.dataset.info?JSON.parse(c.dataset.info):{}; document.getElementById('nameInput').value=d.name||''; document.getElementById('enrolledInput').value=d.enrolled||''; document.getElementById('capacityInput').value=d.cap||''; document.getElementById('popupLesson').style.display='block'; overlay.style.display='block'; }
     function saveLesson(){ const name=document.getElementById('nameInput').value, enrolled=+document.getElementById('enrolledInput').value||0, cap=+document.getElementById('capacityInput').value||0; const time=currentCell.parentElement.firstChild.textContent, di=currentCell.cellIndex; const i={name,enrolled,cap,time,di}; currentCell.textContent=`${time}\n${name} (${enrolled}/${cap})`; currentCell.dataset.info=JSON.stringify(i); let arr=JSON.parse(localStorage.getItem('scheduleData')||'[]'); arr=arr.filter(x=>!(x.time===i.time&&x.di===i.di)); arr.push(i); localStorage.setItem('scheduleData',JSON.stringify(arr)); updateToday(); updateTimeLine(); closePopup(); overlay.style.display='none'; }
     function deleteLesson(){ if(!currentCell) return; const info=currentCell.dataset.info?JSON.parse(currentCell.dataset.info):null; if(info){ let data=JSON.parse(localStorage.getItem('scheduleData')||'[]'); data=data.filter(x=>!(x.time===info.time&&x.di===info.di)); localStorage.setItem('scheduleData',JSON.stringify(data)); } const line=currentCell.querySelector('.current-time-line'); if(line) line.remove(); currentCell.innerHTML=''; delete currentCell.dataset.info; updateToday(); updateTimeLine(); closePopup(); overlay.style.display='none'; }
@@ -143,7 +149,30 @@
 
     // 시간선
     function initTimeLine(){ updateTimeLine(); }
-    function updateTimeLine(){ document.querySelectorAll('.current-time-line').remove?.(); document.querySelectorAll('#scheduleTableCurr tbody tr').forEach(r=>{ r.querySelectorAll('.current-time-line').forEach(e=>e.remove()); }); const now=new Date(), di=now.getDay(), nv=now.getHours()*60+now.getMinutes(); document.querySelectorAll('#scheduleTableCurr tbody tr').forEach(r=>{ const st=Number(r.firstChild.textContent.split(':')[0])*60, en=st+60; if(nv>=st&&nv<en){ const pct=(nv-st)/60*100; const ln=document.createElement('div'); ln.className='current-time-line'; ln.style.top=`${pct}%`; r.children[di].append(ln); } }); }
+    function updateTimeLine() {
+  document.querySelectorAll('.current-time-line').forEach(e => e.remove());
+
+  const now = new Date();
+  const di = now.getDay(); // 오늘 요일 인덱스
+  const nv = now.getHours() * 60 + now.getMinutes();
+
+  document.querySelectorAll('#scheduleTableCurr tbody tr').forEach(r => {
+    const timeStr = r.firstChild.textContent;
+    const [hh, mm] = timeStr.split(':');
+    const rowTime = parseInt(hh) * 60 + (parseInt(mm) || 0);
+    const nextRowTime = rowTime + 60;
+
+    if (nv >= rowTime && nv < nextRowTime) {
+      const pct = ((nv - rowTime) / 60) * 100;
+
+      const line = document.createElement('div');
+      line.className = 'current-time-line';
+      line.style.top = `${pct}%`;
+
+      r.children[di].appendChild(line);
+    }
+  });
+}
     // 오늘 열 강조
     function highlightToday(){ const di=new Date().getDay(), ths=document.querySelectorAll('#scheduleTableCurr th'); if(ths[di]){ ths[di].style.backgroundColor='#d4af37'; ths[di].style.color='#0d1b2a'; }}
   </script></body>
