@@ -92,14 +92,24 @@
       z-index: 1000;
     }
     @media (max-width: 768px) {
-      .sidebar { transform: translateX(-100%); }
-      .sidebar.active { transform: translateX(0); }
-      .hamburger { display: block; }
-      .topbar { left: 0; }
-      .main { margin-left: 0; }
-      table { font-size: 10px; }
-      th, td { padding: 3px; min-width: 40px; }
-    }
+  .sidebar {
+    transform: translateX(-100%);
+    z-index: 1002; /* 사이드바가 항상 위에 오도록 */
+  }
+  .sidebar.active {
+    transform: translateX(0);
+  }
+
+  .main {
+    margin-left: 0; /* 사이드바가 나왔을 때도 시간표가 안겹치게 */
+    position: relative;
+    z-index: 1;
+  }
+
+  .overlay {
+    z-index: 1000;
+  }
+}
   </style>
 </head>
 <body>
