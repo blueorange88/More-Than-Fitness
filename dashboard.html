@@ -4,32 +4,32 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>More Than Fitness - Dashboard</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { display: flex; flex-direction: column; height: 100vh; font-family: 'Poppins', sans-serif; background: #f5f0e8; overflow: hidden; }
-    .topbar { position: fixed; top: 0; left: 0; right: 0; height: 60px; background: #f5f0e8; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 1001; }
-    .hamburger, .logout-btn { background: none; border: none; cursor: pointer; font-size: 24px; color: #0d1b2a; }
-    .sidebar { position: fixed; top: 60px; left: 0; bottom: 0; width: 200px; background: #0d1b2a; color: white; padding: 20px; transform: translateX(-100%); transition: transform .3s ease; z-index: 1002; }
-    .sidebar.active { transform: translateX(0); }
-    .sidebar button { background: none; border: none; color: white; width: 100%; text-align: left; margin: 10px 0; cursor: pointer; font-size: 16px; }
-    .main { margin-top: 60px; flex: 1; overflow-y: auto; padding: 10px; }
-    @media (min-width: 769px) { .main { margin-left: 200px; } }
-    .today-lessons { background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 10px; }
-    .today-lessons h2 { font-size: 18px; color: #0d1b2a; margin-bottom: 5px; }
-    .section-title { margin: 10px 0 5px; font-size: 16px; color: #0d1b2a; }
-    .schedule-wrapper { background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    th, td { border: 1px solid #ccc; padding: 6px; text-align: center; min-width: 60px; position: relative; }
-    th { background: #0d1b2a; color: white; }
-    th:first-child { background: #0d3b5a; cursor: pointer; }
-    .time-cell { background: #f1f1f1; cursor: pointer; }
-    .current-time-line { position: absolute; left: 0; right: 0; height: 3px; background: #FF3B30; animation: pulse 5s ease-in-out infinite; }
-    @keyframes pulse { 0%,100%{opacity:0.4;}50%{opacity:1;} }
-    .overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); z-index: 1000; }
-    .popup { display: none; position: fixed; top:50%; left:50%; transform: translate(-50%, -50%); background: white; padding:20px; border-radius:8px; z-index:1001; width:280px; max-width:90%; }
-    .button-group { display: flex; justify-content: space-between; margin-top:10px; }
-    .button-group button { width:48%; padding:8px; background: #f5f0e8; border:none; border-radius:6px; cursor:pointer; }
-    .bottom-nav { display: flex; position: fixed; bottom: 0; left: 0; right: 0; background: #0d1b2a; justify-content: space-around; padding:10px 0; }
-    .bottom-nav button { background: none; border: none; color: white; font-size: 16px; cursor: pointer; }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{display:flex;flex-direction:column;height:100vh;font-family:'Poppins',sans-serif;background:#f5f0e8;overflow:hidden}
+    .topbar{position:fixed;top:0;left:0;right:0;height:60px;background:#f5f0e8;display:flex;align-items:center;justify-content:space-between;padding:0 20px;box-shadow:0 2px 4px rgba(0,0,0,0.1);z-index:1001}
+    .hamburger,.logout-btn{background:none;border:none;cursor:pointer;font-size:24px;color:#0d1b2a}
+    .sidebar{position:fixed;top:60px;left:0;bottom:0;width:200px;background:#0d1b2a;color:#fff;padding:20px;transform:translateX(-100%);transition:transform .3s ease;z-index:1002}
+    .sidebar.active{transform:translateX(0)}
+    .sidebar button{background:none;border:none;color:#fff;width:100%;text-align:left;margin:10px 0;cursor:pointer;font-size:16px}
+    .main{margin-top:60px;flex:1;overflow-y:auto;padding:10px}
+    @media(min-width:769px){.main{margin-left:200px}}
+    .today-lessons{background:#fff;padding:10px;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1);margin-bottom:10px}
+    .today-lessons h2{font-size:18px;color:#0d1b2a;margin-bottom:5px}
+    .section-title{margin:10px 0 5px;font-size:16px;color:#0d1b2a;}
+    .schedule-wrapper{background:#fff;padding:10px;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1);margin-bottom:20px;overflow-x:auto}
+    table{width:100%;border-collapse:collapse;font-size:13px}
+    th,td{border:1px solid #ccc;padding:6px;text-align:center;min-width:60px;position:relative}
+    th{background:#0d1b2a;color:#fff}
+    th:first-child{background:#0d3b5a;cursor:pointer}
+    .time-cell{background:#f1f1f1;cursor:pointer}
+    .current-time-line{position:absolute;left:0;right:0;height:3px;background:#FF3B30;animation:pulse 5s ease-in-out infinite;}
+    @keyframes pulse{0%,100%{opacity:0.4}50%{opacity:1}}
+    .overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000}
+    .popup{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:20px;border-radius:8px;z-index:1001;width:280px;max-width:90%;max-height:80vh;overflow-y:auto}
+    .button-group{display:flex;justify-content:space-between;margin-top:10px}
+    .button-group button{width:48%;padding:8px;background:#f5f0e8;border:none;border-radius:6px;cursor:pointer}
+    .bottom-nav{display:flex;position:fixed;bottom:0;left:0;right:0;background:#0d1b2a;justify-content:space-around;padding:10px 0}
+    .bottom-nav button{background:none;border:none;color:#fff;font-size:16px;cursor:pointer}
   </style>
 </head>
 <body>
@@ -50,7 +50,6 @@
       <h2>오늘 다음 레슨</h2>
       <ul id="todayLessonList"></ul>
     </div>
-    <!-- 이번 주 -->
     <div class="section-title" contenteditable>이번 주 스케줄</div>
     <div class="schedule-wrapper">
       <table id="scheduleTableCurr">
@@ -60,57 +59,62 @@
         <tbody></tbody>
       </table>
     </div>
-    <!-- 다음 주 -->
-    <div class="section-title" contenteditable>다음 주 스케줄</div>
-    <div class="schedule-wrapper">
-      <table id="scheduleTableNext">
-        <thead>
-          <tr><th>시간</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th><th>일</th></tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-    <!-- 지난 주 -->
-    <div class="section-title" contenteditable>지난 주 스케줄</div>
-    <div class="schedule-wrapper">
-      <table id="scheduleTableLast">
-        <thead>
-          <tr><th>시간</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th><th>일</th></tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-  </div>  <div class="overlay" id="overlay"></div>  <div class="popup" id="popupRange">
+    <!-- 다음/지난 주 생략 -->
+  </div>
+  <div class="overlay" id="overlay"></div>
+  <!-- 팝업들 -->
+  <div class="popup" id="popupRange">
     <h3>시간 범위 설정</h3>
     <label>시작: <input type="time" id="rangeStart"></label><br>
     <label>종료: <input type="time" id="rangeEnd"></label>
     <div class="button-group">
-      <button onclick="applyRange()">적용</button>
-      <button onclick="closePopup()">취소</button>
+      <button onclick="applyRange()">적용</button><button onclick="closePopup()">취소</button>
     </div>
-  </div>  <div class="bottom-nav">
-    <button id="btnHome">홈</button>
-    <button>스케줄</button>
-    <button>회원</button>
-  </div>  <script>
-    const hamburger = document.getElementById('hamburger'), sidebar = document.getElementById('sidebar'), overlay = document.getElementById('overlay');
-    hamburger.onclick = ()=>{ sidebar.classList.toggle('active'); overlay.style.display = sidebar.classList.contains('active') ? 'block' : 'none'; };
-    overlay.onclick = ()=>{ sidebar.classList.remove('active'); closePopup(); overlay.style.display='none'; };
-    document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ sidebar.classList.remove('active'); closePopup(); overlay.style.display='none'; }});
-    document.getElementById('btnHome').onclick = ()=> window.scrollTo({ top: 0, behavior: 'smooth' });
-    function logout(){ alert('로그아웃되었습니다!'); }
-    function closePopup(){ document.getElementById('popupRange').style.display='none'; }
-    function applyRange(){ /* Range logic */ closePopup(); }
-    ['Curr','Next','Last'].forEach(id=>{
-      const tbody = document.getElementById('scheduleTable'+id).querySelector('tbody');
-      tbody.innerHTML='';
-      for(let h=6; h<=22; h++){
-        const tr = document.createElement('tr');
-        const tc = document.createElement('td'); tc.textContent = `${String(h).padStart(2,'0')}:00`; tc.className='time-cell'; tr.append(tc);
-        for(let i=0;i<7;i++){ tr.append(document.createElement('td')); }
-        tbody.append(tr);
-      }
-    });
-    // 초기 오늘 레슨 및 시간선 로직 생략
-  </script></body>
+  </div>
+  <div class="popup" id="popupMinute">
+    <h3>분 단위 설정</h3>
+    <select id="minuteSelect"><option>00</option><option>10</option><option>20</option><option>30</option><option>40</option><option>50</option></select>
+    <div class="button-group">
+      <button onclick="saveMinute()">저장</button><button onclick="closePopup()">취소</button>
+    </div>
+  </div>
+  <div class="popup" id="popupLesson">
+    <h3>레슨 정보</h3>
+    <input id="nameInput" placeholder="이름" style="width:100%;margin:10px 0;padding:8px" />
+    <input id="enrolledInput" type="number" placeholder="참여" style="width:48%" />
+    <input id="capacityInput" type="number" placeholder="정원" style="width:48%" />
+    <div class="button-group">
+      <button onclick="saveLesson()">저장</button><button onclick="deleteLesson()">삭제</button>
+    </div>
+  </div>
+  <div class="bottom-nav">
+    <button id="btnHome">홈</button><button>스케줄</button><button>회원</button>
+  </div>
+  <script>
+    // 상태
+    let currentCell=null, scheduleStart=6,scheduleEnd=22;
+    const sidebar=document.getElementById('sidebar'),overlay=document.getElementById('overlay');
+    document.getElementById('hamburger').onclick=()=>{sidebar.classList.toggle('active');overlay.style.display=sidebar.classList.contains('active')?'block':'none';};
+    overlay.onclick=()=>{sidebar.classList.remove('active');closePopup();overlay.style.display='none';};
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'){sidebar.classList.remove('active');closePopup();overlay.style.display='none';}});
+    document.getElementById('btnHome').onclick=()=>window.scrollTo({top:0,behavior:'smooth'});
+    function logout(){alert('로그아웃되었습니다!');}
+    function closePopup(){document.querySelectorAll('.popup').forEach(p=>p.style.display='none');}function init(){buildTable();loadData();highlightToday();updateToday();insertLine();setInterval(insertLine,60000);}
+function buildTable(){const tb=document.querySelector('#scheduleTableCurr tbody');tb.innerHTML='';for(let h=scheduleStart;h<scheduleEnd;h++){const r=document.createElement('tr');const c0=document.createElement('td');c0.textContent=`${h}:00`;c0.className='time-cell';c0.onclick=()=>openRange();r.append(c0);for(let i=0;i<7;i++){const c=document.createElement('td');c.onclick=()=>openLesson(c);r.append(c);}tb.append(r);} }
+function openRange(){currentCell=null;document.getElementById('popupRange').style.display='block';overlay.style.display='block';}
+function applyRange(){const s=document.getElementById('rangeStart').value.split(':')[0],e=document.getElementById('rangeEnd').value.split(':')[0];scheduleStart=+s;scheduleEnd=+e;buildTable();loadData();highlightToday();updateToday();insertLine();closePopup();overlay.style.display='none';}
+function openMinute(cell){currentCell=cell;document.getElementById('popupMinute').style.display='block';overlay.style.display='block';}
+function saveMinute(){const m=document.getElementById('minuteSelect').value;const h=currentCell.textContent.split(':')[0];currentCell.textContent=`${h}:${m}`;insertLine();closePopup();overlay.style.display='none';}
+function openLesson(cell){currentCell=cell;const d=cell.dataset.info?JSON.parse(cell.dataset.info):{};document.getElementById('nameInput').value=d.name||'';document.getElementById('enrolledInput').value=d.enrolled||'';document.getElementById('capacityInput').value=d.capacity||'';document.getElementById('popupLesson').style.display='block';overlay.style.display='block';}
+function saveLesson(){const name=document.getElementById('nameInput').value,enrolled=+document.getElementById('enrolledInput').value||0,cap=+document.getElementById('capacityInput').value||0;const time=currentCell.parentElement.firstChild.textContent,di=currentCell.cellIndex;const info={name,enrolled,cap,time,di};currentCell.textContent=`${time}\n${name} (${enrolled}/${cap})`;currentCell.dataset.info=JSON.stringify(info);saveData(info);updateToday();insertLine();closePopup();overlay.style.display='none';}
+function deleteLesson(){if(!currentCell)return;const d=JSON.parse(currentCell.dataset.info||'{}');let arr=JSON.parse(localStorage.getItem('scheduleData')||'[]');arr=arr.filter(x=>!(x.time===d.time&&x.di===d.di));localStorage.setItem('scheduleData',JSON.stringify(arr));currentCell.textContent='';delete currentCell.dataset.info;updateToday();insertLine();closePopup();overlay.style.display='none';}
+function saveData(i){let arr=JSON.parse(localStorage.getItem('scheduleData')||'[]');arr=arr.filter(x=>!(x.time===i.time&&x.di===i.di));arr.push(i);localStorage.setItem('scheduleData',JSON.stringify(arr));}
+function loadData(){const arr=JSON.parse(localStorage.getItem('scheduleData')||'[]');arr.forEach(i=>{document.querySelectorAll('#scheduleTableCurr tbody tr').forEach(r=>{if(r.firstChild.textContent===i.time){const c=r.children[i.di];c.textContent=`${i.time}\n${i.name} (${i.enrolled}/${i.cap})`;c.dataset.info=JSON.stringify(i);}});});}
+function updateToday(){const now=new Date(),nv=now.getHours()*60+now.getMinutes(),list=[];document.querySelectorAll('#scheduleTableCurr td').forEach(c=>{if(c.dataset.info){const v=JSON.parse(c.dataset.info),[h,m]=v.time.split(':').map(Number),t=h*60+m;if(t>=nv)list.push({t,text:`${v.time} ${v.name} (${v.enrolled}/${v.cap})`});}});list.sort((a,b)=>a.t-b.t);const ul=document.getElementById('todayLessonList');ul.innerHTML='';list.slice(0,2).forEach(i=>{const li=document.createElement('li');li.textContent=i.text;ul.append(li);});}
+function insertLine(){document.querySelectorAll('.current-time-line').forEach(e=>e.remove());const now=new Date(),di=now.getDay(),nv=now.getHours()*60+now.getMinutes();document.querySelectorAll('#scheduleTableCurr tbody tr').forEach(r=>{const st=Number(r.firstChild.textContent.split(':')[0])*60,en=st+60;if(nv>=st&&nv<en){const pct=(nv-st)/60*100;const ln=document.createElement('div');ln.className='current-time-line';ln.style.top=`${pct}%`;r.children[di].append(ln);}});}
+function highlightToday(){const di=new Date().getDay(),ths=document.querySelectorAll('#scheduleTableCurr th');if(ths[di]){ths[di].style.backgroundColor='#d4af37';ths[di].style.color='#0d1b2a';}}
+document.addEventListener('DOMContentLoaded',init);
+
+  </script>
+</body>
 </html>
