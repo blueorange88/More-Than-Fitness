@@ -12,6 +12,9 @@
       flex-direction: column;
       min-height: 100vh;
     }
+    .schedule h2 {
+  margin-left: -20px; /* 원하는 만큼 조정 */
+}
     .sidebar {
       position: fixed;
       top: 0; left: 0; bottom: 0;
@@ -188,6 +191,10 @@
         <tbody></tbody>
       </table>
     </div>
+    <div class="week-controls">
+  <button onclick="goToPreviousWeek()">지난 주</button>
+  <button onclick="goToNextWeek()">다음 주</button>
+</div>
   </div>
   <div class="overlay" id="overlay" onclick="closePopup()"></div>
   <div class="popup-time" id="popupTime">
@@ -235,6 +242,14 @@ for (let h = 6; h <= 22; h++) {
   tbody.appendChild(row);
 }
 
+function goToPreviousWeek() {
+  alert('저번주 시간표 보기 기능은 아직 구현되지 않았습니다.');
+  // 나중에 구현 가능: 날짜 기준으로 시간표 데이터 필터
+}
+function goToNextWeek() {
+  alert('다음주 시간표 보기 기능은 아직 구현되지 않았습니다.');
+}
+    
 function openTimePopup(cell) {
   currentCell = cell;
   document.getElementById('popupTime').style.display = 'flex';
