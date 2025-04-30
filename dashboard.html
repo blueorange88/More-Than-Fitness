@@ -126,7 +126,26 @@ function init(){ buildCurr(); buildNext(); buildLast(); loadCurr(); /*loadNext/l
 function buildCurr(){ const tb=document.querySelector('#scheduleTableCurr tbody'); tb.innerHTML=''; for(let h=scheduleStart;h<scheduleEnd;h++){ const r=document.createElement('tr'); const c0=document.createElement('td'); c0.textContent=`${h}:00`; c0.className='time-cell'; c0.onclick=()=>openMinute(c0); r.append(c0); for(let i=0;i<7;i++){ const c=document.createElement('td'); c.onclick=()=>openLesson(c); r.append(c);} tb.append(r);} }  
 function buildNext(){ const tb=document.querySelector('#scheduleTableNext tbody'); tb.innerHTML=''; for(let h=scheduleStart;h<scheduleEnd;h++){ const r=document.createElement('tr'); const c0=document.createElement('td'); c0.textContent=`${h}:00`; r.append(c0); for(let i=0;i<7;i++) r.append(document.createElement('td')); tb.append(r);} }  
 function buildLast(){ const tb=document.querySelector('#scheduleTableLast tbody'); tb.innerHTML=''; for(let h=scheduleStart;h<scheduleEnd;h++){ const r=document.createElement('tr'); const c0=document.createElement('td'); c0.textContent=`${h}:00`; r.append(c0); for(let i=0;i<7;i++) r.append(document.createElement('td')); tb.append(r);} }  
-
+function openRangeCurr() {
+  // currentCell은 null로 두면 전체 줄 설정 모드임을 표시
+  currentCell = null;
+  document.getElementById('popupRange').style.display = 'block';
+  overlay.style.display = 'block';
+}
+    function applyRangeCurr() {
+  const [sH] = document.getElementById('rangeStart').value.split(':');
+  const [eH] = document.getElementById('rangeEnd').value.split(':');
+  scheduleStart = parseInt(sH, 10);
+  scheduleEnd   = parseInt(eH, 10);
+  buildCurr();
+  loadCurr();
+  highlightToday();
+  updateToday();
+  initTimeLine();
+  closePopup();
+  overlay.style.display = 'none';
+}
+    
 // 데이터 로드  
 function loadCurr(){ const data=JSON.parse(localStorage.getItem('scheduleData')||'[]'); data.forEach(i=>{ document.querySelectorAll('#scheduleTableCurr tbody tr').forEach(r=>{ if(r.firstChild.textContent===i.time){ const c=r.children[i.di]; c.textContent=`${i.time}\n${i.name} (${i.enrolled}/${i.cap})`; c.dataset.info=JSON.stringify(i); } }); }); }  
 
@@ -178,6 +197,8 @@ function highlightToday(){ const di=new Date().getDay(), ths=document.querySelec
     
  document.addEventListener('DOMContentLoaded', () => {
   init();
+   // 이번 주 시간 범위 설정 팝업 열기
+ document.getElementById('headerCurr').onclick = openRangeCurr;
   document.getElementById('btnLogout').onclick = () => {
     alert('로그아웃되었습니다!');
     window.location.href = location.origin + '/login.html';
