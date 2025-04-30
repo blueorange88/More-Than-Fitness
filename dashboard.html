@@ -100,8 +100,8 @@
   <div class="popup" id="popupLesson">
     <h3>레슨 정보</h3>
     <input id="nameInput" placeholder="이름" style="width:100%;margin:8px 0;padding:6px" />
-    <input id="enrolledInput" type="number" placeholder="회차" style="width:48%" />
-    <input id="capacityInput" type="number" placeholder="총" style="width:48%" />
+    <input id="enrolledInput" type="number" placeholder="참여" style="width:48%" />
+    <input id="capacityInput" type="number" placeholder="정원" style="width:48%" />
     <div class="button-group">
       <button onclick="saveLesson()">저장</button><button onclick="deleteLesson()">삭제</button>
     </div>
@@ -136,6 +136,31 @@
     function highlightToday(){const di=new Date().getDay(),ths=document.querySelectorAll('#scheduleTableCurr th');if(ths[di]){ths[di].style.backgroundColor='#d4af37';ths[di].style.color='#0d1b2a'}}
     function updateToday(){const now=new Date(),nv=now.getHours()*60+now.getMinutes(),list=[];document.querySelectorAll('#scheduleTableCurr td').forEach(c=>{if(c.dataset.info){const i=JSON.parse(c.dataset.info),[h,m]=i.time.split(':').map(Number),t=h*60+m;if(t>=nv)list.push({t,text:`${i.time} ${i.name} (${i.enrolled}/${i.cap})`});}});list.sort((a,b)=>a.t-b.t);const ul=document.getElementById('todayLessonList');ul.innerHTML='';list.slice(0,2).forEach(i=>{const li=document.createElement('li');li.textContent=i.text;ul.append(li)})}
     function closePopup(){document.querySelectorAll('.popup').forEach(p=>p.style.display='none')}
+    function deleteLesson() {
+  if (!currentCell) return;
+
+  // 1) 로컬스토리지에서 삭제
+  const info = currentCell.dataset.info ? JSON.parse(currentCell.dataset.info) : null;
+  if (info) {
+    let data = JSON.parse(localStorage.getItem('scheduleData') || '[]');
+    data = data.filter(item => !(item.time === info.time && item.di === info.di));
+    localStorage.setItem('scheduleData', JSON.stringify(data));
+  }
+
+  // 2) 셀 내용 및 타임라인 제거
+  const line = currentCell.querySelector('.current-time-line');
+  if (line) line.remove();
+  currentCell.innerHTML = '';
+  delete currentCell.dataset.info;
+
+  // 3) 화면 갱신
+  updateToday();       // 오늘 레슨 목록 갱신
+  updateTimeLine();    // 시간선 갱신
+
+  // 4) 팝업과 오버레이 닫기
+  closePopup();
+  overlay.style.display = 'none';
+}
     document.addEventListener('DOMContentLoaded',init)
   </script></body>
 </html>
