@@ -65,9 +65,24 @@
       border: 1px solid #ccc;
       padding: 6px; text-align: center;
       min-width: 60px;
+      position: relative;
     }
     th { background-color: #0d1b2a; color: #f5f0e8; }
     .time-cell { background: #f1f1f1; font-weight: bold; cursor: pointer; }
+    /* Current time line */
+    .current-time-line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: #FF3B30;
+      z-index: 5;
+      animation: pulse 5s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 1; }
+    }
     .popup, .popup-time, .popup-range {
       display: none; position: fixed;
       top: 50%; left: 50%; transform: translate(-50%, -50%);
@@ -172,10 +187,8 @@
     <button>스케줄</button>
     <button>회원</button>
   </div>  <script>
-    // 전역 상태 관리
     let currentCell = null;
 
-    // 초기 셋업
     document.addEventListener('DOMContentLoaded', init);
     document.addEventListener('keydown', handleKeydown);
     document.getElementById('hamburger').addEventListener('click', () => document.getElementById('sidebar').classList.toggle('active'));
@@ -201,32 +214,33 @@
         row.appendChild(timeCell);
         for (let i = 0; i < 7; i++) {
           const cell = document.createElement('td');
-          cell.onclick = (e) => openLessonPopup(e.target);
+          cell.onclick = () => openLessonPopup(cell);
           row.appendChild(cell);
         }
         tbody.appendChild(row);
       }
     }
 
-    // 팝업 관리
     function openLessonPopup(cell) {
       currentCell = cell;
-      const data = cell.dataset && JSON.parse(cell.dataset.info || '{}');
+      const data = cell.dataset.info ? JSON.parse(cell.dataset.info) : {};
       document.getElementById('nameInput').value = data.name || '';
       document.getElementById('enrolledInput').value = data.enrolled || '';
       document.getElementById('capacityInput').value = data.capacity || '';
       showPopup('popup');
     }
+
     function openRangePopup(cell) {
       currentCell = cell;
       showPopup('popupRange');
     }
-    function saveMinute() { /* ... 필요시 구현 */ }
+
+    function saveMinute() { /* 필요 시 구현 */ }
 
     function saveLesson() {
       const name = document.getElementById('nameInput').value;
-      const enrolled = parseInt(document.getElementById('enrolledInput').value, 10)||0;
-      const capacity = parseInt(document.getElementById('capacityInput').value, 10)||0;
+      const enrolled = parseInt(document.getElementById('enrolledInput').value, 10) || 0;
+      const capacity = parseInt(document.getElementById('capacityInput').value, 10) || 0;
       const time = currentCell.parentElement.firstChild.textContent;
       const dayIndex = currentCell.cellIndex;
       const info = { name, enrolled, capacity, time, dayIndex };
@@ -246,10 +260,10 @@
 
     function deleteLesson() {
       if (!currentCell) return;
-      const { time, dayIndex } = JSON.parse(currentCell.dataset.info || '{}');
-      let data = JSON.parse(localStorage.getItem('scheduleData')||'[]');
-      data = data.filter(item=>!(item.time===time && item.dayIndex==dayIndex));
-      localStorage.setItem('scheduleData', JSON.stringify(data));
+      const data = JSON.parse(currentCell.dataset.info || '{}');
+      let stored = JSON.parse(localStorage.getItem('scheduleData') || '[]');
+      stored = stored.filter(item => !(item.time === data.time && item.dayIndex === data.dayIndex));
+      localStorage.setItem('scheduleData', JSON.stringify(stored));
       currentCell.textContent = '';
       delete currentCell.dataset.info;
       closeAllPopups();
@@ -260,27 +274,28 @@
       document.getElementById('overlay').style.display = 'block';
       document.getElementById(id).classList.add('popup-open');
     }
+
     function closeAllPopups() {
       document.getElementById('overlay').style.display = 'none';
-      document.querySelectorAll('.popup-open').forEach(el=>el.classList.remove('popup-open'));
+      document.querySelectorAll('.popup-open').forEach(el => el.classList.remove('popup-open'));
     }
 
     function handleKeydown(e) {
       if (e.key === 'Escape') closeAllPopups();
     }
 
-    // 로컬스토리지
     function saveToStorage(info) {
-      const data = JSON.parse(localStorage.getItem('scheduleData')||'[]');
-      const filtered = data.filter(item=>!(item.time===info.time && item.dayIndex==info.dayIndex));
+      const data = JSON.parse(localStorage.getItem('scheduleData') || '[]');
+      const filtered = data.filter(item => !(item.time === info.time && item.dayIndex === info.dayIndex));
       filtered.push(info);
       localStorage.setItem('scheduleData', JSON.stringify(filtered));
     }
+
     function loadFromStorage() {
-      const data = JSON.parse(localStorage.getItem('scheduleData')||'[]');
-      data.forEach(item=>{
+      const data = JSON.parse(localStorage.getItem('scheduleData') || '[]');
+      data.forEach(item => {
         const rows = document.querySelectorAll('#scheduleTable tbody tr');
-        const row = Array.from(rows).find(r=>r.firstChild.textContent===item.time);
+        const row = Array.from(rows).find(r => r.firstChild.textContent === item.time);
         if (row) {
           const cell = row.children[item.dayIndex];
           cell.textContent = `${item.time}\n${item.name} (${item.enrolled}/${item.capacity})`;
@@ -289,51 +304,47 @@
       });
     }
 
-    // 오늘 레슨
     function updateTodayLessons() {
       const now = new Date();
-      const minutesNow = now.getHours()*60+now.getMinutes();
-      let list=[];
-      document.querySelectorAll('#scheduleTable td').forEach(cell=>{
+      const minutesNow = now.getHours()*60 + now.getMinutes();
+      let upcoming = [];
+      document.querySelectorAll('#scheduleTable td').forEach(cell => {
         if (cell.dataset.info) {
-          const item=JSON.parse(cell.dataset.info);
-          const [h,m] = item.time.split(':').map(Number);
-          const total = h*60+m;
-          if (total>=minutesNow) list.push({total, text:`${item.time} ${item.name} (${item.enrolled}/${item.capacity})`});
+          const item = JSON.parse(cell.dataset.info);
+          const [h, m] = item.time.split(':').map(Number);
+          const total = h*60 + m;
+          if (total >= minutesNow) upcoming.push({ total, text: `${item.time} ${item.name} (${item.enrolled}/${item.capacity})` });
         }
       });
-      list.sort((a,b)=>a.total-b.total);
-      const ul=document.getElementById('todayLessonList'); ul.innerHTML='';
-      list.slice(0,2).forEach(i=>{ const li=document.createElement('li'); li.textContent=i.text; ul.appendChild(li); });
+      upcoming.sort((a, b) => a.total - b.total);
+      const ul = document.getElementById('todayLessonList'); ul.innerHTML = '';
+      upcoming.slice(0,2).forEach(i => { const li = document.createElement('li'); li.textContent = i.text; ul.appendChild(li); });
     }
 
-    // 시간선
     function insertCurrentTimeLine() {
-      document.querySelectorAll('.current-time-line').forEach(el=>el.remove());
-      const now=new Date(), dayIdx=now.getDay();
-      const totalNow=now.getHours()*60+now.getMinutes();
-      document.querySelectorAll('#scheduleTable tbody tr').forEach(row=>{
-        const rowStart=Number(row.firstChild.textContent.split(':')[0])*60;
-        const rowEnd=rowStart+60;
-        if (totalNow>=rowStart && totalNow<rowEnd) {
-          const pct=((totalNow-rowStart)/60)*100;
-          const line=document.createElement('div');
-          line.className='current-time-line';
-          line.style.top=`${pct}%`;
-          row.children[dayIdx].style.position='relative';
+      document.querySelectorAll('.current-time-line').forEach(el => el.remove());
+      const now = new Date();
+      const dayIdx = now.getDay();
+      const totalNow = now.getHours()*60 + now.getMinutes();
+      document.querySelectorAll('#scheduleTable tbody tr').forEach(row => {
+        const start = parseInt(row.firstChild.textContent.split(':')[0])*60;
+        const end = start + 60;
+        if (totalNow >= start && totalNow < end) {
+          const pct = ((totalNow - start) / 60) * 100;
+          const line = document.createElement('div');
+          line.className = 'current-time-line';
+          line.style.top = `${pct}%`;
           row.children[dayIdx].appendChild(line);
         }
       });
     }
 
-    // 오늘 헤더 강조
     function highlightToday() {
-      const idx=new Date().getDay();
-      const ths=document.querySelectorAll('#scheduleTable th');
-      if (ths[idx]) ths[idx].style.backgroundColor='#d4af37';
+      const idx = new Date().getDay();
+      const ths = document.querySelectorAll('#scheduleTable th');
+      if (ths[idx]) ths[idx].style.backgroundColor = '#d4af37';
     }
 
-    function logout() { alert('로그아웃되었습니다!'); window.location.href='/login.html'; }
-  </script>
-</body>
+    function logout() { alert('로그아웃되었습니다!'); window.location.href = '/login.html'; }
+  </script></body>
 </html>
