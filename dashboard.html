@@ -113,14 +113,18 @@
     overlay.onclick = () => { document.getElementById('sidebar').classList.remove('active'); closePopup(); overlay.style.display = 'none'; };
     document.getElementById('btnLogout').onclick = () => { alert('로그아웃되었습니다!'); location.href = '/login.html'; };
 
-    document.addEventListener('DOMContentLoaded', init);
+function init(){
+  buildCurr();
+  buildNext();
+  buildLast();
+  loadCurr();
+  highlightToday();
+  updateToday();
+  initTimeLine();
+  setInterval(updateTimeLine, 60000);
 
-    function init(){
-      buildCurr(); buildNext(); buildLast(); loadCurr(); highlightToday(); updateToday(); initTimeLine();
-      setInterval(updateTimeLine, 60000);
-      document.getElementById('headerCurr').onclick = openRangePopup;
-    }
-
+  document.getElementById('headerCurr').onclick = openRangePopup;
+}
     function buildCurr(){
       const tb = document.querySelector('#scheduleTableCurr tbody'); tb.innerHTML = '';
       for(let h=scheduleStart; h<scheduleEnd; h++){
@@ -142,7 +146,7 @@
     function buildLast(){ const tb = document.querySelector('#scheduleTableLast tbody'); tb.innerHTML = ''; for(let h=scheduleStart; h<scheduleEnd; h++){ const r=document.createElement('tr'); r.append(document.createElement('td')).textContent = `${h}:00`; for(let i=0;i<7;i++) r.append(document.createElement('td')); tb.append(r); } }
 
     function openRangePopup() {
-  console.log('시간 헤더 클릭됨'); // 콘솔 확인용
+  console.log('시간 헤더 클릭됨');
   document.getElementById('popupRange').style.display = 'block';
   overlay.style.display = 'block';
 }
