@@ -17,7 +17,15 @@
     @media(min-width:769px){.main{margin-left:180px}}
     .today-lessons{background:#fff;padding:8px;border-radius:6px;box-shadow:0 2px 4px rgba(0,0,0,0.1);margin-bottom:8px}
     .today-lessons h2{font-size:16px;color:#0d1b2a;margin-bottom:4px}
+    .today-lessons ul {padding-left: 16px;}
+.today-lessons li {
+  overflow-wrap: break-word; /* 단어 단위 줄 바꿈 허용 */
+  word-break: break-all;     /* 너무 긴 단어도 강제 줄 바꿈 */
+  margin-bottom: 4px;
+}
     .section-title{margin:8px 0 4px;font-size:14px;color:#0d1b2a}
+    /* 클릭 가능한 영역임을 시각적으로 표시 */
+    .schedule-wrapper th:first-child {cursor: pointer;}
     .schedule-wrapper{background:#fff;padding:8px;border-radius:6px;box-shadow:0 2px 4px rgba(0,0,0,0.1);margin-bottom:16px;overflow-x:auto}
     table{width:100%;min-width:600px;border-collapse:collapse;font-size:12px}
     th,td{border:1px solid #ccc;padding:4px;text-align:center;position:relative}
@@ -132,8 +140,8 @@
   <div class="popup" id="popupLesson">
     <h3>레슨 정보</h3>
     <input id="nameInput"       placeholder="이름" style="width:100%;margin:8px 0;padding:6px" />
-    <input id="enrolledInput"   type="number" placeholder="참여" style="width:48%" />
-    <input id="capacityInput"   type="number" placeholder="정원" style="width:48%" />
+    <input id="enrolledInput"   type="number" placeholder="회차" style="width:48%" />
+    <input id="capacityInput"   type="number" placeholder="총" style="width:48%" />
     <div class="button-group">
       <button onclick="saveLesson()">저장</button>
       <button onclick="deleteLesson()">삭제</button>
@@ -165,19 +173,27 @@
       alert('로그아웃되었습니다!');
       location.href = '/login.html';
     };
+    
+document.addEventListener('DOMContentLoaded', () => {
+  // 1) init 수행
+  init();
 
-    document.addEventListener('DOMContentLoaded', init);
+  // 2) 헤더 클릭 이벤트 한 번만 바인딩
+  const header = document.getElementById('headerCurr');
+  header.addEventListener('click', openRangePopup);
+});
 
-    function init(){
-      buildCurr();
-      buildNext();
-      buildLast();
-      loadCurr();
-      highlightToday();
-      updateToday();
-      initTimeLine();
-      setInterval(updateTimeLine,60000);
-
+function init(){
+  buildCurr();
+  buildNext();
+  buildLast();
+  loadCurr();
+  highlightToday();
+  updateToday();
+  initTimeLine();
+  setInterval(updateTimeLine, 60000);
+  // → 여기 header.onclick 코드는 삭제!
+}
       // 전체 범위 팝업: 헤더 클릭
       document.getElementById('headerCurr').onclick = openRangePopup;
     }
