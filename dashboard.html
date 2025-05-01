@@ -152,30 +152,25 @@
       location.href = '/login.html';  
     };  
 
+    // -------- DOMContentLoaded 시작 --------
+document.addEventListener('DOMContentLoaded', () => {
+  init();
+  const header = document.getElementById('headerCurr');
+  if (header) header.addEventListener('click', openRangePopup);
+});
 
-    //DOMCcontent << 여기가 시작
-    document.addEventListener('DOMContentLoaded', () => {
-      init();
-      const header = document.getElementById('headerCurr');
-      if (header) {
-        header.addEventListener('click', openRangePopup);
-      }
-    });
-  
-    function init(){  
-      buildCurr();  
-      buildNext();  
-      buildLast();  
-      loadCurr();  
-      highlightToday();  
-      updateToday();  
-      initTimeLine();  
-      setInterval(updateTimeLine,60000);  
-  
-      // 전체 범위 팝업: 헤더 클릭  
-      document.getElementById('headerCurr').onclick = openRangePopup;  
-    }  
-  
+function init(){
+  buildCurr();
+  buildNext();
+  buildLast();
+  loadCurr();
+  highlightToday();
+  updateToday();
+  initTimeLine();
+  setInterval(updateTimeLine, 60000);
+
+}
+    
     // --- 이번 주 테이블 생성 ---  
     function buildCurr(){  
       const tb = document.querySelector('#scheduleTableCurr tbody');  
