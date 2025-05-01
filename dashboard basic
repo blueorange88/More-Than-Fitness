@@ -16,6 +16,14 @@
     @media(min-width:769px){.main{margin-left:180px}}  
     .today-lessons{background:#fff;padding:8px;border-radius:6px;box-shadow:0 2px 4px rgba(0,0,0,0.1);margin-bottom:8px}  
     .today-lessons h2{font-size:16px;color:#0d1b2a;margin-bottom:4px}  
+    .today-lessons ul {
+  padding-left: 16px;
+}
+.today-lessons li {
+  overflow-wrap: break-word; /* 단어 단위 줄 바꿈 허용 */
+  word-break: break-all;     /* 너무 긴 단어도 강제 줄 바꿈 */
+  margin-bottom: 4px;
+}
     .section-title{margin:8px 0 4px;font-size:14px;color:#0d1b2a}  
     .schedule-wrapper{background:#fff;padding:8px;border-radius:6px;box-shadow:0 2px 4px rgba(0,0,0,0.1);margin-bottom:16px;overflow-x:auto}  
     table{width:100%;min-width:600px;border-collapse:collapse;font-size:12px}  
