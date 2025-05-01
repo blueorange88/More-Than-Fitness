@@ -123,8 +123,8 @@
   </div>    <!-- 팝업: 레슨 입력 -->    <div class="popup" id="popupLesson">    
     <h3>레슨 정보</h3>    
     <input id="nameInput"       placeholder="이름" style="width:100%;margin:8px 0;padding:6px" />    
-    <input id="enrolledInput"   type="number" placeholder="회차" style="width:48%" />    
-    <input id="capacityInput"   type="number" placeholder="총" style="width:48%" />    
+    <input id="enrolledInput"   type="number" placeholder="참여" style="width:48%" />    
+    <input id="capacityInput"   type="number" placeholder="정원" style="width:48%" />    
     <div class="button-group">    
       <button onclick="saveLesson()">저장</button>    
       <button onclick="deleteLesson()">삭제</button>    
@@ -132,7 +132,7 @@
   </div>    <!-- 스크립트 -->    <script>    
     let currentCell = null,    
         scheduleStart = 6,    
-        scheduleEnd   = 22;    
+        scheduleEnd   = 22;    const overlay = document.getElementById('overlay');    
 
 // 햄버거 토글    
 document.getElementById('hamburger').onclick = () => {    
@@ -152,13 +152,8 @@ document.getElementById('btnLogout').onclick = () => {
   location.href = '/login.html';    
 };    
 
-    let overlay;
-document.addEventListener('DOMContentLoaded', () => {
-  const overlay = document.getElementById('overlay');  // 여기에 위치시킴
-  init();
-  const header = document.getElementById('headerCurr');
-  if (header) header.addEventListener('click', openRangePopup);
-});
+document.addEventListener('DOMContentLoaded', init);    
+
 function init(){    
   buildCurr();    
   buildNext();    
@@ -369,4 +364,4 @@ function highlightToday(){
 
   </script>   
 </body>    
-</html> 
+</html>  
