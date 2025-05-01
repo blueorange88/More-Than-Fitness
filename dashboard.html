@@ -132,7 +132,7 @@
   </div>    <!-- 스크립트 -->    <script>    
     let currentCell = null,    
         scheduleStart = 6,    
-        scheduleEnd   = 22;    const overlay = document.getElementById('overlay');    
+        scheduleEnd   = 22;    
 
 // 햄버거 토글    
 document.getElementById('hamburger').onclick = () => {    
@@ -152,8 +152,12 @@ document.getElementById('btnLogout').onclick = () => {
   location.href = '/login.html';    
 };    
 
-document.addEventListener('DOMContentLoaded', init);    
-
+document.addEventListener('DOMContentLoaded', () => {
+  const overlay = document.getElementById('overlay');  // 여기에 위치시킴
+  init();
+  const header = document.getElementById('headerCurr');
+  if (header) header.addEventListener('click', openRangePopup);
+});
 function init(){    
   buildCurr();    
   buildNext();    
@@ -364,5 +368,4 @@ function highlightToday(){
 
   </script>   
 </body>    
-</html>   이게 내 코드인데 여기서 글씨 시간 팝업뜨고 기능 할 수 있게 너가 수정해서 통합 코드 보내줘
-
+</html> 
