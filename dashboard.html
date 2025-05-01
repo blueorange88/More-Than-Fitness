@@ -145,9 +145,6 @@ document.getElementById('popupRange').style.display = 'block';
 overlay.style.display = 'block';
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-init(); // 기존 초기화 작업
-
 const header = document.getElementById('headerCurr');
 if (header) {
 header.addEventListener('click', openRangePopup); // 헤더 클릭 시 팝업 열기
