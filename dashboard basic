@@ -1,0 +1,12 @@
+@media (max-width: 768px) {
+  .schedule-wrapper table {
+    table-layout: fixed;
+    width: 100%;
+    min-width: unset;
+  }
+  .schedule-wrapper th,
+  .schedule-wrapper td {
+    white-space: normal;
+    word-break: break-word;
+  }
+}
