@@ -153,15 +153,40 @@
     };  
 
 
-    //DOMCcontent << 여기가 시작
+    //-----------DOMCcontent--------- << 여기가 시작
     document.addEventListener('DOMContentLoaded', () => {
-      init();
-      const header = document.getElementById('headerCurr');
-      if (header) {
-        header.addEventListener('click', openRangePopup);
-      }
+  init();
+  const header = document.getElementById('headerCurr');
+  if (header) {
+    header.addEventListener('click', () => {
+      document.getElementById('popupRange').style.display = 'block';
+      overlay.style.display = 'block';
     });
-  
+  }
+});
+--------------------------최소 스케줄
+  function applyRangeCurr() {
+  const s = parseInt(document.getElementById('rangeStart').value.split(':')[0], 10);
+  const e = parseInt(document.getElementById('rangeEnd').value.split(':')[0], 10);
+
+  if (e - s < 5) {
+    alert('최소 레슨스케줄을 미달하였습니다.');
+    return;
+  }
+
+  scheduleStart = s;
+  scheduleEnd = e;
+
+  buildCurr();
+  buildNext();
+  buildLast();
+  loadCurr();
+  highlightToday();
+  updateToday();
+  initTimeLine();
+  closePopup();
+}
+    
     function init(){  
       buildCurr();  
       buildNext();  
