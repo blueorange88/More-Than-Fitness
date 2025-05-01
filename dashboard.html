@@ -104,46 +104,43 @@
 overlay.onclick = () => { document.getElementById('sidebar').classList.remove('active'); closePopup(); overlay.style.display = 'none'; };  
 document.getElementById('btnLogout').onclick = () => { alert('로그아웃되었습니다!'); location.href = '/login.html'; };  
 
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', init);  
 
-function init(){
-buildCurr();
-buildNext();
-buildLast();
-loadCurr();
-highlightToday();
-updateToday();
-initTimeLine();
-setInterval(updateTimeLine, 60000);
+function init(){  
+  buildCurr(); buildNext(); buildLast(); loadCurr(); highlightToday(); updateToday(); initTimeLine();  
+  setInterval(updateTimeLine, 60000);  
+  document.getElementById('headerCurr').onclick = openRangePopup;  
+}  
 
-document.getElementById('headerCurr').onclick = openRangePopup;
-}
-function buildCurr(){
-const tb = document.querySelector('#scheduleTableCurr tbody'); tb.innerHTML = '';
-for(let h=scheduleStart; h<scheduleEnd; h++){
-const r = document.createElement('tr');
-const c0 = document.createElement('td');
-c0.textContent = ${h}:00; c0.className = 'time-cell';
-c0.onclick = () => openMinute(c0);
-r.append(c0);
-for(let i=0;i<7;i++){
-const c = document.createElement('td');
-c.onclick = () => openLesson(c);
-r.append(c);
-}
-tb.append(r);
-}
-}
+function buildCurr(){  
+  const tb = document.querySelector('#scheduleTableCurr tbody'); tb.innerHTML = '';  
+  for(let h=scheduleStart; h<scheduleEnd; h++){  
+    const r = document.createElement('tr');  
+    const c0 = document.createElement('td');  
+    c0.textContent = `${h}:00`; c0.className = 'time-cell';  
+    c0.onclick = () => openMinute(c0);  
+    r.append(c0);  
+    for(let i=0;i<7;i++){  
+      const c = document.createElement('td');  
+      c.onclick = () => openLesson(c);  
+      r.append(c);  
+    }  
+    tb.append(r);  
+  }  
+}  
 
 function buildNext(){ const tb = document.querySelector('#scheduleTableNext tbody'); tb.innerHTML = ''; for(let h=scheduleStart; h<scheduleEnd; h++){ const r=document.createElement('tr'); r.append(document.createElement('td')).textContent = `${h}:00`; for(let i=0;i<7;i++) r.append(document.createElement('td')); tb.append(r); } }  
 function buildLast(){ const tb = document.querySelector('#scheduleTableLast tbody'); tb.innerHTML = ''; for(let h=scheduleStart; h<scheduleEnd; h++){ const r=document.createElement('tr'); r.append(document.createElement('td')).textContent = `${h}:00`; for(let i=0;i<7;i++) r.append(document.createElement('td')); tb.append(r); } }  
 
 function openRangePopup() {
 
-console.log('시간 헤더 클릭됨');
+console.log('시간 헤더 클릭됨'); // 콘솔 확인용
 document.getElementById('popupRange').style.display = 'block';
 overlay.style.display = 'block';
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+init(); // 기존 초기화 작업
 
 const header = document.getElementById('headerCurr');
 if (header) {
@@ -250,7 +247,8 @@ ths[index].style.backgroundColor = '#d4af37';
 ths[index].style.color = '#0d1b2a';
 }
 }
+    
 </script>
-
 </body>  
-</html>  
+</html>
+
