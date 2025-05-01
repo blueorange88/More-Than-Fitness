@@ -141,8 +141,10 @@
     function buildNext(){ const tb = document.querySelector('#scheduleTableNext tbody'); tb.innerHTML = ''; for(let h=scheduleStart; h<scheduleEnd; h++){ const r=document.createElement('tr'); r.append(document.createElement('td')).textContent = `${h}:00`; for(let i=0;i<7;i++) r.append(document.createElement('td')); tb.append(r); } }
     function buildLast(){ const tb = document.querySelector('#scheduleTableLast tbody'); tb.innerHTML = ''; for(let h=scheduleStart; h<scheduleEnd; h++){ const r=document.createElement('tr'); r.append(document.createElement('td')).textContent = `${h}:00`; for(let i=0;i<7;i++) r.append(document.createElement('td')); tb.append(r); } }
 
-    function openRangePopup(){
-      document.getElementById('popupRange').style.display='block'; overlay.style.display='block';
+    function openRangePopup() {
+  console.log('시간 헤더 클릭됨'); // 콘솔에 찍히는지 확인!
+  document.getElementById('popupRange').style.display = 'block';
+  overlay.style.display = 'block';
     }
     function applyRangeCurr(){
       const s = parseInt(document.getElementById('rangeStart').value.split(':')[0],10);
