@@ -1,59 +1,44 @@
-<!DOCTYPE html>  <html lang="ko">  
-<head>  
-  <meta charset="UTF-8">  
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">  
-  <title>More Than Fitness - Dashboard</title>  
-  <style>  
-    *{box-sizing:border-box;margin:0;padding:0}  
-    body{display:flex;flex-direction:column;height:100vh;font-family:'Poppins',sans-serif;background:#f5f0e8;overflow:hidden}  
-    .topbar{position:fixed;top:0;left:0;right:0;height:50px;background:#f5f0e8;display:flex;align-items:center;justify-content:space-between;padding:0 15px;box-shadow:0 2px 4px rgba(0,0,0,0.1);z-index:1001}  
-    .topbar h1{font-size:18px;color:#0d1b2a}  
-    .hamburger,.logout-btn{background:none;border:none;cursor:pointer;font-size:20px;color:#0d1b2a}  
-    .sidebar{position:fixed;top:50px;left:0;bottom:0;width:180px;background:#0d1b2a;color:#fff;padding:15px;transform:translateX(-100%);transition:transform .3s ease;z-index:1002}  
-    .sidebar.active{transform:translateX(0)}  
-    .sidebar button{background:none;border:none;color:#fff;width:100%;text-align:left;margin:8px 0;cursor:pointer;font-size:14px}  
-    .main{margin-top:50px;flex:1;overflow-y:auto;padding:8px}  
-    /* 모바일 뷰포트에서 테이블을 유연하게 축소 */
-@media (max-width: 768px) {
-  .schedule-wrapper table {
-    table-layout: fixed;      /* 칸 너비 고정 배분 */
-    width: 100%;              /* 컨테이너 폭에 딱 맞춤 */
-    min-width: unset;         /* 더 이상 강제 최소 너비 없음 */
-  }
-  .schedule-wrapper th,
-  .schedule-wrapper td {
-    word-wrap: break-word;    /* 글자가 넘칠 때 단어 단위로 줄 바꿈 */
-    white-space: normal;
-  }
-}
-    .today-lessons{background:#fff;padding:8px;border-radius:6px;box-shadow:0 2px 4px rgba(0,0,0,0.1);margin-bottom:8px}  
-    .today-lessons h2{font-size:16px;color:#0d1b2a;margin-bottom:4px}  
-    .today-lessons ul {
-  padding-left: 16px;
-}
-.today-lessons li {
-  overflow-wrap: break-word; /* 단어 단위 줄 바꿈 허용 */
-  word-break: break-all;     /* 너무 긴 단어도 강제 줄 바꿈 */
-  margin-bottom: 4px;
-}
-    .section-title{margin:8px 0 4px;font-size:14px;color:#0d1b2a}  
-    .schedule-wrapper{background:#fff;padding:8px;border-radius:6px;box-shadow:0 2px 4px rgba(0,0,0,0.1);margin-bottom:16px;overflow-x:auto}  
-    table{width:100%;min-width:600px;border-collapse:collapse;font-size:12px}  
-    th,td{border:1px solid #ccc;padding:4px;text-align:center;position:relative}  
-    th{background:#0d1b2a;color:#fff}  
-    th:first-child{background:#0d3b5a;cursor:pointer}  
-    .time-cell{background:#f1f1f1;cursor:pointer}  
-    .current-time-line{position:absolute;left:0;right:0;height:2px;background:#FF3B30;animation:pulse 5s ease-in-out infinite}  
-    @keyframes pulse{0%,100%{opacity:0.4}50%{opacity:1}}  
-    .overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000}  
-    .popup{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:16px;border-radius:6px;z-index:1001;width:260px;max-width:90%;max-height:80vh;overflow-y:auto}  
-    .button-group{display:flex;justify-content:space-between;margin-top:8px}  
-    .button-group button{width:48%;padding:6px;background:#f5f0e8;border:none;border-radius:4px;cursor:pointer}  
-    .bottom-nav{display:flex;position:fixed;bottom:0;left:0;right:0;background:#0d1b2a;justify-content:space-around;padding:8px 0}  
-    .bottom-nav button{background:none;border:none;color:#fff;font-size:14px;cursor:pointer}  
-    .main{padding-bottom:60px}  
-  </style>  
-</head>  
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>More Than Fitness - Dashboard</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { display: flex; flex-direction: column; height: 100vh; font-family: 'Poppins', sans-serif; background: #f5f0e8; overflow: hidden; }
+    .topbar { position: fixed; top: 0; left: 0; right: 0; height: 50px; background: #f5f0e8; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 1001; }
+    .topbar h1 { font-size: 18px; color: #0d1b2a; }
+    .hamburger, .logout-btn { background: none; border: none; cursor: pointer; font-size: 20px; color: #0d1b2a; }
+    .sidebar { position: fixed; top: 50px; left: 0; bottom: 0; width: 180px; background: #0d1b2a; color: #fff; padding: 15px; transform: translateX(-100%); transition: transform .3s ease; z-index: 1002; }
+    .sidebar.active { transform: translateX(0); }
+    .sidebar button { background: none; border: none; color: #fff; width: 100%; text-align: left; margin: 8px 0; cursor: pointer; font-size: 14px; }
+    .main { margin-top: 50px; flex: 1; overflow-y: auto; padding: 8px; padding-bottom: 60px; }
+    @media (max-width: 768px) {
+      .schedule-wrapper table { table-layout: fixed; width: 100%; min-width: unset; }
+      .schedule-wrapper th, .schedule-wrapper td { word-wrap: break-word; white-space: normal; }
+    }
+    .today-lessons { background: #fff; padding: 8px; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 8px; }
+    .today-lessons h2 { font-size: 16px; color: #0d1b2a; margin-bottom: 4px; }
+    .today-lessons ul { padding-left: 16px; }
+    .today-lessons li { overflow-wrap: break-word; word-break: break-all; margin-bottom: 4px; }
+    .section-title { margin: 8px 0 4px; font-size: 14px; color: #0d1b2a; }
+    .schedule-wrapper { background: #fff; padding: 8px; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 16px; overflow-x: auto; }
+    table { width: 100%; min-width: 600px; border-collapse: collapse; font-size: 12px; }
+    th, td { border: 1px solid #ccc; padding: 4px; text-align: center; position: relative; }
+    th { background: #0d1b2a; color: #fff; }
+    th:first-child { background: #0d3b5a; cursor: pointer; }
+    .time-cell { background: #f1f1f1; cursor: pointer; }
+    .current-time-line { position: absolute; left: 0; right: 0; height: 2px; background: #FF3B30; animation: pulse 5s ease-in-out infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+    .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; }
+    .popup { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; padding: 16px; border-radius: 6px; z-index: 1001; width: 260px; max-width: 90%; max-height: 80vh; overflow-y: auto; }
+    .button-group { display: flex; justify-content: space-between; margin-top: 8px; }
+    .button-group button { width: 48%; padding: 6px; background: #f5f0e8; border: none; border-radius: 4px; cursor: pointer; }
+    .bottom-nav { display: flex; position: fixed; bottom: 0; left: 0; right: 0; background: #0d1b2a; justify-content: space-around; padding: 8px 0; }
+    .bottom-nav button { background: none; border: none; color: #fff; font-size: 14px; cursor: pointer; }
+  </style>
+</head>
 <body>  
   <!-- 상단바 -->  
   <div class="topbar">  
@@ -138,7 +123,11 @@
       <button onclick="saveLesson()">저장</button>  
       <button onclick="deleteLesson()">삭제</button>  
     </div>  
-  </div>    <!-- 스크립트 -->    <script>  
+  </div>   
+  
+  <!-- 스크립트 --> 
+  
+  <script>  
     let currentCell = null,  
         scheduleStart = 6,  
         scheduleEnd   = 22;  
@@ -162,8 +151,16 @@
       alert('로그아웃되었습니다!');  
       location.href = '/login.html';  
     };  
-  
-    document.addEventListener('DOMContentLoaded', init);  
+
+
+    //DOMCcontent << 여기가 시작
+    document.addEventListener('DOMContentLoaded', () => {
+      init();
+      const header = document.getElementById('headerCurr');
+      if (header) {
+        header.addEventListener('click', openRangePopup);
+      }
+    });
   
     function init(){  
       buildCurr();  
