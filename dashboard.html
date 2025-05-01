@@ -152,45 +152,30 @@
       location.href = '/login.html';  
     };  
 
---------------------------최소 스케줄
-  function applyRangeCurr() {
-  const s = parseInt(document.getElementById('rangeStart').value.split(':')[0], 10);
-  const e = parseInt(document.getElementById('rangeEnd').value.split(':')[0], 10);
 
-  if (e - s < 5) {
-    alert('최소 레슨스케줄을 미달하였습니다.');
-    return;
-  }
-
-  scheduleStart = s;
-  scheduleEnd = e;
-
-  buildCurr();
-  buildNext();
-  buildLast();
-  loadCurr();
-  highlightToday();
-  updateToday();
-  initTimeLine();
-  closePopup();
-}
-    
-    // -------- DOMC 여기 시작 -----
-document.addEventListener('DOMContentLoaded', init);
-
-function init(){
-  buildCurr();
-  buildNext();
-  buildLast();
-  loadCurr();
-  highlightToday();
-  updateToday();
-  initTimeLine();
-  setInterval(updateTimeLine, 60000);
-
-  // 2) 헤더 클릭 → 전체 범위 팝업
-  document.getElementById('headerCurr').addEventListener('click', openRangePopup);
-}
+    //DOMCcontent << 여기가 시작
+    document.addEventListener('DOMContentLoaded', () => {
+      init();
+      const header = document.getElementById('headerCurr');
+      if (header) {
+        header.addEventListener('click', openRangePopup);
+      }
+    });
+  
+    function init(){  
+      buildCurr();  
+      buildNext();  
+      buildLast();  
+      loadCurr();  
+      highlightToday();  
+      updateToday();  
+      initTimeLine();  
+      setInterval(updateTimeLine,60000);  
+  
+      // 전체 범위 팝업: 헤더 클릭  
+      document.getElementById('headerCurr').onclick = openRangePopup;  
+    }  
+  
     // --- 이번 주 테이블 생성 ---  
     function buildCurr(){  
       const tb = document.querySelector('#scheduleTableCurr tbody');  
@@ -210,30 +195,7 @@ function init(){
           r.append(c);  
         }  
         tb.append(r);  
-      } 
-      function buildCurr() {
-   const tb = document.querySelector('#scheduleTableCurr tbody');
-   tb.innerHTML = '';
-   for (let h = scheduleStart; h < scheduleEnd; h++) {
-     const r = document.createElement('tr');
-
-     // 왼쪽 시간셀 → 분 팝업만
-     const c0 = document.createElement('td');
-     c0.textContent = `${h}:00`;
-     c0.className   = 'time-cell';
--    c0.onclick     = () => openRangePopup();    // ← 이 줄 삭제
-+    c0.onclick     = () => openMinute(c0);      // ← 이렇게 유지
-     r.append(c0);
-
-     // 나머지 7일 칸
-     for (let i = 0; i < 7; i++) {
-       const c = document.createElement('td');
-       c.onclick = () => openLesson(c);
-       r.append(c);
-     }
-     tb.append(r);
-   }
- }
+      }  
     }  
   
     // 다음/지난 주 테이블  
