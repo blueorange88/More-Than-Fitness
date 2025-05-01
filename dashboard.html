@@ -112,7 +112,6 @@ function init(){ buildCurr(); buildNext(); buildLast(); loadCurr(); highlightTod
     c0.textContent = '${h}:00';
     c0.className = 'time-cell';
     c0.onclick = () => openMinute(c0);
-    c0.onclick = () => openRangePopup(c0);
     r.append(c0); for(let i=0;i<7;i++){ const c = document.createElement('td'); c.onclick = () => openLesson(c); r.append(c); } tb.append(r); } }
 
 function buildNext(){ const tb = document.querySelector('#scheduleTableNext tbody'); tb.innerHTML = ''; for(let h=scheduleStart; h<scheduleEnd; h++){ const r=document.createElement('tr'); r.append(document.createElement('td')).textContent = `${h}:00`; for(let i=0;i<7;i++) r.append(document.createElement('td')); tb.append(r); } }
