@@ -162,37 +162,27 @@
       alert('로그아웃되었습니다!');  
       location.href = '/login.html';  
     };  
-
-  document.addEventListener('DOMContentLoaded', () => {
-    // 1) 기존 init 호출 (테이블 빌드, 로드, 하이라이트 등)
-    init();
-
-    // 2) 헤더 클릭 이벤트 한 번만 등록
-    const header = document.getElementById('headerCurr');
-    header.addEventListener('click', openRangePopup);
-  });
-
-  function init(){
-    buildCurr();
-    buildNext();
-    buildLast();
-    loadCurr();
-    highlightToday();
-    updateToday();
-    initTimeLine();
-    setInterval(updateTimeLine, 60000);
+  
+    document.addEventListener('DOMContentLoaded', init);  
+  
+    function init(){  
+      buildCurr();  
+      buildNext();  
+      buildLast();  
+      loadCurr();  
+      highlightToday();  
+      updateToday();  
+      initTimeLine();  
+      setInterval(updateTimeLine,60000);  
+  
       // 전체 범위 팝업: 헤더 클릭  
-    
       document.getElementById('headerCurr').onclick = openRangePopup;  
     }  
   
     // --- 이번 주 테이블 생성 ---  
     function buildCurr(){  
       const tb = document.querySelector('#scheduleTableCurr tbody');  
-      tb.innerHTML = '';
-    function openRangePopup(){
-      document.getElementById('popupRange').style.display = 'block';
-      document.getElementById('overlay').style.display = 'block';
+      tb.innerHTML = '';  
       for(let h=scheduleStart; h<scheduleEnd; h++){  
         const r = document.createElement('tr');  
         // 왼쪽 시간 칸 (분 팝업)  
@@ -208,21 +198,9 @@
           r.append(c);  
         }  
         tb.append(r);  
-      } 
-      
-    // 2) DOMContentLoaded 에서 한 번에 처리
-    document.addEventListener('DOMContentLoaded') => {
-      // (A) 테이블/레이아웃 초기화
-      init();  
-    } 
-      // (B) 헤더 클릭 리스너
-      const header = document.getElementById('headerCurr');
-      console.log('header element:', header);        // → 브라우저 콘솔에서 확인
-      header.addEventListener('click', () => {
-        console.log('시간 헤더 클릭!');             // 클릭이 찍히는지 확인
-        openRangePopup();
-      }
- }
+      }  
+    }  
+  
     // 다음/지난 주 테이블  
     function buildNext(){  
       const tb = document.querySelector('#scheduleTableNext tbody');  
@@ -394,7 +372,6 @@
         ths[idx].style.color = '#0d1b2a';  
       }  
     }  
-      
   </script> 
 </body>  
 </html> 
