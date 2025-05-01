@@ -117,8 +117,8 @@
   </div>    <!-- 팝업: 레슨 입력 -->    <div class="popup" id="popupLesson">  
     <h3>레슨 정보</h3>  
     <input id="nameInput"       placeholder="이름" style="width:100%;margin:8px 0;padding:6px" />  
-    <input id="enrolledInput"   type="number" placeholder="참여" style="width:48%" />  
-    <input id="capacityInput"   type="number" placeholder="정원" style="width:48%" />  
+    <input id="enrolledInput"   type="number" placeholder="회차" style="width:48%" />  
+    <input id="capacityInput"   type="number" placeholder="총" style="width:48%" />  
     <div class="button-group">  
       <button onclick="saveLesson()">저장</button>  
       <button onclick="deleteLesson()">삭제</button>  
@@ -218,22 +218,41 @@ function init(){
         tb.append(r);  
       }  
     }  
-  
-    // 전체 범위 팝업  
-    function openRangePopup(){  
-      document.getElementById('popupRange').style.display = 'block';  
-      overlay.style.display = 'block';  
-    }  
-    function applyRangeCurr(){  
-      const s = +document.getElementById('rangeStart').value.split(':')[0];  
-      const e = +document.getElementById('rangeEnd').value.split(':')[0];  
-      scheduleStart = s;  
-      scheduleEnd   = e;  
-      buildCurr(); buildNext(); buildLast();  
-      loadCurr(); highlightToday(); updateToday(); initTimeLine();  
-      closePopup();  
-    }  
-  
+ // 전체 범위 팝업
+function openRangePopup(){
+  document.getElementById('popupRange').style.display = 'block';
+  overlay.style.display = 'block';
+}
+
+function applyRangeCurr(){
+  const s = +document.getElementById('rangeStart').value.split(':')[0];
+  const e = +document.getElementById('rangeEnd').value.split(':')[0];
+
+  // 1) 시작<종료 검사
+  if (e <= s) {
+    alert('종료 시간은 시작 시간보다 커야 합니다.');
+    return;
+  }
+
+  // 2) 최소 5시간 검사
+  if (e - s < 5) {
+    alert('최소 레슨스케줄을 미달하였습니다.');
+    return;
+  }
+
+  // 3) 유효하면 범위 적용
+  scheduleStart = s;
+  scheduleEnd   = e;
+
+  buildCurr();
+  buildNext();
+  buildLast();
+  loadCurr();
+  highlightToday();
+  updateToday();
+  initTimeLine();
+  closePopup();
+}
     // 분 팝업  
     function openMinute(cell){  
       currentCell = cell;  
