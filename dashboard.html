@@ -152,7 +152,7 @@
       location.href = '/login.html';  
     };  
 
-    // -------- DOMContentLoaded 시작 --------
+// --- DOMContentLoaded 시작 ---
 document.addEventListener('DOMContentLoaded', () => {
   init();
   const header = document.getElementById('headerCurr');
@@ -168,9 +168,7 @@ function init(){
   updateToday();
   initTimeLine();
   setInterval(updateTimeLine, 60000);
-
-}
-    
+  
     // --- 이번 주 테이블 생성 ---  
     function buildCurr(){  
       const tb = document.querySelector('#scheduleTableCurr tbody');  
