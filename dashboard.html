@@ -130,8 +130,9 @@ function init(){
       for(let h=scheduleStart; h<scheduleEnd; h++){
         const r = document.createElement('tr');
         const c0 = document.createElement('td');
-        c0.textContent = `${h}:00`; c0.className = 'time-cell';
-        c0.onclick = () => openMinute(c0);
+        c0.textContent = `${h}:00`;
+        c0.className = 'time-cell';
+        c0.onclick = () => openRangePup;
         r.append(c0);
         for(let i=0;i<7;i++){
           const c = document.createElement('td');
