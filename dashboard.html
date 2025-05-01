@@ -132,8 +132,7 @@
   </div>    <!-- 스크립트 -->    <script>    
     let currentCell = null,    
         scheduleStart = 6,    
-        scheduleEnd   = 22;    const overlay = document.getElementById('overlay');    
-
+        scheduleEnd   = 22;    
 // 햄버거 토글    
 document.getElementById('hamburger').onclick = () => {    
   document.getElementById('sidebar').classList.toggle('active');    
@@ -152,8 +151,6 @@ document.getElementById('btnLogout').onclick = () => {
   location.href = '/login.html';    
 };    
 
-document.addEventListener('DOMContentLoaded', init);    
-
 function init(){    
   buildCurr();    
   buildNext();    
@@ -164,8 +161,12 @@ function init(){
   initTimeLine();    
   setInterval(updateTimeLine,60000);    
 
+  let overlay;
   // 전체 범위 팝업: 헤더 클릭    
-  document.getElementById('headerCurr').onclick = openRangePopup;    
+  document.getElementById('headerCurr').onclick = openRangePopup;
+  document.addEventListener('DOMContentLoaded', init);    
+  const overlay = document.getElementById('overlay');    
+
 }    
 
 // --- 이번 주 테이블 생성 ---    
