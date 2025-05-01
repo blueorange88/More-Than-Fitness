@@ -133,7 +133,7 @@
     let currentCell = null,    
         scheduleStart = 6,    
         scheduleEnd   = 22
-    let  overlay
+    
 // 햄버거 토글    
 document.getElementById('hamburger').onclick = () => {    
   document.getElementById('sidebar').classList.toggle('active');    
@@ -165,7 +165,6 @@ function init(){
   initTimeLine();    
   setInterval(updateTimeLine,60000);    
 
-  let overlay;
   // 전체 범위 팝업: 헤더 클릭    
   document.getElementById('headerCurr').onclick = openRangePopup; 
   
