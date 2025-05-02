@@ -1,5 +1,5 @@
 <!DOCTYPE html>  <html lang="ko">    <head>    
-  <meta charset="UTF-8">    
+  <meta charset="UTF-8"> 
   <meta name="viewport" content="width=device-width,initial-scale=1.0">    
   <title>More Than Fitness - Dashboard</title>    
   <style>    
@@ -102,10 +102,7 @@
     </thead>    
     <tbody></tbody>    
   </table>    
-</div>    </div>   
-  <!-- 오버레이 -->    <div class="overlay" id="overlay"></div>  
-  <!-- 팝업: 전체 시간 범위 -->    <div class="popup" id="popupRange">    
-  
+</div>    </div>    <!-- 오버레이 -->    <div class="overlay" id="overlay"></div>    <!-- 팝업: 전체 시간 범위 -->    <div class="popup" id="popupRange">    
     <h3>시간 범위 설정</h3>    
     <label>시작: <input type="time" id="rangeStart" value="06:00"></label><br>    
     <label>종료: <input type="time" id="rangeEnd"   value="22:00"></label>    
@@ -136,11 +133,142 @@
   
   <!-- 스크립트 -->   
   
-  <script>    
-    let currentCell = null,    
-        scheduleStart = 6,    
-        scheduleEnd   = 22; const overlay = document.getElementById('overlay');
-    
+ <script>
+  let currentCell = null,
+      scheduleStart = 6,
+      scheduleEnd   = 22;
+
+  const overlay = document.getElementById('overlay');
+
+  // 1) 페이지 로드 후 단 한 번만 초기화
+  document.addEventListener('DOMContentLoaded', () => {
+    init();
+    // 헤더 클릭 → 전체 범위 팝업
+    document.getElementById('headerCurr').addEventListener('click', openRangePopup);
+  });
+
+  function init(){
+    buildCurr();
+    buildNext();
+    buildLast();
+    loadCurr();
+    highlightToday();
+    updateToday();
+    initTimeLine();
+    setInterval(updateTimeLine, 60000);
+  }
+
+  // --- 이번 주 테이블 생성 ---
+  function buildCurr(){
+    const tb = document.querySelector('#scheduleTableCurr tbody');
+    tb.innerHTML = '';
+    for(let h = scheduleStart; h < scheduleEnd; h++){
+      const r = document.createElement('tr');
+      const c0 = document.createElement('td');
+      c0.textContent = `${h}:00`;
+      c0.className   = 'time-cell';
+      c0.onclick     = () => openMinute(c0);
+      r.append(c0);
+      for(let i = 0; i < 7; i++){
+        const c = document.createElement('td');
+        c.onclick = () => openLesson(c);
+        r.append(c);
+      }
+      tb.append(r);
+    }
+  }
+
+  function buildNext(){
+    const tb = document.querySelector('#scheduleTableNext tbody');
+    tb.innerHTML = '';
+    for(let h = scheduleStart; h < scheduleEnd; h++){
+      const r = document.createElement('tr');
+      const c0 = document.createElement('td');
+      c0.textContent = `${h}:00`;
+      r.append(c0);
+      for(let i = 0; i < 7; i++) r.append(document.createElement('td'));
+      tb.append(r);
+    }
+  }
+
+  function buildLast(){
+    const tb = document.querySelector('#scheduleTableLast tbody');
+    tb.innerHTML = '';
+    for(let h = scheduleStart; h < scheduleEnd; h++){
+      const r = document.createElement('tr');
+      const c0 = document.createElement('td');
+      c0.textContent = `${h}:00`;
+      r.append(c0);
+      for(let i = 0; i < 7; i++) r.append(document.createElement('td'));
+      tb.append(r);
+    }
+  }
+
+  // 전체 범위 팝업
+  function openRangePopup(){
+    document.getElementById('popupRange').style.display = 'block';
+    overlay.style.display = 'block';
+  }
+
+  function applyRangeCurr(){
+    const s = +document.getElementById('rangeStart').value.split(':')[0];
+    const e = +document.getElementById('rangeEnd'  ).value.split(':')[0];
+
+    // 1) 시작<종료 검사
+    if (e <= s) {
+      alert('종료 시간은 시작 시간보다 늦어야 합니다.');
+      return;
+    }
+    // 2) 최소 3시간 검사
+    if (e - s < 3) {
+      alert('최소 3시간 이상 설정하여야 합니다.');
+      return;
+    }
+
+    scheduleStart = s;
+    scheduleEnd   = e;
+
+    buildCurr();
+    buildNext();
+    buildLast();
+    loadCurr();
+    highlightToday();
+    updateToday();
+    initTimeLine();
+    closePopup();
+  }
+
+  // 분 팝업
+  function openMinute(cell){
+    currentCell = cell;
+    document.getElementById('popupMinute').style.display = 'block';
+    overlay.style.display = 'block';
+  }
+
+  function saveMinute(){
+    const m = document.getElementById('minuteSelect').value;
+    const h = currentCell.textContent.split(':')[0];
+    currentCell.textContent = `${h}:${m}`;
+    updateTimeLine();
+    closePopup();
+  }
+
+  // 레슨 팝업
+  function openLesson(cell){
+    currentCell = cell;
+    const d = cell.dataset.info ? JSON.parse(cell.dataset.info) : {};
+    document.getElementById('nameInput').value     = d.name||'';
+    document.getElementById('enrolledInput').value = d.enrolled||'';
+    document.getElementById('capacityInput').value = d.cap||'';
+    document.getElementById('popupLesson').style.display = 'block';
+    overlay.style.display = 'block';
+  }
+
+  function closePopup(){
+    document.querySelectorAll('.popup').forEach(p => p.style.display = 'none');
+    overlay.style.display = 'none';
+  }
+
 // 햄버거 토글    
 document.getElementById('hamburger').onclick = () => {    
   document.getElementById('sidebar').classList.toggle('active');    
@@ -156,12 +284,10 @@ overlay.onclick = () => {
 // 로그아웃    
 document.getElementById('btnLogout').onclick = () => {    
   alert('로그아웃되었습니다!');    
-  location.href = '/login.html'; 
-  document.addEventListener('DOMContentLoaded', init)
+  location.href = '/login.html';    
 };    
 
-    
-function init(){
+function init(){    
   buildCurr();    
   buildNext();    
   buildLast();    
@@ -172,8 +298,9 @@ function init(){
   setInterval(updateTimeLine,60000);    
 
   // 전체 범위 팝업: 헤더 클릭    
-  document.getElementById('headerCurr').onclick = openRangePopup
-}
+  document.getElementById('headerCurr').onclick = openRangePopup; 
+  document.addEventListener('DOMContentLoaded', init)
+}    
 
 // --- 이번 주 테이블 생성 ---    
 function buildCurr(){    
@@ -238,30 +365,6 @@ function applyRangeCurr(){
   closePopup();    
 }    
 
-// 분 팝업    
-function openMinute(cell){    
-  currentCell = cell;    
-  document.getElementById('popupMinute').style.display = 'block';    
-  overlay.style.display = 'block';    
-}    
-function saveMinute(){    
-  const m = document.getElementById('minuteSelect').value;    
-  const h = currentCell.textContent.split(':')[0];    
-  currentCell.textContent = `${h}:${m}`;    
-  updateTimeLine();    
-  closePopup();    
-}    
-
-// 레슨 팝업    
-function openLesson(cell){    
-  currentCell = cell;    
-  const d = cell.dataset.info ? JSON.parse(cell.dataset.info) : {};    
-  document.getElementById('nameInput').value     = d.name||'';    
-  document.getElementById('enrolledInput').value = d.enrolled||'';    
-  document.getElementById('capacityInput').value = d.cap||'';    
-  document.getElementById('popupLesson').style.display = 'block';    
-  overlay.style.display = 'block';    
-}    
 function saveLesson(){    
   const name     = document.getElementById('nameInput').value;    
   const enrolled = +document.getElementById('enrolledInput').value||0;    
@@ -292,12 +395,6 @@ function deleteLesson(){
   updateToday();    
   updateTimeLine();    
   closePopup();    
-}    
-
-// 팝업 닫기    
-function closePopup(){    
-  document.querySelectorAll('.popup').forEach(p=>p.style.display='none');    
-  overlay.style.display = 'none';    
 }    
 
 // 저장된 스케줄 로드    
@@ -337,7 +434,7 @@ function updateToday(){
   });    
 }    
 
-// 시간선    
+// 시간선   
 function initTimeLine(){ updateTimeLine(); }    
 function updateTimeLine(){    
   document.querySelectorAll('.current-time-line').forEach(e=>e.remove());    
