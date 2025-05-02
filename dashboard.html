@@ -286,8 +286,11 @@ document.getElementById('btnLogout').onclick = () => {
   alert('로그아웃되었습니다!');    
   location.href = '/login.html';    
 };    
-
-function init(){    
+document.addEventListener('DOMContentLoaded', () => {init();
+document.getElementById('headerCurr').addEventListener('click', openRangePopup);
+});
+   
+function init(){  
   buildCurr();    
   buildNext();    
   buildLast();    
@@ -295,13 +298,10 @@ function init(){
   highlightToday();    
   updateToday();    
   initTimeLine();    
-  setInterval(updateTimeLine,60000);    
+  setInterval(updateTimeLine,60000);
 
-  // 전체 범위 팝업: 헤더 클릭    
-  document.getElementById('headerCurr').onclick = openRangePopup; 
-  document.addEventListener('DOMContentLoaded', init)
-}    
-
+};
+   
 // --- 이번 주 테이블 생성 ---    
 function buildCurr(){    
   const tb = document.querySelector('#scheduleTableCurr tbody');    
