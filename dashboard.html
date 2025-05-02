@@ -102,7 +102,10 @@
     </thead>    
     <tbody></tbody>    
   </table>    
-</div>    </div>    <!-- 오버레이 -->    <div class="overlay" id="overlay"></div>    <!-- 팝업: 전체 시간 범위 -->    <div class="popup" id="popupRange">    
+</div>    </div>   
+  <!-- 오버레이 -->    <div class="overlay" id="overlay"></div>  
+  <!-- 팝업: 전체 시간 범위 -->    <div class="popup" id="popupRange">    
+  
     <h3>시간 범위 설정</h3>    
     <label>시작: <input type="time" id="rangeStart" value="06:00"></label><br>    
     <label>종료: <input type="time" id="rangeEnd"   value="22:00"></label>    
@@ -156,8 +159,8 @@ document.getElementById('btnLogout').onclick = () => {
   location.href = '/login.html';    
 };    
 
-document.addEventListener('DOMContentLoaded', init) => { 
-function init()
+
+function init(){
   buildCurr();    
   buildNext();    
   buildLast();    
@@ -168,8 +171,9 @@ function init()
   setInterval(updateTimeLine,60000);    
 
   // 전체 범위 팝업: 헤더 클릭    
-  document.getElementById('headerCurr').onclick = openRangePopup; 
-}    
+  document.getElementById('headerCurr').onclick = openRangePopup;
+  document.addEventListener('DOMContentLoaded', init)
+}
 
 // --- 이번 주 테이블 생성 ---    
 function buildCurr(){    
