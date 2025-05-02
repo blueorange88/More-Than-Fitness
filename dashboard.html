@@ -290,38 +290,17 @@ function deleteLesson(){
   delete currentCell.dataset.info;
   updateToday(); updateTimeLine(); hidePopup();
 }
-function applyRangeCurr() {
+function applyRangeCurr(){
   const s = +document.getElementById('rangeStart').value.split(':')[0];
   const e = +document.getElementById('rangeEnd').value.split(':')[0];
-
-  if (e <= s) {
-    alert('종료 시간은 시작 시간보다 늦어야 합니다.');
-    return;
-  }
-  if (e - s < 3) {
-    alert('최소 3시간 이상 설정하여야 합니다.');
-    return;
-  }
-
+  if (e <= s) return alert('종료 시간은 시작보다 늦어야 합니다.');
+  if (e - s < 3) return alert('최소 3시간 이상 설정해야 합니다.');
   scheduleStart = s;
   scheduleEnd = e;
-
-  // 범위 저장
-  localStorage.setItem('scheduleRange', JSON.stringify({ start: s, end: e }));
-
-  buildCurr();
-  buildNext();
-  buildLast();
-  loadCurr();
-  highlightToday();
-  updateToday();
-  initTimeLine();
-
-  // ✅ 팝업 닫기
-  document.getElementById('popupRange').style.display = 'none';
-  document.getElementById('popupOverlay').style.display = 'none';
-  document.body.style.overflow = '';
-}
+  localStorage.setItem('scheduleRange', JSON.stringify({ start: scheduleStart, end: scheduleEnd }));
+  buildCurr(); buildNext(); buildLast();
+  loadCurr(); highlightToday(); updateToday(); initTimeLine();
+  hidePopup();
 }
 function loadCurr(){
   const data = JSON.parse(localStorage.getItem('scheduleData')||'[]');
