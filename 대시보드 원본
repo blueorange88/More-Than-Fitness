@@ -173,22 +173,33 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 function init(){
+  if (localStorage.getItem('scheduleRange')) {
+  const { start, end } = JSON.parse(localStorage.getItem('scheduleRange'));
+  scheduleStart = start;
+  scheduleEnd = end;
+}
   buildCurr(); buildNext(); buildLast();
   loadCurr(); highlightToday(); updateToday(); initTimeLine();
   setInterval(updateTimeLine, 60000);
 }
 
-function buildCurr(){
+function buildCurr() {
   const tb = document.querySelector('#scheduleTableCurr tbody');
   tb.innerHTML = '';
-  for(let h = scheduleStart; h < scheduleEnd; h++){
+  for (let h = scheduleStart; h < scheduleEnd; h++) {
     const r = document.createElement('tr');
     const c0 = document.createElement('td');
-    c0.textContent = `${h}:00`;
+
+    // 저장된 분(minute) 불러오기 (예: minute-6, minute-7 ...)
+    const savedMinute = localStorage.getItem(`minute-${h}`);
+    const minute = savedMinute || '00';
+
+    c0.textContent = `${h}:${minute}`;
     c0.className = 'time-cell';
     c0.onclick = () => openMinute(c0);
     r.append(c0);
-    for(let i=0; i<7; i++){
+
+    for (let i = 0; i < 7; i++) {
       const c = document.createElement('td');
       c.onclick = () => openLesson(c);
       r.append(c);
@@ -196,6 +207,7 @@ function buildCurr(){
     tb.append(r);
   }
 }
+   
 function buildNext(){
   const tb = document.querySelector('#scheduleTableNext tbody');
   tb.innerHTML = '';
@@ -225,12 +237,22 @@ function openMinute(cell){
   currentCell = cell;
   showPopup(document.getElementById('popupMinute'));
 }
-function saveMinute(){
+function saveMinute() {
   const m = document.getElementById('minuteSelect').value;
   const h = currentCell.textContent.split(':')[0];
+
+  // 시간 칸 텍스트 변경
   currentCell.textContent = `${h}:${m}`;
+
+  // 분 값 저장
+  localStorage.setItem(`minute-${h}`, m);
+
   updateTimeLine();
-  hidePopup();
+
+  // 팝업 닫기
+  document.getElementById('popupMinute').style.display = 'none';
+  document.getElementById('popupOverlay').style.display = 'none';
+  document.body.style.overflow = '';
 }
 
 function openLesson(cell){
@@ -268,17 +290,30 @@ function deleteLesson(){
   delete currentCell.dataset.info;
   updateToday(); updateTimeLine(); hidePopup();
 }
+   
 function applyRangeCurr(){
   const s = +document.getElementById('rangeStart').value.split(':')[0];
   const e = +document.getElementById('rangeEnd').value.split(':')[0];
   if (e <= s) return alert('종료 시간은 시작보다 늦어야 합니다.');
   if (e - s < 3) return alert('최소 3시간 이상 설정해야 합니다.');
+  
   scheduleStart = s;
   scheduleEnd = e;
-  buildCurr(); buildNext(); buildLast();
-  loadCurr(); highlightToday(); updateToday(); initTimeLine();
-  hidePopup();
+  localStorage.setItem('scheduleRange', JSON.stringify({ start: scheduleStart, end: scheduleEnd }));
+
+  // 타임라인과 테이블 갱신 후 팝업 닫기
+  buildCurr(); 
+  buildNext(); 
+  buildLast();
+  loadCurr(); 
+  highlightToday(); 
+  updateToday(); 
+  initTimeLine();
+
+  // 약간의 지연을 주고 팝업 닫기 (DOM 안정 후)
+  setTimeout(hidePopup, 10); 
 }
+   
 function loadCurr(){
   const data = JSON.parse(localStorage.getItem('scheduleData')||'[]');
   data.forEach(i => {
