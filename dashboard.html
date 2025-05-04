@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>More Than Fitness - Dashboard</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -139,243 +139,242 @@
   </div>
 
   <!-- [JS 시작] 아래에서 JavaScript 코드가 시작됩니다. -->
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <title>More Than Fitness - Dashboard</title>
-  <style>
-    /* 생략: 기존 CSS 그대로 */
-  </style>
-</head>
-<body>
-  <!-- 생략: HTML 구조 그대로 -->
-  <script>
-    let currentCell = null;
-    let scheduleStart = 6, scheduleEnd = 15;
-    const popupOverlay   = document.getElementById('popupOverlay');
-    const sidebarOverlay = document.getElementById('sidebarOverlay');
+ <script>
+let currentCell = null;
+let scheduleStart = 6;
+let scheduleEnd = 15;
 
-    window.addEventListener('DOMContentLoaded', () => {
-      // 로그아웃
-      document.getElementById('btnLogout').onclick = () => {
-        alert('로그아웃되었습니다!');
-        location.href = '/login.html';
-      };
+const popupOverlay = document.getElementById('popupOverlay');
+const sidebarOverlay = document.getElementById('sidebarOverlay');
 
-      // 시간 헤더 클릭 → 범위 팝업
-      document.getElementById('headerCurr').onclick = () => {
-        showPopup(document.getElementById('popupRange'));
-      };
+// 페이지 로드시 초기화
+window.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('btnLogout').onclick = () => {
+    alert('로그아웃되었습니다!');
+    location.href = '/login.html';
+  };
 
-      // 햄버거 토글
-      document.getElementById('hamburger').onclick = () => {
-        const sb = document.getElementById('sidebar');
-        sb.classList.toggle('active');
-        sidebarOverlay.style.display = sb.classList.contains('active') ? 'block' : 'none';
-      };
-      sidebarOverlay.onclick = () => {
-        document.getElementById('sidebar').classList.remove('active');
-        sidebarOverlay.style.display = 'none';
-      };
+  document.getElementById('headerCurr').onclick = () => {
+    showPopup(document.getElementById('popupRange'));
+  };
 
-      init();  // 초기화
+  document.getElementById('hamburger').onclick = () => {
+    const sidebar = document.getElementById('sidebar');
+    sidebar.classList.toggle('active');
+    sidebarOverlay.style.display = sidebar.classList.contains('active') ? 'block' : 'none';
+  };
+
+  sidebarOverlay.onclick = () => {
+    document.getElementById('sidebar').classList.remove('active');
+    sidebarOverlay.style.display = 'none';
+  };
+
+  init();
+});
+
+function init(){
+  if (localStorage.getItem('scheduleRange')) {
+  const { start, end } = JSON.parse(localStorage.getItem('scheduleRange'));
+  scheduleStart = start;
+  scheduleEnd = end;
+}
+  buildCurr(); buildNext(); buildLast();
+  loadCurr(); highlightToday(); updateToday(); initTimeLine();
+  setInterval(updateTimeLine, 60000);
+}
+
+function buildCurr() {
+  const tb = document.querySelector('#scheduleTableCurr tbody');
+  tb.innerHTML = '';
+  for (let h = scheduleStart; h < scheduleEnd; h++) {
+    const r = document.createElement('tr');
+    const c0 = document.createElement('td');
+
+    // 저장된 분(minute) 불러오기 (예: minute-6, minute-7 ...)
+    const savedMinute = localStorage.getItem(`minute-${h}`);
+    const minute = savedMinute || '00';
+
+    c0.textContent = `${h}:${minute}`;
+    c0.className = 'time-cell';
+    c0.onclick = () => openMinute(c0);
+    r.append(c0);
+
+    for (let i = 0; i < 7; i++) {
+      const c = document.createElement('td');
+      c.onclick = () => openLesson(c);
+      r.append(c);
+    }
+    tb.append(r);
+  }
+}
+   
+function buildNext(){
+  const tb = document.querySelector('#scheduleTableNext tbody');
+  tb.innerHTML = '';
+  for(let h=scheduleStart; h<scheduleEnd; h++){
+    const r = document.createElement('tr');
+    const c0 = document.createElement('td');
+    c0.textContent = `${h}:00`;
+    r.append(c0);
+    for(let i=0; i<7; i++) r.append(document.createElement('td'));
+    tb.append(r);
+  }
+}
+function buildLast(){
+  const tb = document.querySelector('#scheduleTableLast tbody');
+  tb.innerHTML = '';
+  for(let h=scheduleStart; h<scheduleEnd; h++){
+    const r = document.createElement('tr');
+    const c0 = document.createElement('td');
+    c0.textContent = `${h}:00`;
+    r.append(c0);
+    for(let i=0; i<7; i++) r.append(document.createElement('td'));
+    tb.append(r);
+  }
+}
+
+function openMinute(cell){
+  currentCell = cell;
+  showPopup(document.getElementById('popupMinute'));
+}
+function saveMinute() {
+  const m = document.getElementById('minuteSelect').value;
+  const h = currentCell.textContent.split(':')[0];
+
+  // 시간 칸 텍스트 변경
+  currentCell.textContent = `${h}:${m}`;
+
+  // 분 값 저장
+  localStorage.setItem(`minute-${h}`, m);
+
+  updateTimeLine();
+
+  // 팝업 닫기
+  document.getElementById('popupMinute').style.display = 'none';
+  document.getElementById('popupOverlay').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+function openLesson(cell){
+  currentCell = cell;
+  const d = cell.dataset.info ? JSON.parse(cell.dataset.info) : {};
+  document.getElementById('nameInput').value = d.name || '';
+  document.getElementById('enrolledInput').value = d.enrolled || '';
+  document.getElementById('capacityInput').value = d.cap || '';
+  showPopup(document.getElementById('popupLesson'));
+}
+function saveLesson(){
+  const name = document.getElementById('nameInput').value;
+  const enrolled = +document.getElementById('enrolledInput').value || 0;
+  const cap = +document.getElementById('capacityInput').value || 0;
+  const time = currentCell.parentElement.firstChild.textContent;
+  const di = currentCell.cellIndex;
+  const i = { name, enrolled, cap, time, di };
+  currentCell.textContent = `${time}\n${name} (${enrolled}/${cap})`;
+  currentCell.dataset.info = JSON.stringify(i);
+  let arr = JSON.parse(localStorage.getItem('scheduleData')||'[]');
+  arr = arr.filter(x => !(x.time === i.time && x.di === i.di));
+  arr.push(i);
+  localStorage.setItem('scheduleData', JSON.stringify(arr));
+  updateToday(); updateTimeLine(); hidePopup();
+}
+function deleteLesson(){
+  if (!currentCell) return;
+  const info = currentCell.dataset.info ? JSON.parse(currentCell.dataset.info) : null;
+  if (info){
+    let data = JSON.parse(localStorage.getItem('scheduleData')||'[]');
+    data = data.filter(x => !(x.time === info.time && x.di === info.di));
+    localStorage.setItem('scheduleData', JSON.stringify(data));
+  }
+  currentCell.innerHTML = '';
+  delete currentCell.dataset.info;
+  updateToday(); updateTimeLine(); hidePopup();
+}
+function applyRangeCurr(){
+  const s = +document.getElementById('rangeStart').value.split(':')[0];
+  const e = +document.getElementById('rangeEnd').value.split(':')[0];
+  if (e <= s) return alert('종료 시간은 시작보다 늦어야 합니다.');
+  if (e - s < 3) return alert('최소 3시간 이상 설정해야 합니다.');
+  scheduleStart = s;
+  scheduleEnd = e;
+  localStorage.setItem('scheduleRange', JSON.stringify({ start: scheduleStart, end: scheduleEnd }));
+  buildCurr(); buildNext(); buildLast();
+  loadCurr(); highlightToday(); updateToday(); initTimeLine();
+  hidePopup();       // ← 팝업 닫기
+}
+function loadCurr(){
+  const data = JSON.parse(localStorage.getItem('scheduleData')||'[]');
+  data.forEach(i => {
+    document.querySelectorAll('#scheduleTableCurr tbody tr').forEach(r => {
+      if(r.firstChild.textContent === i.time){
+        const c = r.children[i.di];
+        c.textContent = `${i.time}\n${i.name} (${i.enrolled}/${i.cap})`;
+        c.dataset.info = JSON.stringify(i);
+      }
     });
-
-    function init(){
-      // 로컬스토리지에 저장된 범위가 있으면 적용
-      const saved = localStorage.getItem('scheduleRange');
-      if (saved) {
-        const { start, end } = JSON.parse(saved);
-        scheduleStart = start;
-        scheduleEnd   = end;
-      }
-      // 테이블 그리기 + 데이터 로드 + 요일 강조 + 오늘 레슨 + 시간선
-      buildCurr(); buildNext(); buildLast();
-      loadCurr();
-      highlightToday();
-      updateToday();
-      initTimeLine();
-      setInterval(updateTimeLine, 60_000);
+  });
+}
+function updateToday(){
+  const now = new Date();
+  const nv  = now.getHours()*60 + now.getMinutes();
+  const todayIndex = now.getDay(); // 0=일,1=월...
+  const list = [];
+  // 1) 해당 요일 열(td.cellIndex === todayIndex)만
+  document.querySelectorAll('#scheduleTableCurr tbody tr').forEach(r => {
+    const c = r.children[todayIndex];
+    if (!c || !c.dataset.info) return;
+    const v = JSON.parse(c.dataset.info);
+    const [h,m] = v.time.split(':').map(Number);
+    const t = h*60 + m;
+    if (t >= nv) list.push({ t, text: `${v.time} ${v.name} (${v.enrolled}/${v.cap})` });
+  });
+  list.sort((a,b)=>a.t-b.t);
+  const ul = document.getElementById('todayLessonList');
+  ul.innerHTML = '';
+  list.slice(0,2).forEach(i => {
+    const li = document.createElement('li');
+    li.textContent = i.text;
+    ul.appendChild(li);
+  });
+}
+function initTimeLine(){ updateTimeLine(); }
+function updateTimeLine(){
+  document.querySelectorAll('.current-time-line').forEach(e => e.remove());
+  const now = new Date();
+  const di = now.getDay();
+  const nv = now.getHours()*60 + now.getMinutes();
+  document.querySelectorAll('#scheduleTableCurr tbody tr').forEach(r => {
+    const [hh, mm] = r.firstChild.textContent.split(':').map(Number);
+    const rowTime = hh*60 + (mm||0);
+    const next = rowTime + 60;
+    if(nv >= rowTime && nv < next){
+      const pct = ((nv - rowTime)/60)*100;
+      const line = document.createElement('div');
+      line.className = 'current-time-line';
+      line.style.top = `${pct}%`;
+      r.children[di].appendChild(line);
     }
-
-    /* — 테이블 생성 — */
-    function buildCurr(){
-      const tb = document.querySelector('#scheduleTableCurr tbody');
-      tb.innerHTML = '';
-      for(let h=scheduleStart; h<scheduleEnd; h++){
-        const r=document.createElement('tr');
-        // 시간 셀
-        const c0=document.createElement('td');
-        // 저장된 분 불러오기 (키: minute-<hour>)
-        const savedMin = localStorage.getItem(`minute-${h}`) || '00';
-        c0.textContent = `${h}:${savedMin}`;
-        c0.className = 'time-cell';
-        c0.onclick = () => openMinute(c0);
-        r.append(c0);
-        // 7일치 빈 셀
-        for(let i=0;i<7;i++){
-          const c=document.createElement('td');
-          c.onclick = () => openLesson(c);
-          r.append(c);
-        }
-        tb.append(r);
-      }
-    }
-    function buildNext(){ /* buildCurr와 유사 (분 셋팅 제외) */ }
-    function buildLast(){ /* buildCurr와 유사 (분 셋팅 제외) */ }
-
-    /* — 팝업 제어 — */
-    function showPopup(el){
-      document.body.style.overflow = 'hidden';
-      popupOverlay.style.display = 'block';
-      el.style.display = 'block';
-    }
-    function hidePopup(){
-      document.body.style.overflow = '';
-      popupOverlay.style.display = 'none';
-      document.querySelectorAll('.popup').forEach(p=>p.style.display='none');
-    }
-
-    /* — 분 설정 — */
-    function openMinute(cell){
-      currentCell = cell;
-      showPopup(document.getElementById('popupMinute'));
-    }
-    function saveMinute(){
-      const m = document.getElementById('minuteSelect').value;
-      const h = currentCell.textContent.split(':')[0];
-      currentCell.textContent = `${h}:${m}`;
-      localStorage.setItem(`minute-${h}`, m);
-      updateTimeLine();
-      hidePopup();
-    }
-
-    /* — 시간 범위 적용 — */
-    function applyRangeCurr(){
-      const s = +document.getElementById('rangeStart').value.split(':')[0];
-      const e = +document.getElementById('rangeEnd').value.split(':')[0];
-      // 유효성 검사
-      if (e <= s) {
-        alert('종료 시간은 시작 시간보다 늦어야 합니다.');
-        hidePopup(); 
-        return;
-      }
-      if (e - s < 3) {
-        alert('최소 3시간 이상 설정해야 합니다.');
-        hidePopup();
-        return;
-      }
-      // 정상
-      scheduleStart = s;
-      scheduleEnd   = e;
-      localStorage.setItem('scheduleRange', JSON.stringify({ start:s, end:e }));
-      buildCurr(); buildNext(); buildLast();
-      loadCurr();
-      highlightToday();
-      updateToday();
-      initTimeLine();
-      hidePopup();
-    }
-
-    /* — 레슨 입력/삭제 — */
-    function openLesson(cell){
-      currentCell = cell;
-      const d = cell.dataset.info ? JSON.parse(cell.dataset.info) : {};
-      document.getElementById('nameInput').value     = d.name || '';
-      document.getElementById('enrolledInput').value = d.enrolled || '';
-      document.getElementById('capacityInput').value = d.cap || '';
-      showPopup(document.getElementById('popupLesson'));
-    }
-    function saveLesson(){
-      const name     = document.getElementById('nameInput').value;
-      const enrolled = +document.getElementById('enrolledInput').value || 0;
-      const cap      = +document.getElementById('capacityInput').value || 0;
-      const time     = currentCell.parentElement.firstChild.textContent;
-      const di       = currentCell.cellIndex;
-      const i = { name, enrolled, cap, time, di };
-      currentCell.textContent  = `${time}\n${name} (${enrolled}/${cap})`;
-      currentCell.dataset.info = JSON.stringify(i);
-      let arr = JSON.parse(localStorage.getItem('scheduleData')||'[]');
-      arr = arr.filter(x => !(x.time===i.time && x.di===i.di));
-      arr.push(i);
-      localStorage.setItem('scheduleData', JSON.stringify(arr));
-      updateToday();
-      updateTimeLine();
-      hidePopup();
-    }
-    function deleteLesson(){
-      if(!currentCell) return;
-      const info = currentCell.dataset.info ? JSON.parse(currentCell.dataset.info) : null;
-      if(info){
-        let data = JSON.parse(localStorage.getItem('scheduleData')||'[]');
-        data = data.filter(x => !(x.time===info.time && x.di===info.di));
-        localStorage.setItem('scheduleData', JSON.stringify(data));
-      }
-      currentCell.innerHTML = '';
-      delete currentCell.dataset.info;
-      updateToday();
-      updateTimeLine();
-      hidePopup();
-    }
-
-    /* — 오늘 다음 레슨 — */
-    function updateToday(){
-      const now = new Date();
-      const todayIdx = now.getDay();         // 0(일)~6(토)
-      const nv = now.getHours()*60 + now.getMinutes();
-      const list = [];
-      // “오늘” 컬럼(첫번째 time-cell 다음 인덱스 todayIdx)만 검사
-      document.querySelectorAll('#scheduleTableCurr tbody tr').forEach(r => {
-        const c = r.children[todayIdx];
-        if (c.dataset.info){
-          const v = JSON.parse(c.dataset.info);
-          const [h,m] = v.time.split(':').map(Number);
-          const t = h*60 + m;
-          if (t >= nv) list.push({ t, text:`${v.time} ${v.name} (${v.enrolled}/${v.cap})` });
-        }
-      });
-      list.sort((a,b)=>a.t-b.t);
-      const ul = document.getElementById('todayLessonList');
-      ul.innerHTML = '';
-      list.slice(0,2).forEach(i => {
-        const li = document.createElement('li');
-        li.textContent = i.text;
-        ul.appendChild(li);
-      });
-    }
-
-    /* — 시간선 — */
-    function initTimeLine(){ updateTimeLine(); }
-    function updateTimeLine(){
-      document.querySelectorAll('.current-time-line').forEach(e=>e.remove());
-      const now = new Date();
-      const di  = now.getDay();
-      const nv  = now.getHours()*60 + now.getMinutes();
-      document.querySelectorAll('#scheduleTableCurr tbody tr').forEach(r=>{
-        const [hh,mm] = r.firstChild.textContent.split(':').map(Number);
-        const rowTime = hh*60 + (mm||0);
-        if (nv >= rowTime && nv < rowTime+60){
-          const pct = ((nv - rowTime)/60)*100;
-          const line = document.createElement('div');
-          line.className = 'current-time-line';
-          line.style.top = `${pct}%`;
-          r.children[di].appendChild(line);
-        }
-      });
-    }
-
-    /* — 오늘 열 강조 — */
-    function highlightToday(){
-      const di = new Date().getDay();
-      const ths = document.querySelectorAll('#scheduleTableCurr th');
-      const idx = di === 0 ? 7 : di; // 일요일은 마지막(7번째)
-      if (ths[idx]){
-        ths[idx].style.backgroundColor = '#d4af37';
-        ths[idx].style.color           = '#0d1b2a';
-      }
-    }
-  </script>
+  });
+}
+function highlightToday(){
+  const di = new Date().getDay();
+  const ths = document.querySelectorAll('#scheduleTableCurr th');
+  const idx = di === 0 ? 7 : di;
+  if (ths[idx]){
+    ths[idx].style.backgroundColor = '#d4af37';
+    ths[idx].style.color = '#0d1b2a';
+  }
+}
+function showPopup(popupEl){
+  document.body.style.overflow = 'hidden';
+  popupOverlay.style.display = 'block';
+  popupEl.style.display = 'block';
+}
+function hidePopup(){
+  document.body.style.overflow = '';
+  popupOverlay.style.display = 'none';
+  document.querySelectorAll('.popup').forEach(p => p.style.display = 'none');
+}
+</script>
 </body>
 </html>
