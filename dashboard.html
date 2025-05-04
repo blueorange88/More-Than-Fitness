@@ -173,13 +173,27 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 function init(){
+  // 1) 저장된 시간 범위가 있으면 불러오기
   if (localStorage.getItem('scheduleRange')) {
-  const { start, end } = JSON.parse(localStorage.getItem('scheduleRange'));
-  scheduleStart = start;
-  scheduleEnd = end;
-}
-  buildCurr(); buildNext(); buildLast();
-  loadCurr(); highlightToday(); updateToday(); initTimeLine();
+    const { start, end } = JSON.parse(localStorage.getItem('scheduleRange'));
+    scheduleStart = start;
+    scheduleEnd   = end;
+  }
+
+  // 2) 테이블 생성 & 저장된 데이터 로드
+  buildCurr();
+  buildNext();
+  buildLast();
+  loadCurr();
+
+  // 3) 바로 오늘 열 강조
+  highlightToday();
+
+  // 4) 오늘 리스트 & 시간선 초기화
+  updateToday();
+  initTimeLine();
+
+  // 5) 1분마다 시간선 갱신
   setInterval(updateTimeLine, 60000);
 }
 
@@ -293,27 +307,35 @@ function deleteLesson(){
 function applyRangeCurr(){
   const s = +document.getElementById('rangeStart').value.split(':')[0];
   const e = +document.getElementById('rangeEnd').value.split(':')[0];
-  if (e <= s) return alert('종료 시간은 시작보다 늦어야 합니다.');
-  if (e - s < 3) return alert('최소 3시간 이상 설정해야 합니다.');
+
+  // 시작/종료 유효성 검사
+  if (e <= s) {
+    alert('종료 시간은 시작보다 늦어야 합니다.');
+    hidePopup();
+    return;
+  }
+  if (e - s < 3) {
+    alert('최소 3시간 이상 설정해야 합니다.');
+    hidePopup();
+    return;
+  }
+
+  // 범위 저장 및 테이블 재구성
   scheduleStart = s;
-  scheduleEnd = e;
-  localStorage.setItem('scheduleRange', JSON.stringify({ start: scheduleStart, end: scheduleEnd }));
-  buildCurr(); buildNext(); buildLast();
-  loadCurr(); highlightToday(); updateToday(); initTimeLine();
-  hidePopup();       // ← 팝업 닫기
+  scheduleEnd   = e;
+  localStorage.setItem('scheduleRange', JSON.stringify({ start: s, end: e }));
+  buildCurr();
+  buildNext();
+  buildLast();
+  loadCurr();
+  highlightToday();
+  updateToday();
+  initTimeLine();
+
+  // 팝업 닫기
+  hidePopup();
 }
-function loadCurr(){
-  const data = JSON.parse(localStorage.getItem('scheduleData')||'[]');
-  data.forEach(i => {
-    document.querySelectorAll('#scheduleTableCurr tbody tr').forEach(r => {
-      if(r.firstChild.textContent === i.time){
-        const c = r.children[i.di];
-        c.textContent = `${i.time}\n${i.name} (${i.enrolled}/${i.cap})`;
-        c.dataset.info = JSON.stringify(i);
-      }
-    });
-  });
-}
+   
 function updateToday(){
   const now = new Date();
   const nv  = now.getHours()*60 + now.getMinutes();
