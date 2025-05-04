@@ -304,26 +304,17 @@ function deleteLesson(){
   delete currentCell.dataset.info;
   updateToday(); updateTimeLine(); hidePopup();
 }
+   
 function applyRangeCurr(){
   const s = +document.getElementById('rangeStart').value.split(':')[0];
   const e = +document.getElementById('rangeEnd').value.split(':')[0];
+  if (e <= s) return alert('종료 시간은 시작보다 늦어야 합니다.');
+  if (e - s < 3) return alert('최소 3시간 이상 설정해야 합니다.');
 
-  // 시작/종료 유효성 검사
-  if (e <= s) {
-    alert('종료 시간은 시작보다 늦어야 합니다.');
-    hidePopup();
-    return;
-  }
-  if (e - s < 3) {
-    alert('최소 3시간 이상 설정해야 합니다.');
-    hidePopup();
-    return;
-  }
-
-  // 범위 저장 및 테이블 재구성
   scheduleStart = s;
   scheduleEnd   = e;
-  localStorage.setItem('scheduleRange', JSON.stringify({ start: s, end: e }));
+  localStorage.setItem('scheduleRange', JSON.stringify({ start: scheduleStart, end: scheduleEnd }));
+
   buildCurr();
   buildNext();
   buildLast();
@@ -332,10 +323,9 @@ function applyRangeCurr(){
   updateToday();
   initTimeLine();
 
-  // 팝업 닫기
+  // → 반드시 팝업을 닫아줘야 합니다
   hidePopup();
 }
-   
 function updateToday(){
   const now = new Date();
   const nv  = now.getHours()*60 + now.getMinutes();
