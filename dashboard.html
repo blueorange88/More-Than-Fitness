@@ -138,6 +138,112 @@
     </div>
   </div>
 
+ /* 강조 색 (예: 오늘 요일) */
+  .highlight-today {
+    background-color: #d4af37 !important;
+    color: var(--fg) !important;
+  }
+  </style>
+  
+</head>
+  <body>
+  <div class="topbar">
+    <button class="hamburger" id="hamburger">☰</button>
+    <h1>More Than Fitness</h1>
+    <button class="logout-btn" id="btnLogout">로그아웃</button> 
+    <button onclick="toggleDarkMode()">다크모드</button>
+  </div>
+  <div class="sidebar" id="sidebar">
+    <button>내 정보 관리</button>
+    <button>회원 관리</button>
+    <button>스케줄 관리</button>
+    <button>기록 관리</button>
+    <button>상품 구매</button>
+  </div>
+  <div class="main">
+    <div class="today-lessons">
+      <h2>오늘 다음 레슨</h2>
+      <ul id="todayLessonList"></ul>
+    </div>
+    <div class="section-title" contenteditable>이번 주 스케줄</div>
+    <div class="schedule-wrapper">
+      <table id="scheduleTableCurr">
+        <thead>
+          <tr>
+            <th id="headerCurr">시간</th>
+            <th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th><th>일</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <!-- 다음 주 스케줄 -->
+    <div class="section-title">다음 주 스케줄</div>
+    <div class="schedule-wrapper">
+      <table id="scheduleTableNext">
+        <thead>
+          <tr>
+            <th>시간</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th><th>일</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <!-- 지난 주 스케줄 -->
+    <div class="section-title">지난 주 스케줄</div>
+    <div class="schedule-wrapper">
+      <table id="scheduleTableLast">
+        <thead>
+          <tr>
+            <th>시간</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th><th>일</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 오버레이 (팝업용 / 사이드바용) -->
+  <div class="overlay" id="popupOverlay"></div>
+  <div class="overlay" id="sidebarOverlay"></div>
+
+  <!-- 팝업: 시간 범위 설정 -->
+  <div class="popup" id="popupRange">
+    <h3>시간 범위 설정</h3>
+    <label>시작: <input type="time" id="rangeStart" value="06:00"></label><br />
+    <label>종료: <input type="time" id="rangeEnd" value="15:00"></label>
+    <div class="button-group">
+      <button onclick="applyRangeCurr()">적용</button>
+      <button onclick="hidePopup()">취소</button>
+    </div>
+  </div>
+
+  <!-- 팝업: 분 단위 설정 -->
+  <div class="popup" id="popupMinute">
+    <h3>분 단위 설정</h3>
+    <select id="minuteSelect">
+      <option>00</option><option>10</option><option>20</option>
+      <option>30</option><option>40</option><option>50</option>
+    </select>
+    <div class="button-group">
+      <button onclick="saveMinute()">저장</button>
+      <button onclick="hidePopup()">취소</button>
+    </div>
+  </div>
+
+  <!-- 팝업: 레슨 정보 입력 -->
+  <div class="popup" id="popupLesson">
+    <h3>레슨 정보</h3>
+    <input id="nameInput" placeholder="이름" style="width:100%;margin:8px 0;padding:6px" />
+    <input id="enrolledInput" type="number" placeholder="회차" style="width:48%" />
+    <input id="capacityInput" type="number" placeholder="총" style="width:48%" />
+    <div class="button-group">
+      <button onclick="saveLesson()">저장</button>
+      <button onclick="deleteLesson()">삭제</button>
+    </div>
+  </div>
+
   <!-- [JS 시작] 아래에서 JavaScript 코드가 시작됩니다. -->
  <script>
 let currentCell = null;
@@ -169,31 +275,21 @@ window.addEventListener('DOMContentLoaded', () => {
     sidebarOverlay.style.display = 'none';
   };
 
+  // 시스템 설정 기반으로 다크모드 적용
+if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+  document.body.classList.add('dark');
+}
   init();
 });
 
-// ─── 수정된 init 함수 전체 ───
-function init() {
-  // 1) 저장된 스케줄 범위가 있으면 불러와 적용
-  const savedRange = localStorage.getItem('scheduleRange');
-  if (savedRange) {
-    const { start, end } = JSON.parse(savedRange);
-    scheduleStart = start;
-    scheduleEnd   = end;
-  }
-
-  // 2) 테이블 빌드 & 데이터 로드
-  buildCurr();
-  buildNext();
-  buildLast();
-  loadCurr();
-
-  // 3) 즉시 요일 강조, 오늘 레슨, 타임라인 초기화
-  highlightToday();
-  updateToday();
-  initTimeLine();
-
-  // 4) 타임라인은 1분마다 업데이트
+function init(){
+  if (localStorage.getItem('scheduleRange')) {
+  const { start, end } = JSON.parse(localStorage.getItem('scheduleRange'));
+  scheduleStart = start;
+  scheduleEnd = end;
+}
+  buildCurr(); buildNext(); buildLast();
+  loadCurr(); highlightToday(); updateToday(); initTimeLine();
   setInterval(updateTimeLine, 60000);
 }
 
@@ -310,45 +406,69 @@ function applyRangeCurr(){
   const e = +document.getElementById('rangeEnd').value.split(':')[0];
   if (e <= s) return alert('종료 시간은 시작보다 늦어야 합니다.');
   if (e - s < 3) return alert('최소 3시간 이상 설정해야 합니다.');
-
+  
   scheduleStart = s;
-  scheduleEnd   = e;
+  scheduleEnd = e;
   localStorage.setItem('scheduleRange', JSON.stringify({ start: scheduleStart, end: scheduleEnd }));
 
-  buildCurr();
-  buildNext();
+  // 타임라인과 테이블 갱신 후 팝업 닫기
+  buildCurr(); 
+  buildNext(); 
   buildLast();
-  loadCurr();
-  highlightToday();
-  updateToday();
+  loadCurr(); 
+  highlightToday(); 
+  updateToday(); 
   initTimeLine();
 
-  // → 반드시 팝업을 닫아줘야 합니다
-  hidePopup();
+  // 약간의 지연을 주고 팝업 닫기 (DOM 안정 후)
+  setTimeout(hidePopup, 10); 
 }
-function updateToday(){
-  const now = new Date();
-  const nv  = now.getHours()*60 + now.getMinutes();
-  const todayIndex = now.getDay(); // 0=일,1=월...
-  const list = [];
-  // 1) 해당 요일 열(td.cellIndex === todayIndex)만
-  document.querySelectorAll('#scheduleTableCurr tbody tr').forEach(r => {
-    const c = r.children[todayIndex];
-    if (!c || !c.dataset.info) return;
-    const v = JSON.parse(c.dataset.info);
-    const [h,m] = v.time.split(':').map(Number);
-    const t = h*60 + m;
-    if (t >= nv) list.push({ t, text: `${v.time} ${v.name} (${v.enrolled}/${v.cap})` });
+   
+function loadCurr(){
+  const data = JSON.parse(localStorage.getItem('scheduleData')||'[]');
+  data.forEach(i => {
+    document.querySelectorAll('#scheduleTableCurr tbody tr').forEach(r => {
+      if(r.firstChild.textContent === i.time){
+        const c = r.children[i.di];
+        c.textContent = `${i.time}\n${i.name} (${i.enrolled}/${i.cap})`;
+        c.dataset.info = JSON.stringify(i);
+      }
+    });
   });
-  list.sort((a,b)=>a.t-b.t);
+}
+   
+function updateToday() {
+  const now = new Date();
+  const todayIndex = now.getDay(); // 0 = 일요일
+  const columnIndex = todayIndex === 0 ? 7 : todayIndex; // 실제 테이블에서의 위치
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  const list = [];
+
+  document.querySelectorAll('#scheduleTableCurr tbody tr').forEach(r => {
+    const [h, m] = r.firstChild.textContent.split(':').map(Number);
+    const totalMinutes = h * 60 + (m || 0);
+    const cell = r.children[columnIndex];
+
+    if (cell && cell.dataset.info && totalMinutes >= nowMinutes) {
+      const v = JSON.parse(cell.dataset.info);
+      list.push({
+        t: totalMinutes,
+        text: `${v.time} ${v.name} (${v.enrolled}/${v.cap})`
+      });
+    }
+  });
+
+  list.sort((a, b) => a.t - b.t);
+
   const ul = document.getElementById('todayLessonList');
   ul.innerHTML = '';
-  list.slice(0,2).forEach(i => {
+  list.slice(0, 2).forEach(i => {
     const li = document.createElement('li');
     li.textContent = i.text;
     ul.appendChild(li);
   });
 }
+   
 function initTimeLine(){ updateTimeLine(); }
 function updateTimeLine(){
   document.querySelectorAll('.current-time-line').forEach(e => e.remove());
@@ -386,6 +506,10 @@ function hidePopup(){
   document.body.style.overflow = '';
   popupOverlay.style.display = 'none';
   document.querySelectorAll('.popup').forEach(p => p.style.display = 'none');
+}
+    // 다크모드 토글 버튼 누르면 클래스 추가/제거
+function toggleDarkMode() {
+  document.body.classList.toggle('dark');
 }
 </script>
 </body>
