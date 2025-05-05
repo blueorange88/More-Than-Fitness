@@ -174,14 +174,33 @@ window.addEventListener('DOMContentLoaded', () => {
   init();
 });
 
-function init(){
-  if (localStorage.getItem('scheduleRange')) {
-  const { start, end } = JSON.parse(localStorage.getItem('scheduleRange'));
-  scheduleStart = start;
-  scheduleEnd = end;
-}
-  buildCurr(); buildNext(); buildLast();
-  loadCurr(); highlightToday(); updateToday(); initTimeLine();
+function init() {
+  const saved = localStorage.getItem('scheduleRange');
+  if (saved) {
+    const { start, end } = JSON.parse(saved);
+    scheduleStart = start;
+    scheduleEnd = end;
+
+    // 만약 범위가 15시 이상으로만 잡혀있으면 기본값으로 리셋
+    if (scheduleStart >= 15 || scheduleEnd <= scheduleStart) {
+      scheduleStart = 6;
+      scheduleEnd = 15;
+      localStorage.setItem('scheduleRange', JSON.stringify({ start: 6, end: 15 }));
+    }
+  } else {
+    // 아무 설정도 없을 때 기본값 적용
+    scheduleStart = 6;
+    scheduleEnd = 15;
+    localStorage.setItem('scheduleRange', JSON.stringify({ start: 6, end: 15 }));
+  }
+
+  buildCurr();
+  buildNext();
+  buildLast();
+  loadCurr();
+  highlightToday();
+  updateToday();
+  initTimeLine();
   setInterval(updateTimeLine, 60000);
 }
    
@@ -314,8 +333,8 @@ function applyRangeCurr(){
 
   // 약간의 지연을 주고 팝업 닫기 (DOM 안정 후)
   setTimeout(hidePopup, 10); 
-  
 }
+   
 function loadCurr(){
   const data = JSON.parse(localStorage.getItem('scheduleData')||'[]');
   document.querySelectorAll('#scheduleTableCurr tbody tr').forEach(r => {
