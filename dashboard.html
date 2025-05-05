@@ -290,22 +290,18 @@ function deleteLesson(){
   delete currentCell.dataset.info;
   updateToday(); updateTimeLine(); hidePopup();
 }
+   
 function applyRangeCurr(){
   const s = +document.getElementById('rangeStart').value.split(':')[0];
   const e = +document.getElementById('rangeEnd').value.split(':')[0];
-  if (e <= s) {
-    alert('종료 시간은 시작보다 늦어야 합니다.');
-    return;
-  }
-  if (e - s < 3) {
-    alert('최소 3시간 이상 설정해야 합니다.');
-    return;
-  }
-
+  if (e <= s) return alert('종료 시간은 시작보다 늦어야 합니다.');
+  if (e - s < 3) return alert('최소 3시간 이상 설정해야 합니다.');
+  
   scheduleStart = s;
   scheduleEnd = e;
   localStorage.setItem('scheduleRange', JSON.stringify({ start: scheduleStart, end: scheduleEnd }));
 
+  // 타임라인과 테이블 갱신 후 팝업 닫기
   buildCurr(); 
   buildNext(); 
   buildLast();
@@ -313,8 +309,9 @@ function applyRangeCurr(){
   highlightToday(); 
   updateToday(); 
   initTimeLine();
-  // 팝업 닫기 (지연 없이 바로 실행해도 됨)
-  hidePopup();
+
+  // 약간의 지연을 주고 팝업 닫기 (DOM 안정 후)
+  setTimeout(hidePopup, 10); 
 }
    
 function loadCurr(){
@@ -329,32 +326,22 @@ function loadCurr(){
     });
   });
 }
-function updateToday() {
+function updateToday(){
   const now = new Date();
-  const todayIndex = now.getDay(); // 0 = 일요일
-  const columnIndex = todayIndex === 0 ? 7 : todayIndex;
-  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  const nv = now.getHours()*60 + now.getMinutes();
   const list = [];
-
-  document.querySelectorAll('#scheduleTableCurr tbody tr').forEach(r => {
-    const [h, m] = r.firstChild.textContent.split(':').map(Number);
-    const totalMinutes = h * 60 + (m || 0);
-    const cell = r.children[columnIndex];
-
-    if (cell && cell.dataset.info && totalMinutes >= nowMinutes) {
-      const v = JSON.parse(cell.dataset.info);
-      list.push({
-        t: totalMinutes,
-        text: `${v.time} ${v.name} (${v.enrolled}/${v.cap})`
-      });
+  document.querySelectorAll('#scheduleTableCurr td').forEach(c => {
+    if(c.dataset.info){
+      const v = JSON.parse(c.dataset.info);
+      const [h, m] = v.time.split(':').map(Number);
+      const t = h*60 + m;
+      if(t >= nv) list.push({ t, text: `${v.time} ${v.name} (${v.enrolled}/${v.cap})` });
     }
   });
-
-  list.sort((a, b) => a.t - b.t);
-
+  list.sort((a,b) => a.t - b.t);
   const ul = document.getElementById('todayLessonList');
   ul.innerHTML = '';
-  list.slice(0, 2).forEach(i => {
+  list.slice(0,2).forEach(i => {
     const li = document.createElement('li');
     li.textContent = i.text;
     ul.appendChild(li);
@@ -393,17 +380,11 @@ function showPopup(popupEl){
   popupOverlay.style.display = 'block';
   popupEl.style.display = 'block';
 }
-
- function hidePopup(){
-  console.log('hidePopup 실행됨');  // ← 이거 추가
+function hidePopup(){
   document.body.style.overflow = '';
   popupOverlay.style.display = 'none';
-  document.querySelectorAll('.popup').forEach(p => {
-    console.log('닫히는 팝업:', p.id);  // ← 추가
-    p.style.display = 'none';
-  });
+  document.querySelectorAll('.popup').forEach(p => p.style.display = 'none');
 }
-   
 </script>
 </body>
 </html>
