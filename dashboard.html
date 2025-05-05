@@ -335,15 +335,15 @@ function applyRangeCurr(){
   setTimeout(hidePopup, 10); 
 }
    
-function loadCurr(){
-  const data = JSON.parse(localStorage.getItem('scheduleData')||'[]');
+function loadCurr() {
+  const data = JSON.parse(localStorage.getItem('scheduleData') || '[]');
   document.querySelectorAll('#scheduleTableCurr tbody tr').forEach(r => {
     const timeText = r.firstChild.textContent;
     const [h, m] = timeText.split(':').map(Number);
     const t = `${h}:${m.toString().padStart(2, '0')}`;
 
     data.forEach(i => {
-      if(i.time === t){
+      if (i.time === t) {
         const c = r.children[i.di];
         c.textContent = `${i.time}\n${i.name} (${i.enrolled}/${i.cap})`;
         c.dataset.info = JSON.stringify(i);
