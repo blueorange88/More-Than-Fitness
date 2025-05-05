@@ -269,13 +269,19 @@ if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').match
 });
 
 function init(){
-  if (localStorage.getItem('scheduleRange')) {
-  const { start, end } = JSON.parse(localStorage.getItem('scheduleRange'));
-  scheduleStart = start;
-  scheduleEnd = end;
-}
-  buildCurr(); buildNext(); buildLast();
-  loadCurr(); highlightToday(); updateToday(); initTimeLine();
+  const range = localStorage.getItem('scheduleRange');
+  if (range) {
+    const { start, end } = JSON.parse(range);
+    scheduleStart = start;
+    scheduleEnd = end;
+  }
+
+  buildCurr();         // 1. 시간표 생성
+  loadCurr();          // 2. 스케줄 불러오기
+  highlightToday();    // 3. 요일 강조
+  updateToday();       // 4. 오늘 다음 수업 리스트
+  initTimeLine();      // 5. 타임라인
+
   setInterval(updateTimeLine, 60000);
 }
 
@@ -392,22 +398,18 @@ function applyRangeCurr(){
   const e = +document.getElementById('rangeEnd').value.split(':')[0];
   if (e <= s) return alert('종료 시간은 시작보다 늦어야 합니다.');
   if (e - s < 3) return alert('최소 3시간 이상 설정해야 합니다.');
-  
+
   scheduleStart = s;
   scheduleEnd = e;
-  localStorage.setItem('scheduleRange', JSON.stringify({ start: scheduleStart, end: scheduleEnd }));
+  localStorage.setItem('scheduleRange', JSON.stringify({ start: s, end: e }));
 
-  // 타임라인과 테이블 갱신 후 팝업 닫기
-  buildCurr(); 
-  buildNext(); 
-  buildLast();
-  loadCurr(); 
-  highlightToday(); 
-  updateToday(); 
+  buildCurr();
+  loadCurr();
+  highlightToday();
+  updateToday();
   initTimeLine();
 
-  // 약간의 지연을 주고 팝업 닫기 (DOM 안정 후)
-  setTimeout(hidePopup, 10); 
+  hidePopup();  // 팝업 확실히 닫기
 }
    
 function loadCurr(){
@@ -466,9 +468,9 @@ function highlightToday(){
   const di = new Date().getDay();
   const ths = document.querySelectorAll('#scheduleTableCurr th');
   const idx = di === 0 ? 7 : di;
-  if (ths[idx]){
-    ths[idx].style.backgroundColor = '#d4af37';
-    ths[idx].style.color = '#0d1b2a';
+
+  if (ths[idx]) {
+    ths[idx].classList.add('highlight-today');
   }
 }
 function showPopup(popupEl){
