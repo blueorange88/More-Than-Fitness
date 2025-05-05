@@ -276,11 +276,13 @@ function init(){
     scheduleEnd = end;
   }
 
-  buildCurr();         // 1. 시간표 생성
-  loadCurr();          // 2. 스케줄 불러오기
-  highlightToday();    // 3. 요일 강조
-  updateToday();       // 4. 오늘 다음 수업 리스트
-  initTimeLine();      // 5. 타임라인
+  buildCurr();
+  buildNext();       // 다시 추가
+  buildLast();       // 다시 추가
+  loadCurr();
+  highlightToday();
+  updateToday();
+  initTimeLine();
 
   setInterval(updateTimeLine, 60000);
 }
