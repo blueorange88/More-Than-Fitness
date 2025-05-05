@@ -169,7 +169,7 @@ function init(){
 function buildCurr() {
   const tb = document.querySelector('#scheduleTableCurr tbody');
   tb.innerHTML = '';
-  for (let h = scheduleStart; h < scheduleEnd; h++) {
+  for (let h = scheduleStart; h <= scheduleEnd; h++) {
     const r = document.createElement('tr');
     const c0 = document.createElement('td');
 
