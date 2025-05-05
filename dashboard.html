@@ -4,64 +4,20 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>More Than Fitness - Dashboard</title>
-  
-   <!-- Pretendard 웹폰트 로딩: 반드시 style 밖에! -->
-  <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet" />
-
   <style>
-    /↓ 이 부분을 style 블록 맨 위에 추가하세요 */
-    :root {
-      --bg: #F8F8F2;        /* 오프화이트 배경 */
-      --panel: #0A122A;     /* 딥네이비 패널/텍스트 */
-      --text: #0A122A;      /* 딥네이비 텍스트 */
-      --accent: #FFD700;    /* 골드 액센트 */
-    }
-    /* — 여기에 기존 body, .topbar, .popup… 등 아래 코드 이어짐 — */
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { display: flex; flex-direction: column; height: 100vh; font-family: 'Pretendard', sans-serif; background: #f5f0e8; overflow: hidden; }
-   .topbar {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      height: 50px;
-      background: var(--bg);
-      color: var(--text);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 15px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      z-index: 1001;
-    }
-    .topbar h1 {
-      font-size: 18px;
-      color: var(--text);
-    }
-
+    body { display: flex; flex-direction: column; height: 100vh; font-family: 'Poppins', sans-serif; background: #f5f0e8; overflow: hidden; }
+    .topbar { position: fixed; top: 0; left: 0; right: 0; height: 50px; background: #f5f0e8; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 1001; }
+    .topbar h1 { font-size: 18px; color: #0d1b2a; }
     .hamburger, .logout-btn { background: none; border: none; cursor: pointer; font-size: 20px; color: #0d1b2a; }
     .sidebar { position: fixed; top: 50px; left: 0; bottom: 0; width: 180px; background: #0d1b2a; color: #fff; padding: 15px; transform: translateX(-100%); transition: transform .3s ease; z-index: 1002; }
     .sidebar.active { transform: translateX(0); }
     .sidebar button { background: none; border: none; color: #fff; width: 100%; text-align: left; margin: 8px 0; cursor: pointer; font-size: 14px; }
     .main { margin-top: 50px; flex: 1; overflow-y: auto; padding: 8px; padding-bottom: 60px; }
-  @media (max-width: 768px) {
-  .schedule-wrapper table {
-    table-layout: fixed;
-    width: 100%;
-    min-width: unset;
-  }
-  .schedule-wrapper th,
-  .schedule-wrapper td {
-    word-wrap: break-word;
-    white-space: normal;
-  }
-}
----- 다크모드--- 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0d1b2a;
-    --fg: #f5f0e8;
-    --panel: #1c1f2a;
-  }
-}
+    @media (max-width: 768px) {
+      .schedule-wrapper table { table-layout: fixed; width: 100%; min-width: unset; }
+      .schedule-wrapper th, .schedule-wrapper td { word-wrap: break-word; white-space: normal; }
+    }
     .today-lessons { background: #fff; padding: 8px; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 8px; }
     .today-lessons h2 { font-size: 16px; color: #0d1b2a; margin-bottom: 4px; }
     .today-lessons ul { padding-left: 16px; }
@@ -79,84 +35,17 @@
     #popupOverlay { z-index: 1000; }
     #sidebarOverlay { z-index: 900; }
     .popup { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; padding: 16px; border-radius: 6px; z-index: 1001; width: 260px; max-width: 90%; max-height: 80vh; overflow-y: auto; }
-
-    /* 버튼 기본 스타일 개선 */
-.button-group button,
-.bottom-nav button {
-  transition: transform 0.2s ease, background 0.2s;
-  border-radius: 10px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-}
-.button-group button:hover,
-.bottom-nav button:hover {
-  transform: scale(1.05);
-  background: var(--panel);
-  color: var(--fg);
-}
+    .button-group { display: flex; justify-content: space-between; margin-top: 8px; }
+    .button-group button { width: 48%; padding: 6px; background: #f5f0e8; border: none; border-radius: 4px; cursor: pointer; }
     .bottom-nav { display: flex; position: fixed; bottom: 0; left: 0; right: 0; background: #0d1b2a; justify-content: space-around; padding: 8px 0; }
     .bottom-nav button { background: none; border: none; color: #fff; font-size: 14px; cursor: pointer; }
- 
-
-  :root {
-    --bg: #f5f0e8;      /* 배경색 (기본 밝은 톤) */
-    --fg: #0d1b2a;      /* 텍스트 색 */
-    --panel: #ffffff;   /* 패널 (카드, 팝업 등 배경) */
-  }
-
-  body.dark {
-    --bg: #0d1b2a;
-    --fg: #f5f0e8;
-    --panel: #1c1f2a;
-  }
-
-  body {
-    background: var(--bg);
-    color: var(--fg);
-  }
-
-  .topbar,
-  .sidebar,
-  .schedule-wrapper td {
-  border-radius: 8px;
-  background: #fff;
-  transition: box-shadow 0.2s ease;
-}
-.schedule-wrapper td:hover {
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-}
-.today-lessons,
-.popup { border-radius: 16px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-}
-
-
-  .topbar h1,
-  .sidebar button,
-  .logout-btn,
-  .hamburger {
-    color: var(--fg);
-  }
-
-  th,
-  td {
-    color: var(--fg);
-    background: var(--panel);
-  }
-
-  /* 강조 색 (예: 오늘 요일) */
-  .highlight-today {
-    background-color: #d4af37 !important;
-    color: var(--fg) !important;
-  }
   </style>
-  
 </head>
-  <body>
+<body>
   <div class="topbar">
     <button class="hamburger" id="hamburger">☰</button>
     <h1>More Than Fitness</h1>
-    <button class="logout-btn" id="btnLogout">로그아웃</button> 
-    <button onclick="toggleDarkMode()">다크모드</button>
+    <button class="logout-btn" id="btnLogout">로그아웃</button>
   </div>
   <div class="sidebar" id="sidebar">
     <button>내 정보 관리</button>
@@ -280,10 +169,6 @@ window.addEventListener('DOMContentLoaded', () => {
     sidebarOverlay.style.display = 'none';
   };
 
-  // 시스템 설정 기반으로 다크모드 적용
-if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-  document.body.classList.add('dark');
-}
   init();
 });
 
@@ -405,30 +290,18 @@ function deleteLesson(){
   delete currentCell.dataset.info;
   updateToday(); updateTimeLine(); hidePopup();
 }
-   
 function applyRangeCurr(){
   const s = +document.getElementById('rangeStart').value.split(':')[0];
   const e = +document.getElementById('rangeEnd').value.split(':')[0];
   if (e <= s) return alert('종료 시간은 시작보다 늦어야 합니다.');
   if (e - s < 3) return alert('최소 3시간 이상 설정해야 합니다.');
-  
   scheduleStart = s;
   scheduleEnd = e;
   localStorage.setItem('scheduleRange', JSON.stringify({ start: scheduleStart, end: scheduleEnd }));
-
-  // 타임라인과 테이블 갱신 후 팝업 닫기
-  buildCurr(); 
-  buildNext(); 
-  buildLast();
-  loadCurr(); 
-  highlightToday(); 
-  updateToday(); 
-  initTimeLine();
-
-  // 약간의 지연을 주고 팝업 닫기 (DOM 안정 후)
-  setTimeout(hidePopup, 10); 
+  buildCurr(); buildNext(); buildLast();
+  loadCurr(); highlightToday(); updateToday(); initTimeLine();
+  hidePopup();
 }
-   
 function loadCurr(){
   const data = JSON.parse(localStorage.getItem('scheduleData')||'[]');
   data.forEach(i => {
@@ -441,22 +314,32 @@ function loadCurr(){
     });
   });
 }
-function updateToday(){
+function updateToday() {
   const now = new Date();
-  const nv = now.getHours()*60 + now.getMinutes();
+  const todayIndex = now.getDay(); // 0 = 일요일
+  const columnIndex = todayIndex === 0 ? 7 : todayIndex;
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
   const list = [];
-  document.querySelectorAll('#scheduleTableCurr td').forEach(c => {
-    if(c.dataset.info){
-      const v = JSON.parse(c.dataset.info);
-      const [h, m] = v.time.split(':').map(Number);
-      const t = h*60 + m;
-      if(t >= nv) list.push({ t, text: `${v.time} ${v.name} (${v.enrolled}/${v.cap})` });
+
+  document.querySelectorAll('#scheduleTableCurr tbody tr').forEach(r => {
+    const [h, m] = r.firstChild.textContent.split(':').map(Number);
+    const totalMinutes = h * 60 + (m || 0);
+    const cell = r.children[columnIndex];
+
+    if (cell && cell.dataset.info && totalMinutes >= nowMinutes) {
+      const v = JSON.parse(cell.dataset.info);
+      list.push({
+        t: totalMinutes,
+        text: `${v.time} ${v.name} (${v.enrolled}/${v.cap})`
+      });
     }
   });
-  list.sort((a,b) => a.t - b.t);
+
+  list.sort((a, b) => a.t - b.t);
+
   const ul = document.getElementById('todayLessonList');
   ul.innerHTML = '';
-  list.slice(0,2).forEach(i => {
+  list.slice(0, 2).forEach(i => {
     const li = document.createElement('li');
     li.textContent = i.text;
     ul.appendChild(li);
@@ -499,10 +382,6 @@ function hidePopup(){
   document.body.style.overflow = '';
   popupOverlay.style.display = 'none';
   document.querySelectorAll('.popup').forEach(p => p.style.display = 'none');
-}
-    // 다크모드 토글 버튼 누르면 클래스 추가/제거
-function toggleDarkMode() {
-  document.body.classList.toggle('dark');
 }
 </script>
 </body>
