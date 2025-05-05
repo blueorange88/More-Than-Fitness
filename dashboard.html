@@ -269,6 +269,7 @@ if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').match
 });
 
 function init(){
+  localStorage.removeItem('scheduleRange');
   const range = localStorage.getItem('scheduleRange');
   if (range) {
     const { start, end } = JSON.parse(range);
