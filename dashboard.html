@@ -174,15 +174,23 @@ window.addEventListener('DOMContentLoaded', () => {
 
 function init(){
   if (localStorage.getItem('scheduleRange')) {
-  const { start, end } = JSON.parse(localStorage.getItem('scheduleRange'));
-  scheduleStart = start;
-  scheduleEnd = end;
-}
-  buildCurr(); buildNext(); buildLast();
-  loadCurr(); highlightToday(); updateToday(); initTimeLine();
+    const { start, end } = JSON.parse(localStorage.getItem('scheduleRange'));
+    scheduleStart = start;
+    scheduleEnd = end;
+  }
+
+  buildCurr(); 
+  buildNext(); 
+  buildLast();
+  loadCurr(); 
+  updateToday(); 
+  initTimeLine();
+
+  // 약간의 지연 후 하이라이트 실행
+  setTimeout(highlightToday, 10);
+
   setInterval(updateTimeLine, 60000);
 }
-
 function buildCurr() {
   const tb = document.querySelector('#scheduleTableCurr tbody');
   tb.innerHTML = '';
@@ -309,8 +317,6 @@ function applyRangeCurr(){
   updateToday(); 
   initTimeLine();
   hidePopup();
-  // 약간의 지연을 주고 팝업 닫기 (DOM 안정 후)
-  setTimeout(hidePopup, 10); 
 }
    
 function loadCurr(){
