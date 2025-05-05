@@ -295,13 +295,16 @@ function applyRangeCurr(){
   const e = +document.getElementById('rangeEnd').value.split(':')[0];
   if (e <= s) return alert('종료 시간은 시작보다 늦어야 합니다.');
   if (e - s < 3) return alert('최소 3시간 이상 설정해야 합니다.');
+
   scheduleStart = s;
   scheduleEnd = e;
   localStorage.setItem('scheduleRange', JSON.stringify({ start: scheduleStart, end: scheduleEnd }));
   buildCurr(); buildNext(); buildLast();
   loadCurr(); highlightToday(); updateToday(); initTimeLine();
-  setTimeout(hidepopup 10);
+
+  setTimeout(hidePopup, 10);
 }
+   
 function loadCurr(){
   const data = JSON.parse(localStorage.getItem('scheduleData')||'[]');
   data.forEach(i => {
