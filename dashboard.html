@@ -23,7 +23,7 @@
       position: fixed;
       top: 0; left: 0; right: 0;
       height: 50px;
-      background: #f5f0e8;
+      background: var(--bg);
       color: var(--text);
       display: flex;
       align-items: center;
@@ -54,6 +54,14 @@
     white-space: normal;
   }
 }
+---- 다크모드--- 
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0d1b2a;
+    --fg: #f5f0e8;
+    --panel: #1c1f2a;
+  }
+}
     .today-lessons { background: #fff; padding: 8px; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 8px; }
     .today-lessons h2 { font-size: 16px; color: #0d1b2a; margin-bottom: 4px; }
     .today-lessons ul { padding-left: 16px; }
@@ -76,7 +84,7 @@
 .button-group button,
 .bottom-nav button {
   transition: transform 0.2s ease, background 0.2s;
-  border-radius: 15px;
+  border-radius: 10px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
 .button-group button:hover,
@@ -147,7 +155,8 @@
   <div class="topbar">
     <button class="hamburger" id="hamburger">☰</button>
     <h1>More Than Fitness</h1>
-    <button class="logout-btn" id="btnLogout">로그아웃</button>
+    <button class="logout-btn" id="btnLogout">로그아웃</button> 
+    <button onclick="toggleDarkMode()">다크모드</button>
   </div>
   <div class="sidebar" id="sidebar">
     <button>내 정보 관리</button>
@@ -432,39 +441,27 @@ function loadCurr(){
     });
   });
 }
-   
-function updateToday() {
+function updateToday(){
   const now = new Date();
-  const todayIndex = now.getDay(); // 0 = 일요일
-  const columnIndex = todayIndex === 0 ? 7 : todayIndex; // 실제 테이블에서의 위치
-  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  const nv = now.getHours()*60 + now.getMinutes();
   const list = [];
-
-  document.querySelectorAll('#scheduleTableCurr tbody tr').forEach(r => {
-    const [h, m] = r.firstChild.textContent.split(':').map(Number);
-    const totalMinutes = h * 60 + (m || 0);
-    const cell = r.children[columnIndex];
-
-    if (cell && cell.dataset.info && totalMinutes >= nowMinutes) {
-      const v = JSON.parse(cell.dataset.info);
-      list.push({
-        t: totalMinutes,
-        text: `${v.time} ${v.name} (${v.enrolled}/${v.cap})`
-      });
+  document.querySelectorAll('#scheduleTableCurr td').forEach(c => {
+    if(c.dataset.info){
+      const v = JSON.parse(c.dataset.info);
+      const [h, m] = v.time.split(':').map(Number);
+      const t = h*60 + m;
+      if(t >= nv) list.push({ t, text: `${v.time} ${v.name} (${v.enrolled}/${v.cap})` });
     }
   });
-
-  list.sort((a, b) => a.t - b.t);
-
+  list.sort((a,b) => a.t - b.t);
   const ul = document.getElementById('todayLessonList');
   ul.innerHTML = '';
-  list.slice(0, 2).forEach(i => {
+  list.slice(0,2).forEach(i => {
     const li = document.createElement('li');
     li.textContent = i.text;
     ul.appendChild(li);
   });
 }
-   
 function initTimeLine(){ updateTimeLine(); }
 function updateTimeLine(){
   document.querySelectorAll('.current-time-line').forEach(e => e.remove());
@@ -502,6 +499,10 @@ function hidePopup(){
   document.body.style.overflow = '';
   popupOverlay.style.display = 'none';
   document.querySelectorAll('.popup').forEach(p => p.style.display = 'none');
+}
+    // 다크모드 토글 버튼 누르면 클래스 추가/제거
+function toggleDarkMode() {
+  document.body.classList.toggle('dark');
 }
 </script>
 </body>
