@@ -312,11 +312,16 @@ function applyRangeCurr(){
   // 약간의 지연을 주고 팝업 닫기 (DOM 안정 후)
   setTimeout(hidePopup, 10); 
 }
+   
 function loadCurr(){
   const data = JSON.parse(localStorage.getItem('scheduleData')||'[]');
-  data.forEach(i => {
-    document.querySelectorAll('#scheduleTableCurr tbody tr').forEach(r => {
-      if(r.firstChild.textContent === i.time){
+  document.querySelectorAll('#scheduleTableCurr tbody tr').forEach(r => {
+    const timeText = r.firstChild.textContent;
+    const [h, m] = timeText.split(':').map(Number);
+    const t = `${h}:${m.toString().padStart(2, '0')}`;
+
+    data.forEach(i => {
+      if(i.time === t){
         const c = r.children[i.di];
         c.textContent = `${i.time}\n${i.name} (${i.enrolled}/${i.cap})`;
         c.dataset.info = JSON.stringify(i);
@@ -324,6 +329,7 @@ function loadCurr(){
     });
   });
 }
+   
 function updateToday() {
   const now = new Date();
   const todayIndex = now.getDay(); // 0 = 일요일
