@@ -293,19 +293,30 @@ function deleteLesson(){
 function applyRangeCurr(){
   const s = +document.getElementById('rangeStart').value.split(':')[0];
   const e = +document.getElementById('rangeEnd').value.split(':')[0];
-  if (e <= s) return alert('종료 시간은 시작보다 늦어야 합니다.');
-  if (e - s < 3) return alert('최소 3시간 이상 설정해야 합니다.');
+  if (e <= s) {
+    alert('종료 시간은 시작보다 늦어야 합니다.');
+    return;
+  }
+  if (e - s < 3) {
+    alert('최소 3시간 이상 설정해야 합니다.');
+    return;
+  }
 
   scheduleStart = s;
   scheduleEnd = e;
   localStorage.setItem('scheduleRange', JSON.stringify({ start: scheduleStart, end: scheduleEnd }));
-  buildCurr(); buildNext(); buildLast();
-  loadCurr(); highlightToday(); updateToday(); initTimeLine();
 
-setTimeout(() => {console.log('팝업 닫기 시도'); // 디버깅용
+  buildCurr(); 
+  buildNext(); 
+  buildLast();
+  loadCurr(); 
+  highlightToday(); 
+  updateToday(); 
+  initTimeLine();
+  // 팝업 닫기 (지연 없이 바로 실행해도 됨)
   hidePopup();
-}, 10);
 }
+   }
    
 function loadCurr(){
   const data = JSON.parse(localStorage.getItem('scheduleData')||'[]');
