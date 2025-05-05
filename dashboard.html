@@ -269,17 +269,27 @@ if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').match
 });
 
 function init(){
+  console.log('초기화 시작');
   localStorage.removeItem('scheduleRange');
+  console.log('scheduleRange 제거됨');
+
   const range = localStorage.getItem('scheduleRange');
+  console.log('새로운 range 값:', range);
+
   if (range) {
     const { start, end } = JSON.parse(range);
     scheduleStart = start;
     scheduleEnd = end;
+    console.log('range 적용됨', start, end);
+  } else {
+    scheduleStart = 6;
+    scheduleEnd = 15;
+    console.log('기본값 적용: 6~15');
   }
 
   buildCurr();
-  buildNext();       // 다시 추가
-  buildLast();       // 다시 추가
+  buildNext();
+  buildLast();
   loadCurr();
   highlightToday();
   updateToday();
