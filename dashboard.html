@@ -284,6 +284,7 @@ function applyRangeCurr(){
   buildCurr(); buildNext(); buildLast();
   loadCurr(); highlightToday(); updateToday(); initTimeLine();
   hidePopup();
+  setTimeout(hidePopup, 100);
 }
 function loadCurr(){
   const data = JSON.parse(localStorage.getItem('scheduleData')||'[]');
