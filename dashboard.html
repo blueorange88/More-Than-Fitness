@@ -295,16 +295,22 @@ function applyRangeCurr(){
   const e = +document.getElementById('rangeEnd').value.split(':')[0];
   if (e <= s) return alert('종료 시간은 시작보다 늦어야 합니다.');
   if (e - s < 3) return alert('최소 3시간 이상 설정해야 합니다.');
-
-  // 추가 안내
-  alert("이 시간 범위 외의 기존 스케줄은 숨겨집니다.\n시간 범위를 넓히면 다시 표시됩니다.");
-
+  
   scheduleStart = s;
   scheduleEnd = e;
   localStorage.setItem('scheduleRange', JSON.stringify({ start: scheduleStart, end: scheduleEnd }));
-  buildCurr(); buildNext(); buildLast();
-  loadCurr(); highlightToday(); updateToday(); initTimeLine();
-  hidePopup();
+
+  // 타임라인과 테이블 갱신 후 팝업 닫기
+  buildCurr(); 
+  buildNext(); 
+  buildLast();
+  loadCurr(); 
+  highlightToday(); 
+  updateToday(); 
+  initTimeLine();
+
+  // 약간의 지연을 주고 팝업 닫기 (DOM 안정 후)
+  setTimeout(hidePopup, 10); 
 }
 function loadCurr(){
   const data = JSON.parse(localStorage.getItem('scheduleData')||'[]');
