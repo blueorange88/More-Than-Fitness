@@ -415,10 +415,15 @@ function applyRangeCurr(){
 }
    
 function loadCurr(){
-  const data = JSON.parse(localStorage.getItem('scheduleData')||'[]');
+  const data = JSON.parse(localStorage.getItem('scheduleData') || '[]');
+  const rows = document.querySelectorAll('#scheduleTableCurr tbody tr');
+
   data.forEach(i => {
-    document.querySelectorAll('#scheduleTableCurr tbody tr').forEach(r => {
-      if(r.firstChild.textContent === i.time){
+    const [hour, minute] = i.time.split(':').map(Number);
+    if (hour < scheduleStart || hour >= scheduleEnd) return; // 범위 밖이면 건너뜀
+
+    rows.forEach(r => {
+      if (r.firstChild.textContent === i.time) {
         const c = r.children[i.di];
         c.textContent = `${i.time}\n${i.name} (${i.enrolled}/${i.cap})`;
         c.dataset.info = JSON.stringify(i);
@@ -466,10 +471,12 @@ function updateTimeLine(){
     }
   });
 }
-function highlightToday(){
+ffunction highlightToday() {
   const di = new Date().getDay();
   const ths = document.querySelectorAll('#scheduleTableCurr th');
   const idx = di === 0 ? 7 : di;
+
+  ths.forEach(th => th.classList.remove('highlight-today')); // 기존 강조 제거
 
   if (ths[idx]) {
     ths[idx].classList.add('highlight-today');
