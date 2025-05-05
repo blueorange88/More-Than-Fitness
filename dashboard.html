@@ -302,7 +302,9 @@ function applyRangeCurr(){
   buildCurr(); buildNext(); buildLast();
   loadCurr(); highlightToday(); updateToday(); initTimeLine();
 
-  setTimeout(hidePopup, 10);
+setTimeout(() => {console.log('팝업 닫기 시도'); // 디버깅용
+  hidePopup();
+}, 10);
 }
    
 function loadCurr(){
@@ -382,10 +384,14 @@ function showPopup(popupEl){
   popupEl.style.display = 'block';
 }
 
-   function hidePopup(){
+ function hidePopup(){
+  console.log('hidePopup 실행됨');  // ← 이거 추가
   document.body.style.overflow = '';
   popupOverlay.style.display = 'none';
-  document.querySelectorAll('.popup').forEach(p => p.style.display = 'none');
+  document.querySelectorAll('.popup').forEach(p => {
+    console.log('닫히는 팝업:', p.id);  // ← 추가
+    p.style.display = 'none';
+  });
 }
    
 </script>
