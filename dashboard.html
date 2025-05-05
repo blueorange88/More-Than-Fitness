@@ -4,20 +4,56 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>More Than Fitness - Dashboard</title>
+  
+   <!-- Pretendard 웹폰트 로딩: 반드시 style 밖에! -->
+  <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet" />
+
   <style>
+    /↓ 이 부분을 style 블록 맨 위에 추가하세요 */
+    :root {
+      --bg: #F8F8F2;        /* 오프화이트 배경 */
+      --panel: #0A122A;     /* 딥네이비 패널/텍스트 */
+      --text: #0A122A;      /* 딥네이비 텍스트 */
+      --accent: #FFD700;    /* 골드 액센트 */
+    }
+    /* — 여기에 기존 body, .topbar, .popup… 등 아래 코드 이어짐 — */
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { display: flex; flex-direction: column; height: 100vh; font-family: 'Poppins', sans-serif; background: #f5f0e8; overflow: hidden; }
-    .topbar { position: fixed; top: 0; left: 0; right: 0; height: 50px; background: #f5f0e8; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 1001; }
-    .topbar h1 { font-size: 18px; color: #0d1b2a; }
+    body { display: flex; flex-direction: column; height: 100vh; font-family: 'Pretendard', sans-serif; background: #f5f0e8; overflow: hidden; }
+   .topbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 50px;
+      background: #f5f0e8;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 15px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      z-index: 1001;
+    }
+    .topbar h1 {
+      font-size: 18px;
+      color: var(--text);
+    }
+
     .hamburger, .logout-btn { background: none; border: none; cursor: pointer; font-size: 20px; color: #0d1b2a; }
     .sidebar { position: fixed; top: 50px; left: 0; bottom: 0; width: 180px; background: #0d1b2a; color: #fff; padding: 15px; transform: translateX(-100%); transition: transform .3s ease; z-index: 1002; }
     .sidebar.active { transform: translateX(0); }
     .sidebar button { background: none; border: none; color: #fff; width: 100%; text-align: left; margin: 8px 0; cursor: pointer; font-size: 14px; }
     .main { margin-top: 50px; flex: 1; overflow-y: auto; padding: 8px; padding-bottom: 60px; }
-    @media (max-width: 768px) {
-      .schedule-wrapper table { table-layout: fixed; width: 100%; min-width: unset; }
-      .schedule-wrapper th, .schedule-wrapper td { word-wrap: break-word; white-space: normal; }
-    }
+  @media (max-width: 768px) {
+  .schedule-wrapper table {
+    table-layout: fixed;
+    width: 100%;
+    min-width: unset;
+  }
+  .schedule-wrapper th,
+  .schedule-wrapper td {
+    word-wrap: break-word;
+    white-space: normal;
+  }
+}
     .today-lessons { background: #fff; padding: 8px; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 8px; }
     .today-lessons h2 { font-size: 16px; color: #0d1b2a; margin-bottom: 4px; }
     .today-lessons ul { padding-left: 16px; }
@@ -35,15 +71,79 @@
     #popupOverlay { z-index: 1000; }
     #sidebarOverlay { z-index: 900; }
     .popup { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; padding: 16px; border-radius: 6px; z-index: 1001; width: 260px; max-width: 90%; max-height: 80vh; overflow-y: auto; }
-    .button-group { display: flex; justify-content: space-between; margin-top: 8px; }
-    .button-group button { width: 48%; padding: 6px; background: #f5f0e8; border: none; border-radius: 4px; cursor: pointer; }
+
+    /* 버튼 기본 스타일 개선 */
+.button-group button,
+.bottom-nav button {
+  transition: transform 0.2s ease, background 0.2s;
+  border-radius: 15px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+.button-group button:hover,
+.bottom-nav button:hover {
+  transform: scale(1.05);
+  background: var(--panel);
+  color: var(--fg);
+}
     .bottom-nav { display: flex; position: fixed; bottom: 0; left: 0; right: 0; background: #0d1b2a; justify-content: space-around; padding: 8px 0; }
     .bottom-nav button { background: none; border: none; color: #fff; font-size: 14px; cursor: pointer; }
-    .highlight-today { background-color: #d4af37 !important; color: var(--fg) !important; }
-    
+ 
+
+  :root {
+    --bg: #f5f0e8;      /* 배경색 (기본 밝은 톤) */
+    --fg: #0d1b2a;      /* 텍스트 색 */
+    --panel: #ffffff;   /* 패널 (카드, 팝업 등 배경) */
+  }
+
+  body.dark {
+    --bg: #0d1b2a;
+    --fg: #f5f0e8;
+    --panel: #1c1f2a;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--fg);
+  }
+
+  .topbar,
+  .sidebar,
+  .schedule-wrapper td {
+  border-radius: 8px;
+  background: #fff;
+  transition: box-shadow 0.2s ease;
+}
+.schedule-wrapper td:hover {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+.today-lessons,
+.popup { border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+
+  .topbar h1,
+  .sidebar button,
+  .logout-btn,
+  .hamburger {
+    color: var(--fg);
+  }
+
+  th,
+  td {
+    color: var(--fg);
+    background: var(--panel);
+  }
+
+  /* 강조 색 (예: 오늘 요일) */
+  .highlight-today {
+    background-color: #d4af37 !important;
+    color: var(--fg) !important;
+  }
   </style>
+  
 </head>
-<body>
+  <body>
   <div class="topbar">
     <button class="hamburger" id="hamburger">☰</button>
     <h1>More Than Fitness</h1>
@@ -171,39 +271,24 @@ window.addEventListener('DOMContentLoaded', () => {
     sidebarOverlay.style.display = 'none';
   };
 
+  // 시스템 설정 기반으로 다크모드 적용
+if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+  document.body.classList.add('dark');
+}
   init();
 });
 
-function init() {
-  const saved = localStorage.getItem('scheduleRange');
-  if (saved) {
-    const { start, end } = JSON.parse(saved);
-    scheduleStart = start;
-    scheduleEnd = end;
-
-    // 만약 범위가 15시 이상으로만 잡혀있으면 기본값으로 리셋
-    if (scheduleStart >= 15 || scheduleEnd <= scheduleStart) {
-      scheduleStart = 6;
-      scheduleEnd = 15;
-      localStorage.setItem('scheduleRange', JSON.stringify({ start: 6, end: 15 }));
-    }
-  } else {
-    // 아무 설정도 없을 때 기본값 적용
-    scheduleStart = 6;
-    scheduleEnd = 15;
-    localStorage.setItem('scheduleRange', JSON.stringify({ start: 6, end: 15 }));
-  }
-
-  buildCurr();
-  buildNext();
-  buildLast();
-  loadCurr();
-  highlightToday();
-  updateToday();
-  initTimeLine();
+function init(){
+  if (localStorage.getItem('scheduleRange')) {
+  const { start, end } = JSON.parse(localStorage.getItem('scheduleRange'));
+  scheduleStart = start;
+  scheduleEnd = end;
+}
+  buildCurr(); buildNext(); buildLast();
+  loadCurr(); highlightToday(); updateToday(); initTimeLine();
   setInterval(updateTimeLine, 60000);
 }
-   
+
 function buildCurr() {
   const tb = document.querySelector('#scheduleTableCurr tbody');
   tb.innerHTML = '';
@@ -335,15 +420,11 @@ function applyRangeCurr(){
   setTimeout(hidePopup, 10); 
 }
    
-function loadCurr() {
-  const data = JSON.parse(localStorage.getItem('scheduleData') || '[]');
-  document.querySelectorAll('#scheduleTableCurr tbody tr').forEach(r => {
-    const timeText = r.firstChild.textContent;
-    const [h, m] = timeText.split(':').map(Number);
-    const t = `${h}:${m.toString().padStart(2, '0')}`;
-
-    data.forEach(i => {
-      if (i.time === t) {
+function loadCurr(){
+  const data = JSON.parse(localStorage.getItem('scheduleData')||'[]');
+  data.forEach(i => {
+    document.querySelectorAll('#scheduleTableCurr tbody tr').forEach(r => {
+      if(r.firstChild.textContent === i.time){
         const c = r.children[i.di];
         c.textContent = `${i.time}\n${i.name} (${i.enrolled}/${i.cap})`;
         c.dataset.info = JSON.stringify(i);
@@ -355,7 +436,7 @@ function loadCurr() {
 function updateToday() {
   const now = new Date();
   const todayIndex = now.getDay(); // 0 = 일요일
-  const columnIndex = todayIndex === 0 ? 7 : todayIndex;
+  const columnIndex = todayIndex === 0 ? 7 : todayIndex; // 실제 테이블에서의 위치
   const nowMinutes = now.getHours() * 60 + now.getMinutes();
   const list = [];
 
@@ -383,6 +464,7 @@ function updateToday() {
     ul.appendChild(li);
   });
 }
+   
 function initTimeLine(){ updateTimeLine(); }
 function updateTimeLine(){
   document.querySelectorAll('.current-time-line').forEach(e => e.remove());
@@ -421,7 +503,6 @@ function hidePopup(){
   popupOverlay.style.display = 'none';
   document.querySelectorAll('.popup').forEach(p => p.style.display = 'none');
 }
-   
 </script>
 </body>
 </html>
