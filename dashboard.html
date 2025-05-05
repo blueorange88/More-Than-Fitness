@@ -300,7 +300,7 @@ function applyRangeCurr(){
   localStorage.setItem('scheduleRange', JSON.stringify({ start: scheduleStart, end: scheduleEnd }));
   buildCurr(); buildNext(); buildLast();
   loadCurr(); highlightToday(); updateToday(); initTimeLine();
-  hidePopup();
+  setTimeout(hidepopup 10);
 }
 function loadCurr(){
   const data = JSON.parse(localStorage.getItem('scheduleData')||'[]');
