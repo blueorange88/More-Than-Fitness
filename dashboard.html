@@ -159,10 +159,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
 function init(){
   const saved = JSON.parse(localStorage.getItem('scheduleRange') || '{}');
-  if (saved.start && saved.end) {
-    scheduleStart = saved.start;
-    scheduleEnd = saved.end;
-  }
+  scheduleStart = typeof saved.start === 'number' ? saved.start : 6;
+  scheduleEnd = typeof saved.end === 'number' ? saved.end : 15;
 
   buildCurr();
   buildNext();
