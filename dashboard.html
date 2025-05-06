@@ -19,7 +19,8 @@
     .today-lessons li { overflow-wrap: break-word; word-break: break-all; margin-bottom: 4px; }
     .section-title { margin: 8px 0 4px; font-size: 14px; color: #0d1b2a; }
     .schedule-wrapper { background: #fff; padding: 8px; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 16px; overflow-x: auto; }
-    table { width: 100%; min-width: 600px; border-collapse: collapse; font-size: 12px; }
+    .table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    @media (min-width: 768px) { table { min-width: 600px } }
     th, td { border: 1px solid #ccc; padding: 4px; text-align: center; position: relative; }
     th { background: #0d1b2a; color: #fff; }
     th:first-child { background: #0d3b5a; cursor: pointer; }
@@ -270,9 +271,13 @@ function applyRangeCurr(){
   scheduleStart = s;
   scheduleEnd = e;
   localStorage.setItem('scheduleRange', JSON.stringify({ start: scheduleStart, end: scheduleEnd }));
-  buildCurr(); buildNext(); buildLast();
-  loadCurr(); highlightToday(); updateToday(); initTimeLine();
-  hidePopup();
+buildCurr(); 
+highlightToday();   // ← 이 위치 중요
+buildNext(); 
+buildLast();
+loadCurr(); 
+updateToday(); 
+initTimeLine();
 }
 
 function loadCurr(){
@@ -343,9 +348,8 @@ function highlightToday(){
   const di = new Date().getDay();
   const ths = document.querySelectorAll('#scheduleTableCurr th');
   const idx = di === 0 ? 7 : di;
-  if (ths[idx]){
-    ths[idx].style.backgroundColor = '#d4af37';
-    ths[idx].style.color = '#0d1b2a';
+  if (ths[idx]) {
+    ths[idx].classList.add('highlight-today');
   }
 }
 function showPopup(popupEl){
