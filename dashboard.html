@@ -205,20 +205,27 @@ function init(){
 function buildCurr() {
   const tb = document.querySelector('#scheduleTableCurr tbody');
   tb.innerHTML = '';
+
   for (let h = scheduleStart; h < scheduleEnd; h++) {
+    // wrap-around 처리: 24 → 0, 25 → 1, ...
+    const displayHour = (h % 24).toString().padStart(2, '0');
     const r = document.createElement('tr');
+
+    // 분 단위는 그대로 가져오고
+    const minute = localStorage.getItem(`minute-${displayHour}`) || '00';
     const c0 = document.createElement('td');
-    const minute = localStorage.getItem(`minute-${h}`) || '00';
-    c0.textContent = `${h}:${minute}`;
+    c0.textContent = `${displayHour}:${minute}`;
     c0.className = 'time-cell';
     c0.onclick = () => openMinute(c0);
     r.append(c0);
 
+    // 요일 칸 7개
     for (let i = 0; i < 7; i++) {
       const c = document.createElement('td');
       c.onclick = () => openLesson(c);
       r.append(c);
     }
+
     tb.append(r);
   }
 }
@@ -298,24 +305,41 @@ function deleteLesson(){
 }
 
 // 1) 시간 범위 적용 함수 끝에 hidePopup() 호출
-function applyRangeCurr() {
-  const s = +document.getElementById('rangeStart').value.split(':')[0];
-  const e = +document.getElementById('rangeEnd').value.split(':')[0];
-  if (e <= s) {
-    alert('종료 시간은 시작보다 늦어야 합니다.');
-    hidePopup();
-    return;
+function applyRangeCurr(){
+  // 1) 원본 값 꺼내오기
+  const rawS = document.getElementById('rangeStart').value; // ex. "23:00"
+  const rawE = document.getElementById('rangeEnd').value;   // ex. "01:00" 또는 "00:00" (자정)
+
+  // 2) 시(hour)만 숫자로 파싱
+  let sH = parseInt(rawS.split(':')[0], 10);
+  let eH = parseInt(rawE.split(':')[0], 10);
+
+  // 3) "00:xx"을 24로 바꿔주면 24:00(자정)을 표현할 수 있음
+  if (rawE.startsWith('00')) {
+    eH = 24;
   }
-  if (e - s < 3) {
+
+  // 4) 다음 날로 넘어가는 경우(eH <= sH)엔 eH에 24를 더해서 'wrap-around' 처리
+  if (eH <= sH) {
+    eH += 24;
+  }
+
+  // 5) 유효성 검사 (최소 3시간)
+  if (eH - sH < 3) {
     alert('최소 3시간 이상 설정해야 합니다.');
     hidePopup();
     return;
   }
 
-  scheduleStart = s;
-  scheduleEnd   = e;
-  localStorage.setItem('scheduleRange', JSON.stringify({ start: s, end: e }));
+  // 6) 적용
+  scheduleStart = sH;
+  scheduleEnd   = eH;
+  localStorage.setItem(
+    'scheduleRange',
+    JSON.stringify({ start: scheduleStart, end: scheduleEnd })
+  );
 
+  // 7) 리빌드 & 팝업 닫기
   buildCurr();
   buildNext();
   buildLast();
@@ -323,8 +347,6 @@ function applyRangeCurr() {
   highlightToday();
   updateToday();
   initTimeLine();
-
-  // 무조건 팝업 닫기
   hidePopup();
 }
 
