@@ -68,6 +68,14 @@ table {
     .bottom-nav button { background: none; border: none; color: #fff; font-size: 14px; cursor: pointer; }
     .highlight-today { background-color: #d4af37 !important; color: #0d1b2a !important; }
   </style>
+  <!-- vConsole 로딩 & 초기화 -->
+  <script src="https://unpkg.com/vconsole@3.16.0/dist/vconsole.min.js"></script>
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      new VConsole();
+    });
+  </script>
+</head>
 </head>
 <body>
   <div class="topbar">
@@ -326,6 +334,7 @@ function applyRangeCurr(){
   updateToday();
   initTimeLine();
 
+  console.log('▶ applyRangeCurr 호출됨');
   console.log('✅ applyRangeCurr 끝, 팝업 닫기 실행');
   hidePopup();
 }
