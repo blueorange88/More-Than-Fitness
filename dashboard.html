@@ -1,5 +1,4 @@
-<!DOCTYPE html><html lang="ko">
-<head>
+<!DOCTYPE html><html lang="ko"><head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>More Than Fitness - Dashboard</title>
@@ -19,41 +18,13 @@
     .today-lessons li { overflow-wrap: break-word; word-break: break-all; margin-bottom: 4px; }
     .section-title { margin: 8px 0 4px; font-size: 14px; color: #0d1b2a; }
     .schedule-wrapper { background: #fff; padding: 8px; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 16px; overflow-x: auto; }
-
-  /* 기본 테이블: 화면 가득 채우되, 고정 min-width 제거 */
-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 12px;
-  /* min-width: 600px; 이 줄을 삭제하세요 */
-}
-
-/* 데스크탑 이상에서만 넓은 레이아웃 허용 */
-@media (min-width: 768px) {
-  table {
-    min-width: 600px;
-  }
-}
-
-/* 모바일에서 칸 너비 고정 배분 & 줄바꿈 */
-@media (max-width: 767px) {
-  .schedule-wrapper {
-    overflow-x: auto;  /* 가로 스크롤 허용하되 */
-  }
-  .schedule-wrapper table {
-    table-layout: fixed;
-    min-width: unset;
-  }
-  .schedule-wrapper th,
-  .schedule-wrapper td {
-    word-wrap: break-word;
-    white-space: normal;
-  }
-}
-    th, td { border: 1px solid #ccc; padding: 4px; text-align: center; position: relative; }
-    th { background: #0d1b2a; color: #fff; }
-    th:first-child { background: #0d3b5a; cursor: pointer; }
-    .time-cell { background: #f1f1f1; cursor: pointer; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    @media (min-width: 768px) { table { min-width: 600px; } }
+    @media (max-width: 767px) {
+      .schedule-wrapper { overflow-x: auto; }
+      .schedule-wrapper table { table-layout: fixed; min-width: unset; }
+      .schedule-wrapper th, .schedule-wrapper td { word-wrap: break-word; white-space: normal; }
+    }
     th, td { border: 1px solid #ccc; padding: 4px; text-align: center; position: relative; }
     th { background: #0d1b2a; color: #fff; }
     th:first-child { background: #0d3b5a; cursor: pointer; }
@@ -68,130 +39,57 @@ table {
     .bottom-nav button { background: none; border: none; color: #fff; font-size: 14px; cursor: pointer; }
     .highlight-today { background-color: #d4af37 !important; color: #0d1b2a !important; }
   </style>
-  <!-- vConsole 로딩 & 초기화 -->
+</head>
+<body>
+
   <script src="https://unpkg.com/vconsole@3.16.0/dist/vconsole.min.js"></script>
   <script>
     window.addEventListener('DOMContentLoaded', () => {
       new VConsole();
-    });
-  </script>
-</head>
-</head>
-<body>
-  <div class="topbar">
-    <button class="hamburger" id="hamburger">☰</button>
-    <h1>More Than Fitness</h1>
-    <button class="logout-btn" id="btnLogout">로그아웃</button>
-  </div>
-  <div class="sidebar" id="sidebar">
-    <button>내 정보 관리</button>
-    <button>회원 관리</button>
-    <button>스케줄 관리</button>
-    <button>기록 관리</button>
-    <button>상품 구매</button>
-  </div>
-  <div class="main">
-    <div class="today-lessons">
-      <h2>오늘 다음 레슨</h2>
-      <ul id="todayLessonList"></ul>
-    </div>
-    <div class="section-title" contenteditable>이번 주 스케줄</div>
-    <div class="schedule-wrapper">
-      <table id="scheduleTableCurr">
-        <thead>
-          <tr>
-            <th id="headerCurr">시간</th>
-            <th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th><th>일</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-    <div class="section-title">다음 주 스케줄</div>
-    <div class="schedule-wrapper">
-      <table id="scheduleTableNext">
-        <thead>
-          <tr>
-            <th>시간</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th><th>일</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-    <div class="section-title">지난 주 스케줄</div>
-    <div class="schedule-wrapper">
-      <table id="scheduleTableLast">
-        <thead>
-          <tr>
-            <th>시간</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th><th>일</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-  </div>
-  <div class="overlay" id="popupOverlay"></div>
-  <div class="overlay" id="sidebarOverlay"></div>  <div class="popup" id="popupRange">
-<h3>시간 범위 설정</h3>
-    <label>시작: <input type="time" id="rangeStart" value="06:00"></label><br />
-    <label>종료: <input type="time" id="rangeEnd" value="15:00"></label>
-    <div class="button-group">
-      <button onclick="applyRangeCurr()">확인</button>
-      <button onclick="hidePopup()">취소</button>
-    </div>
-  </div>  <div class="popup" id="popupMinute">
-    <h3>분 단위 설정</h3>
-    <select id="minuteSelect">
-      <option>00</option><option>10</option><option>20</option>
-      <option>30</option><option>40</option><option>50</option>
-    </select>
-    <div class="button-group">
-      <button onclick="saveMinute()">저장</button>
-      <button onclick="hidePopup()">취소</button>
-    </div>
-  </div>  <div class="popup" id="popupLesson">
-    <h3>레슨 정보</h3>
-    <input id="nameInput" placeholder="이름" style="width:100%;margin:8px 0;padding:6px" />
-    <input id="enrolledInput" type="number" placeholder="회차" style="width:48%" />
-    <input id="capacityInput" type="number" placeholder="총" style="width:48%" />
-    <div class="button-group">
-      <button onclick="saveLesson()">저장</button>
-      <button onclick="deleteLesson()">삭제</button>
-    </div>
-  </div>
+      init();
+      document.getElementById('btnLogout').onclick = () => {
+        alert('로그아웃되었습니다!');
+        location.href = '/login.html';
+      };
+      document.getElementById('headerCurr').onclick = () => {
+        showPopup(document.getElementById('popupRange'));
+      };
+      document.getElementById('hamburger').onclick = () => {
+        const sidebar = document.getElementById('sidebar');
+        sidebar.classList.toggle('active');
+        sidebarOverlay.style.display = sidebar.classList.contains('active') ? 'block' : 'none';
+      };
+      sidebarOverlay.onclick = () => {
+        document.getElementById('sidebar').classList.remove('active');
+        sidebarOverlay.style.display = 'none';
+      };
+    });function applyRangeCurr(){
+  try {
+    const rawS = document.getElementById('rangeStart').value;
+    const rawE = document.getElementById('rangeEnd').value;
+    const [sH] = rawS.match(/\d{1,2}/g).map(Number);
+    const [eH] = rawE.match(/\d{1,2}/g).map(Number);
 
-  <script>
-let currentCell = null;
-let scheduleStart = 6;
-let scheduleEnd = 15;
+    if (eH <= sH) {
+      alert('종료 시간은 시작보다 늦어야 합니다.');
+      hidePopup(); return;
+    }
+    if (eH - sH < 3) {
+      alert('최소 3시간 이상 설정해야 합니다.');
+      hidePopup(); return;
+    }
 
-const popupOverlay = document.getElementById('popupOverlay');
-const sidebarOverlay = document.getElementById('sidebarOverlay');
+    scheduleStart = sH;
+    scheduleEnd   = eH;
+    localStorage.setItem('scheduleRange', JSON.stringify({ start: sH, end: eH }));
 
-window.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('btnLogout').onclick = () => {
-    alert('로그아웃되었습니다!');
-    location.href = '/login.html';
-  };
-
-  document.getElementById('headerCurr').onclick = () => {
-    showPopup(document.getElementById('popupRange'));
-  };
-
-  document.getElementById('hamburger').onclick = () => {
-    const sidebar = document.getElementById('sidebar');
-    sidebar.classList.toggle('active');
-    sidebarOverlay.style.display = sidebar.classList.contains('active') ? 'block' : 'none';
-  };
-
-  sidebarOverlay.onclick = () => {
-    document.getElementById('sidebar').classList.remove('active');
-    sidebarOverlay.style.display = 'none';
-  };
-
-  init();
-});
-
+    buildCurr(); buildNext(); buildLast(); loadCurr(); highlightToday(); updateToday(); initTimeLine();
+  } catch(err) {
+    console.error('❌ applyRangeCurr error:', err);
+  } finally {
+    hidePopup();
+  }
+}
 function init(){
   const saved = JSON.parse(localStorage.getItem('scheduleRange') || '{}');
   if (saved.start && saved.end) {
@@ -304,41 +202,58 @@ function deleteLesson(){
   updateToday(); updateTimeLine(); hidePopup();
 }
 
-// 1) 시간 범위 적용 + 팝업 닫기
 function applyRangeCurr(){
-  console.log('▶ applyRangeCurr 호출됨');
+  console.log('▶ applyRangeCurr start, raw:',
+    document.getElementById('rangeStart').value,
+    document.getElementById('rangeEnd').value);
 
-  const s = +document.getElementById('rangeStart').value.split(':')[0];
-  const e = +document.getElementById('rangeEnd').value.split(':')[0];
+  try {
+    // 1) 원본 값 꺼내오기
+    const rawS = document.getElementById('rangeStart').value;
+    const rawE = document.getElementById('rangeEnd').value;
 
-  if (e <= s) {
-    alert('종료 시간은 시작보다 늦어야 합니다.');
+    // 2) 숫자만 골라서 파싱 (“17:00:00”, “5:00 PM” 모두 OK)
+    const [sH] = rawS.match(/\d{1,2}/g).map(Number);
+    const [eH] = rawE.match(/\d{1,2}/g).map(Number);
+
+    console.log('▶ parsed hours:', sH, eH);
+
+    // 3) 유효성 검사
+    if (eH <= sH) {
+      alert('종료 시간은 시작보다 늦어야 합니다.');
+      return;
+    }
+    if (eH - sH < 3) {
+      alert('최소 3시간 이상 설정해야 합니다.');
+      return;
+    }
+
+    // 4) 스케줄 범위 적용
+    scheduleStart = sH;
+    scheduleEnd   = eH;
+    localStorage.setItem(
+      'scheduleRange',
+      JSON.stringify({ start: sH, end: eH })
+    );
+
+    // 5) 테이블 리빌드 & 기타 업데이트
+    buildCurr();
+    buildNext();
+    buildLast();
+    loadCurr();
+    highlightToday();
+    updateToday();
+    initTimeLine();
+
+    console.log('✅ applyRangeCurr success');
+  } catch(err) {
+    console.error('❌ applyRangeCurr error:', err);
+  } finally {
+    // 무조건 팝업 닫기
     hidePopup();
-    return;
+    console.log('▶ hidePopup called');
   }
-  if (e - s < 3) {
-    alert('최소 3시간 이상 설정해야 합니다.');
-    hidePopup();
-    return;
-  }
-
-  scheduleStart = s;
-  scheduleEnd   = e;
-  localStorage.setItem('scheduleRange', JSON.stringify({ start: s, end: e }));
-
-  buildCurr();
-  buildNext();
-  buildLast();
-  loadCurr();
-  highlightToday();
-  updateToday();
-  initTimeLine();
-
-  console.log('▶ applyRangeCurr 호출됨');
-  console.log('✅ applyRangeCurr 끝, 팝업 닫기 실행');
-  hidePopup();
 }
-
 // 2) 팝업 강제 닫기
 function hidePopup(){
   popupOverlay.style.display = 'none';
