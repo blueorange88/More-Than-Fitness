@@ -298,13 +298,11 @@ function applyRangeCurr() {
 
     if (eH <= sH) {
       alert('종료 시간은 시작보다 늦어야 합니다.');
-      hidePopup();
-      return;
+      return; // 팝업 닫지 않음
     }
     if (eH - sH < 3) {
       alert('최소 3시간 이상 설정해야 합니다.');
-      hidePopup();
-      return;
+      return; // 팝업 닫지 않음
     }
 
     scheduleStart = sH;
@@ -318,13 +316,12 @@ function applyRangeCurr() {
     highlightToday();
     updateToday();
     initTimeLine();
+
+    hidePopup();
   } catch (err) {
     console.error('❌ applyRangeCurr error:', err);
-  } finally {
-    hidePopup();
   }
 }
-
 function hidePopup() {
   popupOverlay.style.display = 'none';
   document.getElementById('popupRange').style.display = 'none';
