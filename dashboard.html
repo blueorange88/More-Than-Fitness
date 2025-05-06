@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="ko"><head>
+<!DOCTYPE html><html lang="ko">
+<head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>More Than Fitness - Dashboard</title>
@@ -94,6 +95,8 @@
       </table>
     </div>
   </div>
+
+  <!-- 오버레이 및 팝업들 -->
   <div class="overlay" id="popupOverlay"></div>
   <div class="overlay" id="sidebarOverlay"></div>
 
@@ -106,7 +109,7 @@
       <button onclick="hidePopup()">취소</button>
     </div>
   </div>
-  
+
   <div class="popup" id="popupMinute">
     <h3>분 단위 설정</h3>
     <select id="minuteSelect">
@@ -135,15 +138,13 @@
 let currentCell = null;
 let scheduleStart = 6;
 let scheduleEnd = 15;
-let popupOverlay, sidebarOverlay;
+
+const popupOverlay = document.getElementById('popupOverlay');
+const sidebarOverlay = document.getElementById('sidebarOverlay');
 
 window.addEventListener('DOMContentLoaded', () => {
   new VConsole();
-  popupOverlay = document.getElementById('popupOverlay');
-  sidebarOverlay = document.getElementById('sidebarOverlay');
   init();
-  ...
-});
 
   document.getElementById('btnLogout').onclick = () => {
     alert('로그아웃되었습니다!');
@@ -182,7 +183,6 @@ function init() {
   initTimeLine();
   setInterval(updateTimeLine, 60000);
 }
-
 function buildCurr() {
   const tb = document.querySelector('#scheduleTableCurr tbody');
   tb.innerHTML = '';
@@ -194,7 +194,6 @@ function buildCurr() {
     c0.className = 'time-cell';
     c0.onclick = () => openMinute(c0);
     r.append(c0);
-
     for (let i = 0; i < 7; i++) {
       const c = document.createElement('td');
       c.onclick = () => openLesson(c);
