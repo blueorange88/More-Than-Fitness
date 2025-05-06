@@ -19,7 +19,42 @@
     .today-lessons li { overflow-wrap: break-word; word-break: break-all; margin-bottom: 4px; }
     .section-title { margin: 8px 0 4px; font-size: 14px; color: #0d1b2a; }
     .schedule-wrapper { background: #fff; padding: 8px; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 16px; overflow-x: auto; }
-    table { width: 100%; min-width: 600px; border-collapse: collapse; font-size: 12px; }
+    section-title { margin: 8px 0 4px; font-size: 14px; color: #0d1b2a; }
+    .schedule-wrapper { background: #fff; padding: 8px; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 16px; overflow-x: auto; }
+  /* 기본 테이블: 화면 가득 채우되, 고정 min-width 제거 */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  /* min-width: 600px; 이 줄을 삭제하세요 */
+}
+
+/* 데스크탑 이상에서만 넓은 레이아웃 허용 */
+@media (min-width: 768px) {
+  table {
+    min-width: 600px;
+  }
+}
+
+/* 모바일에서 칸 너비 고정 배분 & 줄바꿈 */
+@media (max-width: 767px) {
+  .schedule-wrapper {
+    overflow-x: auto;  /* 가로 스크롤 허용하되 */
+  }
+  .schedule-wrapper table {
+    table-layout: fixed;
+    min-width: unset;
+  }
+  .schedule-wrapper th,
+  .schedule-wrapper td {
+    word-wrap: break-word;
+    white-space: normal;
+  }
+}
+    th, td { border: 1px solid #ccc; padding: 4px; text-align: center; position: relative; }
+    th { background: #0d1b2a; color: #fff; }
+    th:first-child { background: #0d3b5a; cursor: pointer; }
+    .time-cell { background: #f1f1f1; cursor: pointer; }
     th, td { border: 1px solid #ccc; padding: 4px; text-align: center; position: relative; }
     th { background: #0d1b2a; color: #fff; }
     th:first-child { background: #0d3b5a; cursor: pointer; }
@@ -265,13 +300,30 @@ function deleteLesson(){
 function applyRangeCurr(){
   const s = +document.getElementById('rangeStart').value.split(':')[0];
   const e = +document.getElementById('rangeEnd').value.split(':')[0];
-  if (e <= s) return alert('종료 시간은 시작보다 늦어야 합니다.');
-  if (e - s < 3) return alert('최소 3시간 이상 설정해야 합니다.');
+  if (e <= s) {
+    alert('종료 시간은 시작보다 늦어야 합니다.');
+    hidePopup();      // ← validation 실패 시에도 닫아주고 싶다면 추가
+    return;
+  }
+  if (e - s < 3) {
+    alert('최소 3시간 이상 설정해야 합니다.');
+    hidePopup();
+    return;
+  }
+
   scheduleStart = s;
-  scheduleEnd = e;
-  localStorage.setItem('scheduleRange', JSON.stringify({ start: scheduleStart, end: scheduleEnd }));
-  buildCurr(); buildNext(); buildLast();
-  loadCurr(); highlightToday(); updateToday(); initTimeLine();
+  scheduleEnd   = e;
+  localStorage.setItem('scheduleRange', JSON.stringify({ start: s, end: e }));
+
+  buildCurr();
+  highlightToday();  // ← 헤더 재강조 바로 여기서
+  buildNext();
+  buildLast();
+  loadCurr();
+  updateToday();
+  initTimeLine();
+
+  // 모바일에서도 강제로 팝업 닫기
   hidePopup();
 }
 
