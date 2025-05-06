@@ -406,9 +406,11 @@ function showPopup(popupEl){
   popupEl.style.display = 'block';
 }
 function hidePopup(){
-  document.body.style.overflow = '';
   popupOverlay.style.display = 'none';
-  document.querySelectorAll('.popup').forEach(p => p.style.display = 'none');
+  document.getElementById('popupRange').style.display = 'none';
+  document.getElementById('popupMinute').style.display = 'none';
+  document.getElementById('popupLesson').style.display = 'none';
+  document.body.style.overflow = '';
 }
 </script>
 </body>
