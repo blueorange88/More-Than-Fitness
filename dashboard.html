@@ -127,12 +127,18 @@ table {
   <div class="overlay" id="sidebarOverlay"></div>  <div class="popup" id="popupRange">
  <!-- 팝업: 시간 범위 설정 -->
   <div class="popup" id="popupRange">
+<!-- 팝업: 시간 범위 설정 -->
+  <div class="popup" id="popupRange">
     <h3>시간 범위 설정</h3>
     <label>시작: <input type="time" id="rangeStart" value="06:00"></label><br />
     <label>종료: <input type="time" id="rangeEnd" value="15:00"></label>
     <div class="button-group">
-    <button type="button" onclick="applyRangeCurr()">적용</button>
-    <button type="button" onclick="hidePopup()">취소</button>
+-     <button onclick="applyRangeCurr()">적용</button>
+-     <button onclick="hidePopup()">취소</button>
++     <button type="button" onclick="applyRangeCurr()">적용</button>
++     <button type="button" onclick="hidePopup()">취소</button>
+    </div>
+  </div>
     </div>
   </div>
     </div>
