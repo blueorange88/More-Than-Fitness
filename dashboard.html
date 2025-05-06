@@ -19,8 +19,7 @@
     .today-lessons li { overflow-wrap: break-word; word-break: break-all; margin-bottom: 4px; }
     .section-title { margin: 8px 0 4px; font-size: 14px; color: #0d1b2a; }
     .schedule-wrapper { background: #fff; padding: 8px; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 16px; overflow-x: auto; }
-    section-title { margin: 8px 0 4px; font-size: 14px; color: #0d1b2a; }
-    .schedule-wrapper { background: #fff; padding: 8px; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 16px; overflow-x: auto; }
+
   /* 기본 테이블: 화면 가득 채우되, 고정 min-width 제거 */
 table {
   width: 100%;
@@ -297,15 +296,16 @@ function deleteLesson(){
   updateToday(); updateTimeLine(); hidePopup();
 }
 
+// 1) 시간 범위 적용 + 팝업 닫기
 function applyRangeCurr(){
-  function applyRangeCurr(){
   console.log('▶ applyRangeCurr 호출됨');
+
   const s = +document.getElementById('rangeStart').value.split(':')[0];
   const e = +document.getElementById('rangeEnd').value.split(':')[0];
-}
+
   if (e <= s) {
     alert('종료 시간은 시작보다 늦어야 합니다.');
-    hidePopup();      // ← validation 실패 시에도 닫아주고 싶다면 추가
+    hidePopup();
     return;
   }
   if (e - s < 3) {
@@ -319,16 +319,24 @@ function applyRangeCurr(){
   localStorage.setItem('scheduleRange', JSON.stringify({ start: s, end: e }));
 
   buildCurr();
-  highlightToday();  // ← 헤더 재강조 바로 여기서
   buildNext();
   buildLast();
   loadCurr();
+  highlightToday();
   updateToday();
   initTimeLine();
-  
-  console.log();
+
+  console.log('✅ applyRangeCurr 끝, 팝업 닫기 실행');
   hidePopup();
 }
+
+// 2) 팝업 강제 닫기
+function hidePopup(){
+  popupOverlay.style.display = 'none';
+  document.getElementById('popupRange').style.display   = 'none';
+  document.getElementById('popupMinute').style.display  = 'none';
+  document.getElementById('popupLesson').style.display  = 'none';
+  document.body.style.overflow = '';
 }
 
 function loadCurr(){
@@ -409,13 +417,7 @@ function showPopup(popupEl){
   popupOverlay.style.display = 'block';
   popupEl.style.display = 'block';
 }
-function hidePopup(){
-  popupOverlay.style.display = 'none';
-  document.getElementById('popupRange').style.display = 'none';
-  document.getElementById('popupMinute').style.display = 'none';
-  document.getElementById('popupLesson').style.display = 'none';
-  document.body.style.overflow = '';
-}
+  
 </script>
 </body>
 </html>
