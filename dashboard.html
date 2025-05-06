@@ -341,10 +341,13 @@ function loadCurr(){
   const data = JSON.parse(localStorage.getItem('scheduleData')||'[]');
   data.forEach(i => {
     document.querySelectorAll('#scheduleTableCurr tbody tr').forEach(r => {
-      if(r.firstChild.textContent === i.time){
+      // 시간(시)만 비교하도록 변경
+      const rowHour = parseInt(r.firstChild.textContent.split(':')[0], 10);
+      const itemHour = parseInt(i.time.split(':')[0], 10);
+      if (rowHour === itemHour) {
         const c = r.children[i.di];
-        c.textContent = `${i.time}\n${i.name} (${i.enrolled}/${i.cap})`;
-        c.dataset.info = JSON.stringify(i);
+        c.textContent      = `${i.time}\n${i.name} (${i.enrolled}/${i.cap})`;
+        c.dataset.info     = JSON.stringify(i);
       }
     });
   });
