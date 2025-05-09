@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>회원 정보 확인</title>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #f5f0e8;
+      padding: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #ccc;
+      text-align: center;
+    }
+    th {
+      background-color: #0d1b2a;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <h2>회원 목록</h2>
+  <section id="memberListSection">
+    <table id="memberTable">
+      <thead>
+        <tr>
+          <th>이름</th>
+          <th>휴대폰</th>
+          <th>트레이너</th>
+          <th>레슨유형</th>
+          <th>회원등급</th>
+          <th>등록일</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCjdyveDx0qFPUzmaChnEy9Ni0VjTysYnM",
+      authDomain: "more-than-fitness-f6adb.firebaseapp.com",
+      projectId: "more-than-fitness-f6adb",
+      storageBucket: "more-than-fitness-f6adb.appspot.com",
+      messagingSenderId: "993248877411",
+      appId: "1:993248877411:web:c0e6785162cf252fbcd156"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    async function showMemberList() {
+      const tableBody = document.querySelector("#memberTable tbody");
+      tableBody.innerHTML = "";
+
+      try {
+        const snapshot = await getDocs(collection(db, "members"));
+        snapshot.forEach(doc => {
+          const m = doc.data();
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${m.name || ''}</td>
+            <td>${m.phone || ''}</td>
+            <td>${m.trainer || ''}</td>
+            <td>${m.type || ''}</td>
+            <td>${m.level || ''}</td>
+            <td>${m.createdAt?.toDate ? m.createdAt.toDate().toLocaleDateString() : ''}</td>
+          `;
+          tableBody.appendChild(row);
+        });
+      } catch (e) {
+        alert("회원 정보를 불러오는 데 실패했습니다.");
+        console.error("Error fetching members:", e);
+      }
+    }
+
+    // 페이지 로딩 시 자동 실행
+    showMemberList();
+  </script>
+</body>
+</html>
