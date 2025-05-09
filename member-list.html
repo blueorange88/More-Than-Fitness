@@ -27,6 +27,99 @@
   </style>
 </head>
 <body>
+  <div class="section-title">회원 목록</div>
+<input type="text" id="searchInput" placeholder="회원 이름 또는 번호 검색" style="margin-bottom:10px; padding:6px; width:100%; max-width:300px;">
+
+<div class="schedule-wrapper">
+  <table id="memberTable">
+    <thead>
+      <tr>
+        <th onclick="sortTable('name')">이름</th>
+        <th onclick="sortTable('phone')">휴대폰번호</th>
+        <th onclick="sortTable('trainer')">담당 트레이너</th>
+        <th onclick="sortTable('type')">레슨 유형</th>
+        <th onclick="sortTable('level')">회원 등급</th>
+        <th onclick="sortTable('createdAt')">최초 등록일</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<script type="module">
+  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCjdyveDx0qFPUzmaChnEy9Ni0VjTysYnM",
+    authDomain: "more-than-fitness-f6adb.firebaseapp.com",
+    projectId: "more-than-fitness-f6adb",
+    storageBucket: "more-than-fitness-f6adb.appspot.com",
+    messagingSenderId: "993248877411",
+    appId: "1:993248877411:web:c0e6785162cf252fbcd156",
+    measurementId: "G-MK0RVFG296"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  let memberList = [];
+  let sortKey = '';
+  let sortAsc = true;
+
+  async function loadMembers() {
+    const snapshot = await getDocs(collection(db, "members"));
+    memberList = [];
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      memberList.push({
+        ...data,
+        createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : null
+      });
+    });
+    renderTable(memberList);
+  }
+
+  function renderTable(data) {
+    const tableBody = document.querySelector("#memberTable tbody");
+    tableBody.innerHTML = "";
+    data.forEach(m => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${m.name || ''}</td>
+        <td>${m.phone || ''}</td>
+        <td>${m.trainer || ''}</td>
+        <td>${m.type || ''}</td>
+        <td>${m.level || ''}</td>
+        <td>${m.createdAt ? m.createdAt.toLocaleDateString() : ''}</td>
+      `;
+      tableBody.appendChild(row);
+    });
+  }
+
+  function sortTable(key) {
+    sortAsc = sortKey === key ? !sortAsc : true;
+    sortKey = key;
+    const sorted = [...memberList].sort((a, b) => {
+      const valA = a[key] || '';
+      const valB = b[key] || '';
+      return sortAsc
+        ? valA > valB ? 1 : -1
+        : valA < valB ? 1 : -1;
+    });
+    renderTable(sorted);
+  }
+
+  document.getElementById("searchInput").addEventListener("input", function() {
+    const keyword = this.value.toLowerCase();
+    const filtered = memberList.filter(m =>
+      m.name?.toLowerCase().includes(keyword) || m.phone?.includes(keyword)
+    );
+    renderTable(filtered);
+  });
+
+  loadMembers();
+  
   <h2>회원 목록</h2>
   <section id="memberListSection">
     <table id="memberTable">
