@@ -11,7 +11,8 @@
     .hamburger, .logout-btn { background: none; border: none; cursor: pointer; font-size: 20px; color: #0d1b2a; }
     .sidebar { position: fixed; top: 50px; left: 0; bottom: 0; width: 180px; background: #0d1b2a; color: #fff; padding: 15px; transform: translateX(-100%); transition: transform .3s ease; z-index: 1002; }
     .sidebar.active { transform: translateX(0); }
-    .sidebar button { background: none; border: none; color: #fff; width: 100%; text-align: left; margin: 8px 0; cursor: pointer; font-size: 14px; }
+    .sidebar button { display: block;  /* 이 줄이 핵심 */ background: none; border: none; color: #fff; width: 100%; text-align: left; margin: 8px 0; cursor: pointer; font-size: 14px; }
+    .submenu button { background: none; border: none; color: #ccc;  /* 상위보다 연한 색상 */ width: 100%; text-align: left; margin: 4px 0; padding-left: 16px;  /* 들여쓰기 */ font-size: 13px; cursor: pointer; }
     .main { margin-top: 50px; flex: 1; overflow-y: auto; padding: 8px; padding-bottom: 60px; }
     .today-lessons { background: #fff; padding: 8px; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 8px; }
     .today-lessons h2 { font-size: 16px; color: #0d1b2a; margin-bottom: 4px; }
@@ -51,6 +52,14 @@ table {
     white-space: normal;
   }
 }
+    /* 추가: 카드가 화면 작을 때는 너비 줄이고 위치 이동 */
+@media (max-width: 768px) {
+  #quickRegisterCard {
+    width: 90% !important;
+    right: 5% !important;
+    top: 60px !important;
+  }
+}
     th, td { border: 1px solid #ccc; padding: 4px; text-align: center; position: relative; }
     th { background: #0d1b2a; color: #fff; }
     th:first-child { background: #0d3b5a; cursor: pointer; }
@@ -67,22 +76,34 @@ table {
     .button-group button { width: 48%; padding: 6px; background: #f5f0e8; border: none; border-radius: 4px; cursor: pointer; }
     .bottom-nav { display: flex; position: fixed; bottom: 0; left: 0; right: 0; background: #0d1b2a; justify-content: space-around; padding: 8px 0; }
     .bottom-nav button { background: none; border: none; color: #fff; font-size: 14px; cursor: pointer; }
-    .highlight-today { background-color: #d4af37 !important; color: #0d1b2a !important; }
+    .highlight-today { background-color: #d4af37 !important; color: #0d1b2a !important; 
+    .main { margin-top: 50px  flex: 1; overflow-y: auto;  padding: 8px; padding-bottom: 60px; padding-right: 320px; /* 카드 UI 여백 확보 */ }
   </style>
 </head>
 <body>
   <div class="topbar">
-    <button class="hamburger" id="hamburger">☰</button>
-    <h1>More Than Fitness</h1>
+  <button class="hamburger" id="hamburger">☰</button>
+  <h1>More Than Fitness</h1>
+  <div style="display: flex; align-items: center; gap: 8px;">
+    <button onclick="toggleQuickCard()" style="background:#d4af37; color:#0d1b2a; border:none; padding:6px 10px; border-radius:6px; cursor:pointer;">+ 빠른 등록</button>
     <button class="logout-btn" id="btnLogout">로그아웃</button>
+</div>
   </div>
-  <div class="sidebar" id="sidebar">
-    <button>내 정보 관리</button>
-    <button>회원 관리</button>
-    <button>스케줄 관리</button>
-    <button>기록 관리</button>
-    <button>상품 구매</button>
+<div class="sidebar" id="sidebar">
+  <button>내 정보 관리</button>
+
+  <button onclick="toggleSubmenu('member')">회원 관리</button>
+  <div id="submenu-member" class="submenu" style="display:none; padding-left:12px;">
+  <button onclick="location.href='/register.html'">회원 신규 등록</button> 
+    <button>회원 확인</button>
+    <button>회원 정보 수정</button>
+    <button>회원 삭제</button>
   </div>
+
+  <button>스케줄 관리</button>
+  <button>기록 관리</button>
+  <button>상품 구매</button>
+</div>
   <div class="main">
     <div class="today-lessons">
       <h2>오늘 다음 레슨</h2>
@@ -152,6 +173,43 @@ table {
       <button onclick="deleteLesson()">삭제</button>
     </div>
   </div>
+   <!-- 빠른 회원 등록 카드 UI (대시보드 상단에 배치) -->
+  
+  <div id="quickRegisterCard" style="position:fixed; top:70px; right:20px; width:300px; background:#fff; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.2); padding:16px; font-family:'Poppins',sans-serif; z-index:1000; display:none;">
+ <div style="position:absolute; top:8px; right:8px;">
+  <button onclick="goToRegister()"
+    style="
+      font-size:11px;
+      background:#f5f0e8;
+      border:1px solid #ccc;
+      border-radius:4px;
+      padding:4px 6px;
+      color:#0d1b2a;
+      cursor:pointer;
+      text-align:right;
+      line-height:1.2;
+      transition: background 0.2s;
+    "
+    onmouseover="this.style.background='#e5ded0'"
+    onmouseout="this.style.background='#f5f0e8'">
+    +자세한<br>정보등록
+  </button>
+</div>
+  <h3 style="font-size:16px; color:#0d1b2a; margin-bottom:12px;">빠른 회원 등록</h3><label style="font-size:13px;">이름</label> <input type="text" id="quickName" style="width:100%; margin-bottom:8px; padding:6px; border-radius:6px; border:1px solid #ccc;">
+
+<label style="font-size:13px;">휴대폰번호</label> <input type="text" id="quickPhone" style="width:100%; margin-bottom:8px; padding:6px; border-radius:6px; border:1px solid #ccc;">
+
+<label style="font-size:13px;">담당 트레이너</label> <select id="quickTrainer" style="width:100%; margin-bottom:8px; padding:6px; border-radius:6px; border:1px solid #ccc;"> <option>선택</option> <option>트레이너 A</option> <option>트레이너 B</option> </select>
+
+<label style="font-size:13px;">레슨 유형</label> <select id="quickLessonType" style="width:100%; margin-bottom:8px; padding:6px; border-radius:6px; border:1px solid #ccc;"> <option>PT</option> <option>GOLF</option> <option>PILATES</option> </select>
+
+<label style="font-size:13px;">회원 등급</label> <select id="quickLevel" style="width:100%; margin-bottom:12px; padding:6px; border-radius:6px; border:1px solid #ccc;"> <option>일반</option> <option>VIP</option> <option>프로모션</option> </select>
+
+  <label style="font-size:12px; display:flex; align-items:center;">
+    <input type="checkbox" id="quickAgree" style="margin-right:6px;"> 개인정보 이용 동의
+  </label><button onclick="submitQuickMember()" style="width:100%; margin-top:12px; padding:8px; background:#0d1b2a; color:#fff; border:none; border-radius:6px; cursor:pointer;">등록</button>
+ 
+</div><!-- 토글 버튼 (예: 상단 퀵등록 버튼) --><button onclick="toggleQuickCard()" style="position:fixed; top:10px; right:20px; z-index:999; background:#d4af37; color:#0d1b2a; border:none; padding:8px 12px; border-radius:6px; cursor:pointer;">+ 빠른 등록</button>
 
   <script>
 let currentCell = null;
@@ -201,7 +259,44 @@ function init(){
   initTimeLine();
   setInterval(updateTimeLine, 60000);
 }
+    
+function toggleQuickCard() {
+  const card = document.getElementById('quickRegisterCard');
+  card.style.display = (card.style.display === 'none') ? 'block' : 'none';
+}
+    
 
+function submitQuickMember() {
+  const name = document.getElementById('quickName').value.trim();
+  const phone = document.getElementById('quickPhone').value.trim();
+  const trainer = document.getElementById('quickTrainer').value;
+  const type = document.getElementById('quickLessonType').value;
+  const level = document.getElementById('quickLevel').value;
+  const agreed = document.getElementById('quickAgree').checked;
+
+  if (!name || !phone || trainer === '선택' || !agreed) {
+    alert('필수 항목을 입력하고 동의해주세요.');
+    return;
+  }
+}
+
+function toggleSubmenu(id) {
+  // 모든 서브메뉴 닫기
+  document.querySelectorAll('.submenu').forEach(el => {
+    if (el.id !== 'submenu-' + id) el.style.display = 'none';
+  });
+
+  // 선택한 서브메뉴 토글
+  const target = document.getElementById('submenu-' + id);
+  if (target) {
+    target.style.display = (target.style.display === 'block') ? 'none' : 'block';
+  }
+}
+
+function goToRegister() {
+  window.location.href = 'register.html';
+}
+    
 function buildCurr() {
   const tb = document.querySelector('#scheduleTableCurr tbody');
   tb.innerHTML = '';
@@ -434,6 +529,7 @@ function highlightToday(){
     ths[idx].style.color = '#0d1b2a';
   }
 }
+    
 function showPopup(popupEl){
   document.body.style.overflow = 'hidden';
   popupOverlay.style.display = 'block';
