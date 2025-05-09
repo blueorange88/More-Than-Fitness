@@ -272,6 +272,19 @@ function init(){
   updateToday();
   initTimeLine();
   setInterval(updateTimeLine, 60000);
+  import { getDocs, collection } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+
+async function loadMembersToDropdown() {
+  const memberSelect = document.getElementById("memberSelect");
+  const snapshot = await getDocs(collection(db, "members"));
+  snapshot.forEach(doc => {
+    const m = doc.data();
+    const opt = document.createElement("option");
+    opt.value = m.name;
+    opt.textContent = `${m.name} (${m.phone})`;
+    memberSelect.appendChild(opt);
+  });
+}
 }
     
 function toggleQuickCard() {
