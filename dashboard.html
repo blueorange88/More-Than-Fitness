@@ -99,7 +99,6 @@ table {
     <button>회원 정보 수정</button>
     <button>회원 삭제</button>
   </div>
-
   <button>스케줄 관리</button>
   <button>기록 관리</button>
   <button>상품 구매</button>
@@ -273,6 +272,7 @@ function init(){
   initTimeLine();
   setInterval(updateTimeLine, 60000);
   import { getDocs, collection } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+}
 
 async function loadMembersToDropdown() {
   const memberSelect = document.getElementById("memberSelect");
@@ -284,7 +284,6 @@ async function loadMembersToDropdown() {
     opt.textContent = `${m.name} (${m.phone})`;
     memberSelect.appendChild(opt);
   });
-}
 }
     
 function toggleQuickCard() {
