@@ -591,49 +591,55 @@ function hidePopup(){
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
   import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-analytics.js";
-  import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
 
   const firebaseConfig = {
-    apiKey: "...",
-    authDomain: "...",
-    projectId: "...",
-    storageBucket: "...",
-    messagingSenderId: "...",
-    appId: "...",
-    measurementId: "..."
+    apiKey: "AIzaSyCjdyveDx0qFPUzmaChnEy9Ni0VjTysYnM",
+    authDomain: "more-than-fitness-f6adb.firebaseapp.com",
+    projectId: "more-than-fitness-f6adb",
+    storageBucket: "more-than-fitness-f6adb.appspot.com",
+    messagingSenderId: "993248877411",
+    appId: "1:993248877411:web:c0e6785162cf252fbcd156",
+    measurementId: "G-MK0RVFG296"
   };
 
   const app = initializeApp(firebaseConfig);
   const analytics = getAnalytics(app);
-  const db = getFirestore(app);  // Firestore 객체
-import { getDocs, collection } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+  const db = getFirestore(app);
 
-async function showMemberList() {
-  const tableBody = document.querySelector("#memberTable tbody");
-  tableBody.innerHTML = "";
+  // 빠른 회원 등록 함수에서 Firestore 저장용으로 사용
+  window.db = db;
 
-  try {
-    const snapshot = await getDocs(collection(db, "members"));
-    snapshot.forEach(doc => {
-      const m = doc.data();
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td>${m.name || ''}</td>
-        <td>${m.phone || ''}</td>
-        <td>${m.trainer || ''}</td>
-        <td>${m.type || ''}</td>
-        <td>${m.level || ''}</td>
-        <td>${m.createdAt?.toDate ? m.createdAt.toDate().toLocaleDateString() : ''}</td>
-      `;
-      tableBody.appendChild(row);
-    });
+  // 회원 목록 불러오기
+  window.showMemberList = async function () {
+    const tableBody = document.querySelector("#memberTable tbody");
+    if (!tableBody) return;
 
-    document.getElementById('memberListSection').style.display = 'block';
-  } catch (e) {
-    alert("회원 정보를 불러오는 데 실패했습니다.");
-    console.error("Error fetching members:", e);
-  }
-}
+    tableBody.innerHTML = "";
+
+    try {
+      const snapshot = await getDocs(collection(db, "members"));
+      snapshot.forEach(doc => {
+        const m = doc.data();
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${m.name || ''}</td>
+          <td>${m.phone || ''}</td>
+          <td>${m.trainer || ''}</td>
+          <td>${m.type || ''}</td>
+          <td>${m.level || ''}</td>
+          <td>${m.createdAt?.toDate ? m.createdAt.toDate().toLocaleDateString() : ''}</td>
+        `;
+        tableBody.appendChild(row);
+      });
+    } catch (e) {
+      alert("회원 정보를 불러오는 데 실패했습니다.");
+      console.error("Error fetching members:", e);
+    }
+  };
+
+  // 페이지 로딩 시 자동 실행되게 하려면 아래 줄도 함께 사용:
+  // window.addEventListener("DOMContentLoaded", showMemberList);
 </script>
 </body>
 </html>
