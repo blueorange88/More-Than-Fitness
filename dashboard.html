@@ -209,8 +209,20 @@ table {
     <input type="checkbox" id="quickAgree" style="margin-right:6px;"> 개인정보 이용 동의
   </label><button onclick="submitQuickMember()" style="width:100%; margin-top:12px; padding:8px; background:#0d1b2a; color:#fff; border:none; border-radius:6px; cursor:pointer;">등록</button>
  
-</div><!-- 토글 버튼 (예: 상단 퀵등록 버튼) --><button onclick="toggleQuickCard()" style="position:fixed; top:10px; right:20px; z-index:999; background:#d4af37; color:#0d1b2a; border:none; padding:8px 12px; border-radius:6px; cursor:pointer;">+ 빠른 등록</button>
-
+</div><!-- 토글 버튼 (예: 상단 퀵등록 버튼) -->
+<button onclick="toggleQuickCard()" style="position:fixed; top:10px; right:20px; z-index:999; background:#d4af37; color:#0d1b2a; border:none; padding:8px 12px; border-radius:6px; cursor:pointer;">+ 빠른 등록</button>
+<div id="memberListSection" style="display:none; padding:16px;">
+<button onclick="showMemberList()">회원 확인</button>
+  <h3 style="color:#0d1b2a;">회원 목록</h3>
+  <table id="memberTable" style="width:100%; border-collapse:collapse;">
+    <thead>
+      <tr style="background:#0d1b2a; color:#fff;">
+        <th>이름</th><th>연락처</th><th>트레이너</th><th>레슨유형</th><th>등급</th><th>등록일</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
   <script>
 let currentCell = null;
 let scheduleStart = 6;
@@ -579,6 +591,34 @@ function hidePopup(){
   const app = initializeApp(firebaseConfig);
   const analytics = getAnalytics(app);
   const db = getFirestore(app);  // Firestore 객체
+import { getDocs, collection } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+
+async function showMemberList() {
+  const tableBody = document.querySelector("#memberTable tbody");
+  tableBody.innerHTML = "";
+
+  try {
+    const snapshot = await getDocs(collection(db, "members"));
+    snapshot.forEach(doc => {
+      const m = doc.data();
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${m.name || ''}</td>
+        <td>${m.phone || ''}</td>
+        <td>${m.trainer || ''}</td>
+        <td>${m.type || ''}</td>
+        <td>${m.level || ''}</td>
+        <td>${m.createdAt?.toDate ? m.createdAt.toDate().toLocaleDateString() : ''}</td>
+      `;
+      tableBody.appendChild(row);
+    });
+
+    document.getElementById('memberListSection').style.display = 'block';
+  } catch (e) {
+    alert("회원 정보를 불러오는 데 실패했습니다.");
+    console.error("Error fetching members:", e);
+  }
+}
 </script>
 </body>
 </html>
