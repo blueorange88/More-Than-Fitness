@@ -265,20 +265,38 @@ function toggleQuickCard() {
   card.style.display = (card.style.display === 'none') ? 'block' : 'none';
 }
     
+  async function submitQuickMember() {
+    const name = document.getElementById('quickName').value.trim();
+    const phone = document.getElementById('quickPhone').value.trim();
+    const trainer = document.getElementById('quickTrainer').value;
+    const type = document.getElementById('quickLessonType').value;
+    const level = document.getElementById('quickLevel').value;
+    const agreed = document.getElementById('quickAgree').checked;
 
-function submitQuickMember() {
-  const name = document.getElementById('quickName').value.trim();
-  const phone = document.getElementById('quickPhone').value.trim();
-  const trainer = document.getElementById('quickTrainer').value;
-  const type = document.getElementById('quickLessonType').value;
-  const level = document.getElementById('quickLevel').value;
-  const agreed = document.getElementById('quickAgree').checked;
+    if (!name || !phone || trainer === '선택' || !agreed) {
+      alert('필수 항목을 입력하고 동의해주세요.');
+      return;
+    }
 
-  if (!name || !phone || trainer === '선택' || !agreed) {
-    alert('필수 항목을 입력하고 동의해주세요.');
-    return;
+    try {
+      // Firestore에 저장
+      await addDoc(collection(db, "members"), {
+        name,
+        phone,
+        trainer,
+        type,
+        level,
+        agreed,
+        createdAt: new Date()
+      });
+
+      alert("회원 정보가 저장되었습니다!");
+      document.getElementById('quickRegisterCard').style.display = 'none';
+    } catch (err) {
+      console.error("회원 저장 오류:", err);
+      alert("회원 정보를 저장하는 중 오류가 발생했습니다.");
+    }
   }
-}
 
 function toggleSubmenu(id) {
   // 모든 서브메뉴 닫기
@@ -540,6 +558,27 @@ function hidePopup(){
   popupOverlay.style.display = 'none';
   document.querySelectorAll('.popup').forEach(p => p.style.display = 'none');
 }
+
+</script>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-analytics.js";
+  import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "...",
+    authDomain: "...",
+    projectId: "...",
+    storageBucket: "...",
+    messagingSenderId: "...",
+    appId: "...",
+    measurementId: "..."
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+  const db = getFirestore(app);  // Firestore 객체
 </script>
 </body>
 </html>
