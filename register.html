@@ -247,6 +247,13 @@
       }
     });
 
+    console.log("폼 준비됨");
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  alert("버튼 눌림"); // ✅ 이거라도 뜨는지 확인
+});
+
     cancelBtn.addEventListener("click", () => {
       const confirmCancel = confirm("취소하시겠습니까?");
       if (confirmCancel) {
