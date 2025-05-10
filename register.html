@@ -22,11 +22,6 @@
       box-shadow: 0 2px 10px rgba(0,0,0,0.08);
     }
 
-    h2 {
-      text-align: center;
-      margin-bottom: 16px;
-    }
-
     .row {
       display: flex;
       gap: 20px;
@@ -90,32 +85,32 @@
   </style>
 </head>
 <body>
-  <form>
- <div style="display: flex; justify-content: space-between; align-items: center;">
-  <h2 style="margin: 0;">회원 등록</h2>
-  <button id="cancelBtn" type="button" style="background: none; border: none; font-size: 20px; cursor: pointer;">✕</button>
-</div>
+  <div class="container">
+    <form>
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2 style="margin: 0;">회원 등록</h2>
+        <button id="cancelBtn" type="button" style="background: none; border: none; font-size: 20px; cursor: pointer;">✕</button>
+      </div>
 
-    <div class="top-right-box">
-      <div class="col">
-        <label>최초 레슨 등록일</label>
-        <input type="date" name="startDate" required>
+      <div class="top-right-box">
+        <div class="col">
+          <label>최초 레슨 등록일</label>
+          <input type="date" name="startDate" required>
+        </div>
+        <div class="col">
+          <label>담당 트레이너</label>
+          <input type="text" name="trainer" required>
+        </div>
+        <div class="col">
+          <label>레슨 유형</label>
+          <select name="lessonType" required>
+            <option value="">선택</option>
+            <option>PT</option>
+            <option>PILATES</option>
+            <option>GOLF</option>
+          </select>
+        </div>
       </div>
-      <div class="col">
-        <label>담당 트레이너</label>
-        <input type="text" name="trainer" required>
-      </div>
-      <div class="col">
-        <label>레슨 유형</label>
-        <select name="lessonType" required>
-          <option value="">선택</option>
-          <option>PT</option>
-          <option>PILATES</option>
-          <option>GOLF</option>
-        </select>
-      </div>
-    </div>
-
 
       <div class="row">
         <div class="col">
@@ -207,57 +202,57 @@
       <button type="submit" class="button">회원 등록</button>
     </form>
   </div>
-  
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
-  import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyCjdyveDx0qFPUzmaChnEy9Ni0VjTysYnM",
-    authDomain: "more-than-fitness-f6adb.firebaseapp.com",
-    projectId: "more-than-fitness-f6adb",
-    storageBucket: "more-than-fitness-f6adb.appspot.com",
-    messagingSenderId: "993248877411",
-    appId: "1:993248877411:web:c0e6785162cf252fbcd156",
-    measurementId: "G-MK0RVFG296"
-  };
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
+    const firebaseConfig = {
+      apiKey: "AIzaSyCjdyveDx0qFPUzmaChnEy9Ni0VjTysYnM",
+      authDomain: "more-than-fitness-f6adb.firebaseapp.com",
+      projectId: "more-than-fitness-f6adb",
+      storageBucket: "more-than-fitness-f6adb.appspot.com",
+      messagingSenderId: "993248877411",
+      appId: "1:993248877411:web:c0e6785162cf252fbcd156",
+      measurementId: "G-MK0RVFG296"
+    };
 
-  const form = document.querySelector("form");
-  const cancelBtn = document.getElementById("cancelBtn");
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
+    const form = document.querySelector("form");
+    const cancelBtn = document.getElementById("cancelBtn");
 
-    const inputs = form.querySelectorAll("input, select, textarea");
-    const data = {};
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
 
-    inputs.forEach(input => {
-      const key = input.name;
-      if (key && !input.disabled) {
-        data[key] = input.value;
+      const inputs = form.querySelectorAll("input, select, textarea");
+      const data = {};
+
+      inputs.forEach(input => {
+        const key = input.name;
+        if (key && !input.disabled) {
+          data[key] = input.value;
+        }
+      });
+
+      data["createdAt"] = serverTimestamp();
+
+      try {
+        await addDoc(collection(db, "members"), data);
+        alert("저장되었습니다.");
+        window.location.href = "/dashboard.html";
+      } catch (err) {
+        alert("저장 실패: " + err.message);
       }
     });
 
-    data["createdAt"] = serverTimestamp();
-
-    try {
-      await addDoc(collection(db, "members"), data);
-      alert("저장되었습니다.");
-      window.location.href = "/dashboard.html"; // 실제 경로에 맞게 수정
-    } catch (err) {
-      alert("저장 실패: " + err.message);
-    }
-  });
-
-  cancelBtn.addEventListener("click", () => {
-    const confirmCancel = confirm("취소하시겠습니까?");
-    if (confirmCancel) {
-      window.location.href = "/dashboard.html"; // 실제 경로에 맞게 수정
-    }
-  });
-</script>
+    cancelBtn.addEventListener("click", () => {
+      const confirmCancel = confirm("취소하시겠습니까?");
+      if (confirmCancel) {
+        window.location.href = "/dashboard.html";
+      }
+    });
+  </script>
 </body>
 </html>
