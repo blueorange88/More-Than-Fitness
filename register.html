@@ -93,19 +93,18 @@
   <div class="container">
     <h2>회원 등록</h2>
 
-    <!-- 우측 상단: 최초등록일, 트레이너, 레슨유형 -->
     <div class="top-right-box">
       <div class="col">
         <label>최초 레슨 등록일</label>
-        <input type="date" required>
+        <input type="date" name="startDate" required>
       </div>
       <div class="col">
         <label>담당 트레이너</label>
-        <input type="text" required>
+        <input type="text" name="trainer" required>
       </div>
       <div class="col">
         <label>레슨 유형</label>
-        <select required>
+        <select name="lessonType" required>
           <option value="">선택</option>
           <option>PT</option>
           <option>PILATES</option>
@@ -118,126 +117,133 @@
       <div class="row">
         <div class="col">
           <label>이름</label>
-          <input type="text" required>
+          <input type="text" name="name" required>
         </div>
         <div class="col">
           <label>성별</label>
-          <select><option>남성</option><option>여성</option></select>
+          <select name="gender">
+            <option>남성</option>
+            <option>여성</option>
+          </select>
         </div>
       </div>
 
       <div class="row">
         <div class="col">
-          <label>생년월일 (예: 19901201)</label>
-          <input type="number" required>
+          <label>생년월일</label>
+          <input type="number" name="birth" required>
         </div>
         <div class="col">
           <label>휴대폰번호</label>
-          <input type="tel" required>
+          <input type="tel" name="phone" required>
         </div>
         <div class="col">
           <label>긴급 연락처</label>
-          <input type="tel">
+          <input type="tel" name="emergency">
         </div>
       </div>
 
       <div class="row">
         <div class="col">
           <label>주소</label>
-          <input type="text">
+          <input type="text" name="address">
         </div>
         <div class="col">
           <label>회원 등급</label>
-          <select><option>VIP</option><option>일반</option><option>프로모션</option></select>
+          <select name="level">
+            <option>VIP</option>
+            <option>일반</option>
+            <option>프로모션</option>
+          </select>
         </div>
       </div>
 
       <div class="row">
         <div class="col">
           <label>등록 횟수</label>
-          <input type="number" disabled>
+          <input type="number" name="enrolled" disabled>
         </div>
         <div class="col">
           <label>남은 횟수</label>
-          <input type="number" disabled>
+          <input type="number" name="remaining" disabled>
         </div>
       </div>
 
       <div class="row">
         <div class="col">
           <label>NO SHOW 차감 횟수</label>
-          <input type="number">
+          <input type="number" name="noShowDeducted">
         </div>
         <div class="col">
           <label>NO SHOW 미차감 횟수</label>
-          <input type="number">
+          <input type="number" name="noShowUndeducted">
         </div>
       </div>
 
       <div class="row">
         <div class="col">
           <label>골격근량 (kg)</label>
-          <input type="number" step="0.1">
+          <input type="number" step="0.1" name="muscleMass">
         </div>
         <div class="col">
           <label>체지방율 (%)</label>
-          <input type="number" step="0.1">
+          <input type="number" step="0.1" name="bodyFat">
         </div>
       </div>
 
-      <!-- <div class="form-group"><label>체지방율 추이 그래프</label><canvas id="fatChart"></canvas></div> -->
-
       <div class="form-group">
         <label>건강 특이사항</label>
-        <textarea rows="3"></textarea>
+        <textarea rows="3" name="healthMemo"></textarea>
       </div>
 
       <div class="form-group">
         <label>회원 메모 사항</label>
-        <textarea rows="3"></textarea>
+        <textarea rows="3" name="memberMemo"></textarea>
       </div>
 
       <button type="submit" class="button">회원 등록</button>
     </form>
   </div>
+
   <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
-  import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyCjdyveDx0qFPUzmaChnEy9Ni0VjTysYnM",
-    authDomain: "more-than-fitness-f6adb.firebaseapp.com",
-    projectId: "more-than-fitness-f6adb",
-    storageBucket: "more-than-fitness-f6adb.appspot.com",
-    messagingSenderId: "993248877411",
-    appId: "1:993248877411:web:c0e6785162cf252fbcd156",
-    measurementId: "G-MK0RVFG296"
-  };
+    const firebaseConfig = {
+      apiKey: "AIzaSyCjdyveDx0qFPUzmaChnEy9Ni0VjTysYnM",
+      authDomain: "more-than-fitness-f6adb.firebaseapp.com",
+      projectId: "more-than-fitness-f6adb",
+      storageBucket: "more-than-fitness-f6adb.appspot.com",
+      messagingSenderId: "993248877411",
+      appId: "1:993248877411:web:c0e6785162cf252fbcd156",
+      measurementId: "G-MK0RVFG296"
+    };
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-  const form = document.querySelector("form");
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
+    const form = document.querySelector("form");
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
 
-    const inputs = form.querySelectorAll("input, select, textarea");
-    const data = {};
+      const inputs = form.querySelectorAll("input, select, textarea");
+      const data = {};
 
-   inputs.forEach(input => { const key = input.name; if (key) { data[key] = input.value;
-  }
-});
+      inputs.forEach(input => {
+        const key = input.name;
+        if (key) data[key] = input.value;
+      });
 
-    data["createdAt"] = serverTimestamp();
+      data["createdAt"] = serverTimestamp();
 
-    try {
-      await addDoc(collection(db, "members"), data);
-      alert("저장되었습니다.");
-      window.location.href = "/dashboard.html"; // 대시보드 경로로 수정
-    } catch (err) {
-      alert("저장 실패: " + err.message);
-    }
-  });
-</script>
+      try {
+        await addDoc(collection(db, "members"), data);
+        alert("저장되었습니다.");
+        window.location.href = "/dashboard.html";
+      } catch (err) {
+        alert("저장 실패: " + err.message);
+      }
+    });
+  </script>
 </body>
 </html>
