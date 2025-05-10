@@ -271,19 +271,6 @@ function init(){
   updateToday();
   initTimeLine();
   setInterval(updateTimeLine, 60000);
-  import { getDocs, collection } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
-}
-
-async function loadMembersToDropdown() {
-  const memberSelect = document.getElementById("memberSelect");
-  const snapshot = await getDocs(collection(db, "members"));
-  snapshot.forEach(doc => {
-    const m = doc.data();
-    const opt = document.createElement("option");
-    opt.value = m.name;
-    opt.textContent = `${m.name} (${m.phone})`;
-    memberSelect.appendChild(opt);
-  });
 }
     
 function toggleQuickCard() {
@@ -367,6 +354,7 @@ function buildCurr() {
 
     tb.append(r);
   }
+  highlightToday()
 }
 
 function buildNext(){
@@ -489,21 +477,15 @@ function applyRangeCurr(){
   hidePopup();
 }
 
-// 2) 팝업 닫기 전용 함수
-function hidePopup() {
-  document.getElementById('popupOverlay').style.display = 'none';
-  document.getElementById('popupRange').style.display   = 'none';
-  document.getElementById('popupMinute').style.display  = 'none';
-  document.getElementById('popupLesson').style.display  = 'none';
-  document.body.style.overflow = '';
-}
-
 function loadCurr(){
   const data = JSON.parse(localStorage.getItem('scheduleData')||'[]');
+  const rows = Array.from(document.querySelectorAll('#scheduleTableCurr tbody tr'));
   data.forEach(i => {
-    const hour = i.time.split(':')[0];
-    const row = Array.from(document.querySelectorAll('#scheduleTableCurr tbody tr'))
-      .find(r => r.firstChild.textContent.startsWith(hour));
+    const [hour, minute] = i.time.split(':');
+    const row = rows.find(r => {
+      const [rowHour, rowMin] = r.firstChild.textContent.split(':');
+      return rowHour === hour && rowMin === (localStorage.getItem(`minute-${rowHour}`) || '00');
+    });
     if (row) {
       const c = row.children[i.di];
       if (c) {
@@ -513,6 +495,7 @@ function loadCurr(){
     }
   });
 }
+    
 function updateToday() {
   const now = new Date();
   const todayIndex = now.getDay();
@@ -579,14 +562,20 @@ function showPopup(popupEl){
   popupOverlay.style.display = 'block';
   popupEl.style.display = 'block';
 }
-function hidePopup(){
+function hidePopup() {
+  document.getElementById('popupOverlay').style.display = 'none';
+  document.getElementById('popupRange').style.display   = 'none';
+  document.getElementById('popupMinute').style.display  = 'none';
+  document.getElementById('popupLesson').style.display  = 'none';
   document.body.style.overflow = '';
-  popupOverlay.style.display = 'none';
   document.querySelectorAll('.popup').forEach(p => p.style.display = 'none');
+  popupOverlay.style.display = 'none';
+ 
 }
 
 </script>
 
+<!-- 이 아래에 붙여넣기 -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
   import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-analytics.js";
@@ -605,17 +594,28 @@ function hidePopup(){
   const app = initializeApp(firebaseConfig);
   const analytics = getAnalytics(app);
   const db = getFirestore(app);
-
-  // 빠른 회원 등록 함수에서 Firestore 저장용으로 사용
   window.db = db;
 
-  // 회원 목록 불러오기
+  // 드롭다운용 멤버 불러오기 (선택적 사용)
+  window.loadMembersToDropdown = async function () {
+    const memberSelect = document.getElementById("memberSelect");
+    if (!memberSelect) return;
+    const snapshot = await getDocs(collection(db, "members"));
+    snapshot.forEach(doc => {
+      const m = doc.data();
+      const opt = document.createElement("option");
+      opt.value = m.name;
+      opt.textContent = `${m.name} (${m.phone})`;
+      memberSelect.appendChild(opt);
+    });
+  };
+
+  // 회원 목록 출력
   window.showMemberList = async function () {
     const tableBody = document.querySelector("#memberTable tbody");
     if (!tableBody) return;
 
     tableBody.innerHTML = "";
-
     try {
       const snapshot = await getDocs(collection(db, "members"));
       snapshot.forEach(doc => {
@@ -636,9 +636,6 @@ function hidePopup(){
       console.error("Error fetching members:", e);
     }
   };
-
-  // 페이지 로딩 시 자동 실행되게 하려면 아래 줄도 함께 사용:
-  // window.addEventListener("DOMContentLoaded", showMemberList);
 </script>
 </body>
 </html>
