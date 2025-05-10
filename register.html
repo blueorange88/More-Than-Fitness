@@ -240,7 +240,7 @@
 
       // 3) Firestore에 저장
       try {
-        await addDoc(collection(db, "members/fitness_members"), data);
+        await addDoc(collection(db, "fitness_members"), data);
         alert("저장되었습니다.");
         window.location.href = "/dashboard.html";
       } catch (err) {
