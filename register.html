@@ -90,8 +90,17 @@
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <h2 style="margin: 0;">회원 등록</h2>
         <button id="cancelBtn" type="button" style="background: none; border: none; font-size: 20px; cursor: pointer;">✕</button>
+        <button id="closeMemberView" style="font-size:20px; border:none; background:none;">✕</button>
+        
       </div>
-
+<table id="memberTable">
+  <thead>
+    <tr>
+      <th>이름</th><th>연락처</th><th>트레이너</th><th>레벨</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
       <div class="top-right-box">
         <div class="col">
           <label>최초 레슨 등록일</label>
@@ -205,9 +214,9 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, serverTimestamp }
-      from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
-
+    import { getFirestore, collection, addDoc, serverTimestamp, getDocs }
+    from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+    
     console.log("🟢 module script loaded!");
 
     const firebaseConfig = {
@@ -225,9 +234,29 @@
     const form = document.getElementById("registrationForm");
     const cancelBtn = document.getElementById("cancelBtn");
 
+  document.getElementById("closeMemberView").addEventListener("click", () => {
+       window.location.href = "/dashboard.html"; // 또는 이전 페이지
+    });
+      window.showMemberList = async function () {
+  const snapshot = await getDocs(collection(db, "fitness_members"));
+  const tbody = document.querySelector("#memberTable tbody");
+  tbody.innerHTML = "";
+  snapshot.forEach(doc => {
+    const m = doc.data();
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${m.name}</td><td>${m.phone}</td><td>${m.trainer}</td><td>${m.level}</td>`;
+    tr.style.cursor = "pointer";
+    tr.onclick = () => {
+      localStorage.setItem("editMemberId", doc.id);
+      window.location.href = "/edit-member.html";
+    };
+    tbody.appendChild(tr);
+  });
+};
+    
     form.addEventListener("submit", async e => {
       e.preventDefault();
-
+      
       // 2) 폼 데이터 수집
       const inputs = form.querySelectorAll("input, select, textarea");
       const data = {};
@@ -253,6 +282,9 @@
         window.location.href = "/dashboard.html";
       }
     });
+    
+    window.addEventListener("DOMContentLoaded", showMemberList);
+    
   </script>
 </body>
 </html>
