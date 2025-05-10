@@ -47,9 +47,11 @@
   </style>
 </head>
 <body>
-
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
   <div class="section-title">회원 목록</div>
-  <input type="text" id="searchInput" placeholder="회원 이름 또는 번호 검색" />
+  <button id="closeMemberView" style="font-size: 20px; border: none; background: none; cursor: pointer;">✕</button>
+</div>
+<input type="text" id="searchInput" placeholder="회원 이름 또는 번호 검색" />
   <button id="closeMemberView" style="font-size:20px; border:none; background:none;">✕</button>
   <div class="schedule-wrapper">
     <table id="memberTable">
