@@ -43,13 +43,14 @@
     th:hover {
       background-color: #143f50;
     }
+   
   </style>
 </head>
 <body>
 
   <div class="section-title">회원 목록</div>
   <input type="text" id="searchInput" placeholder="회원 이름 또는 번호 검색" />
-
+  <button id="closeMemberView" style="font-size:20px; border:none; background:none;">✕</button>
   <div class="schedule-wrapper">
     <table id="memberTable">
       <thead>
@@ -61,6 +62,7 @@
           <th onclick="sortTable('level')">회원 등급</th>
           <th onclick="sortTable('createdAt')">최초 등록일</th>
         </tr>
+        
       </thead>
       <tbody></tbody>
     </table>
@@ -92,30 +94,40 @@
       memberList = [];
       snapshot.forEach(doc => {
         const data = doc.data();
-        memberList.push({
-          ...data,
-          createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : null
-        });
+       memberList.push({
+      id: doc.id, // 중요
+     ...data,
+       createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : null
+});
       });
       renderTable(memberList);
+      memberList.sort((a, b) => b.createdAt - a.createdAt);
     }
 
     function renderTable(data) {
-      const tableBody = document.querySelector("#memberTable tbody");
-      tableBody.innerHTML = "";
-      data.forEach(m => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${m.name || ''}</td>
-          <td>${m.phone || ''}</td>
-          <td>${m.trainer || ''}</td>
-          <td>${m.type || ''}</td>
-          <td>${m.level || ''}</td>
-          <td>${m.createdAt ? m.createdAt.toLocaleDateString() : ''}</td>
-        `;
-        tableBody.appendChild(row);
-      });
-    }
+  const tableBody = document.querySelector("#memberTable tbody");
+  tableBody.innerHTML = "";
+  data.forEach(m => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td style="text-decoration: underline; color: blue;">${m.name || ''}</td>
+      <td>${m.phone || ''}</td>
+      <td>${m.trainer || ''}</td>
+      <td>${m.type || ''}</td>
+      <td>${m.level || ''}</td>
+      <td>${m.createdAt ? m.createdAt.toLocaleDateString() : ''}</td>
+    `;
+    tr.style.cursor = "pointer";
+    tr.style.backgroundColor = "#f9f9f9";
+    tr.onmouseover = () => (tr.style.backgroundColor = "#e6e6e6");
+    tr.onmouseout = () => (tr.style.backgroundColor = "#f9f9f9");
+    tr.onclick = () => {
+      localStorage.setItem("editMemberId", m.id); // m.id를 사용하려면 push할 때 id 포함
+      window.location.href = "/edit-member.html";
+    };
+    tableBody.appendChild(tr);
+  });
+}
 
     function sortTable(key) {
       sortAsc = sortKey === key ? !sortAsc : true;
@@ -129,7 +141,27 @@
       });
       renderTable(sorted);
     }
-
+   document.getElementById("closeMemberView").addEventListener("click", () => {
+    window.location.href = "/dashboard.html"; // 또는 이전 페이지
+});
+    window.showMemberList = async function () {
+  const snapshot = await getDocs(collection(db, "fitness_members"));
+  const tbody = document.querySelector("#memberTable tbody");
+  tbody.innerHTML = "";
+  snapshot.forEach(doc => {
+    const m = doc.data();
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${m.name}</td><td>${m.phone}</td><td>${m.trainer}</td><td>${m.level}</td>`;
+    tr.style.cursor = "pointer";
+    tr.onclick = () => {
+      localStorage.setItem("editMemberId", doc.id);
+      window.location.href = "/edit-member.html";
+    };
+    tbody.appendChild(tr);
+  });
+};
+    
+    
     document.getElementById("searchInput").addEventListener("input", function () {
       const keyword = this.value.toLowerCase();
       const filtered = memberList.filter(m =>
