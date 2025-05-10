@@ -86,7 +86,7 @@
 </head>
 <body>
   <div class="container">
-    <form>
+    <form id="registrationForm">
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <h2 style="margin: 0;">회원 등록</h2>
         <button id="cancelBtn" type="button" style="background: none; border: none; font-size: 20px; cursor: pointer;">✕</button>
@@ -205,7 +205,10 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, serverTimestamp }
+      from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+
+    console.log("🟢 module script loaded!");
 
     const firebaseConfig = {
       apiKey: "AIzaSyCjdyveDx0qFPUzmaChnEy9Ni0VjTysYnM",
@@ -216,27 +219,29 @@
       appId: "1:993248877411:web:c0e6785162cf252fbcd156",
       measurementId: "G-MK0RVFG296"
     };
-
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const form = document.querySelector("form");
+    const form = document.getElementById("registrationForm");
     const cancelBtn = document.getElementById("cancelBtn");
 
-    form.addEventListener("submit", async (e) => {
+    form.addEventListener("submit", async e => {
       e.preventDefault();
+
+      // 1) 디버그 팝업 확인
+      alert("여기까지 동작합니다!");
+
+      // 2) 폼 데이터 수집
       const inputs = form.querySelectorAll("input, select, textarea");
       const data = {};
-
       inputs.forEach(input => {
-        const key = input.name;
-        if (key && !input.disabled) {
-          data[key] = input.value;
+        if (input.name && !input.disabled) {
+          data[input.name] = input.value;
         }
       });
+      data.createdAt = serverTimestamp();
 
-      data["createdAt"] = serverTimestamp();
-
+      // 3) Firestore에 저장
       try {
         await addDoc(collection(db, "members"), data);
         alert("저장되었습니다.");
@@ -247,8 +252,7 @@
     });
 
     cancelBtn.addEventListener("click", () => {
-      const confirmCancel = confirm("취소하시겠습니까?");
-      if (confirmCancel) {
+      if (confirm("취소하시겠습니까?")) {
         window.location.href = "/dashboard.html";
       }
     });
