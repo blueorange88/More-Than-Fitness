@@ -89,6 +89,8 @@ table {
     <button class="logout-btn" id="btnLogout">로그아웃</button>
 </div>
   </div>
+  <!-- 이 버튼이 실제로 있어야 위의 JS 이벤트가 동작합니다 -->
+<button id="saveScheduleBtn">스케줄 저장</button>
 <div class="sidebar" id="sidebar">
   <button>내 정보 관리</button>
 
@@ -579,8 +581,17 @@ function hidePopup() {
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
   import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-analytics.js";
-  import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
-
+  import { getFirestore, collection, addDoc, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+  
+async function saveScheduleToFirestore(data) {
+  try {
+    data.createdAt = serverTimestamp();
+    await addDoc(collection(db, "schedules"), data);
+    console.log("✅ 스케줄 저장 성공");
+  } catch (err) {
+    console.error("❌ 스케줄 저장 실패:", err);
+  }
+}
   const firebaseConfig = {
     apiKey: "AIzaSyCjdyveDx0qFPUzmaChnEy9Ni0VjTysYnM",
     authDomain: "more-than-fitness-f6adb.firebaseapp.com",
@@ -636,6 +647,22 @@ function hidePopup() {
       console.error("Error fetching members:", e);
     }
   };
+  document.getElementById("saveScheduleBtn").addEventListener("click", () => {
+  const selectedDate = "2025-05-12";       // 예시 - 실제로는 날짜 선택 값
+  const selectedTrainer = "홍길동";
+  const selectedMember = "김유리";
+  const selectedHour = "10";
+  const selectedType = "PT";
+
+  saveScheduleToFirestore({
+    date: selectedDate,
+    trainer: selectedTrainer,
+    member: selectedMember,
+    start: selectedHour + ":00",
+    end: (parseInt(selectedHour) + 1) + ":00",
+    type: selectedType
+  });
+});
 </script>
 </body>
 </html>
