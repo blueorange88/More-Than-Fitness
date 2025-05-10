@@ -90,8 +90,10 @@
   </style>
 </head>
 <body>
-  <div class="container">
-    <h2>회원 등록</h2>
+ <div style="display: flex; justify-content: space-between; align-items: center;">
+  <h2 style="margin: 0;">회원 등록</h2>
+  <button id="cancelBtn" style="background: none; border: none; font-size: 20px; cursor: pointer;">✕</button>
+</div>
 
     <div class="top-right-box">
       <div class="col">
@@ -204,46 +206,57 @@
       <button type="submit" class="button">회원 등록</button>
     </form>
   </div>
+  
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
+  import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+  const firebaseConfig = {
+    apiKey: "AIzaSyCjdyveDx0qFPUzmaChnEy9Ni0VjTysYnM",
+    authDomain: "more-than-fitness-f6adb.firebaseapp.com",
+    projectId: "more-than-fitness-f6adb",
+    storageBucket: "more-than-fitness-f6adb.appspot.com",
+    messagingSenderId: "993248877411",
+    appId: "1:993248877411:web:c0e6785162cf252fbcd156",
+    measurementId: "G-MK0RVFG296"
+  };
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCjdyveDx0qFPUzmaChnEy9Ni0VjTysYnM",
-      authDomain: "more-than-fitness-f6adb.firebaseapp.com",
-      projectId: "more-than-fitness-f6adb",
-      storageBucket: "more-than-fitness-f6adb.appspot.com",
-      messagingSenderId: "993248877411",
-      appId: "1:993248877411:web:c0e6785162cf252fbcd156",
-      measurementId: "G-MK0RVFG296"
-    };
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+  const form = document.querySelector("form");
+  const cancelBtn = document.getElementById("cancelBtn");
 
-    const form = document.querySelector("form");
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-      const inputs = form.querySelectorAll("input, select, textarea");
-      const data = {};
+    const inputs = form.querySelectorAll("input, select, textarea");
+    const data = {};
 
-      inputs.forEach(input => {
-        const key = input.name;
-        if (key) data[key] = input.value;
-      });
-
-      data["createdAt"] = serverTimestamp();
-
-      try {
-        await addDoc(collection(db, "members"), data);
-        alert("저장되었습니다.");
-        window.location.href = "/dashboard.html";
-      } catch (err) {
-        alert("저장 실패: " + err.message);
+    inputs.forEach(input => {
+      const key = input.name;
+      if (key && !input.disabled) {
+        data[key] = input.value;
       }
     });
-  </script>
+
+    data["createdAt"] = serverTimestamp();
+
+    try {
+      await addDoc(collection(db, "members"), data);
+      alert("저장되었습니다.");
+      window.location.href = "/dashboard.html"; // 실제 경로에 맞게 수정
+    } catch (err) {
+      alert("저장 실패: " + err.message);
+    }
+  });
+
+  cancelBtn.addEventListener("click", () => {
+    const confirmCancel = confirm("취소하시겠습니까?");
+    if (confirmCancel) {
+      window.location.href = "/dashboard.html"; // 실제 경로에 맞게 수정
+    }
+  });
+</script>
 </body>
 </html>
