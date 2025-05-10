@@ -228,9 +228,6 @@
     form.addEventListener("submit", async e => {
       e.preventDefault();
 
-      // 1) 디버그 팝업 확인
-      alert("여기까지 동작합니다!");
-
       // 2) 폼 데이터 수집
       const inputs = form.querySelectorAll("input, select, textarea");
       const data = {};
@@ -243,7 +240,7 @@
 
       // 3) Firestore에 저장
       try {
-        await addDoc(collection(db, "members"), data);
+        await addDoc(collection(db, "fitness_members"), data);
         alert("저장되었습니다.");
         window.location.href = "/dashboard.html";
       } catch (err) {
