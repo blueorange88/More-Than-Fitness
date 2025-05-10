@@ -200,5 +200,44 @@
       <button type="submit" class="button">회원 등록</button>
     </form>
   </div>
+  <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
+  import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCjdyveDx0qFPUzmaChnEy9Ni0VjTysYnM",
+    authDomain: "more-than-fitness-f6adb.firebaseapp.com",
+    projectId: "more-than-fitness-f6adb",
+    storageBucket: "more-than-fitness-f6adb.appspot.com",
+    messagingSenderId: "993248877411",
+    appId: "1:993248877411:web:c0e6785162cf252fbcd156",
+    measurementId: "G-MK0RVFG296"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const form = document.querySelector("form");
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const inputs = form.querySelectorAll("input, select, textarea");
+    const data = {};
+
+   inputs.forEach(input => { const key = input.name; if (key) { data[key] = input.value;
+  }
+});
+
+    data["createdAt"] = serverTimestamp();
+
+    try {
+      await addDoc(collection(db, "members"), data);
+      alert("저장되었습니다.");
+      window.location.href = "/dashboard.html"; // 대시보드 경로로 수정
+    } catch (err) {
+      alert("저장 실패: " + err.message);
+    }
+  });
+</script>
 </body>
 </html>
