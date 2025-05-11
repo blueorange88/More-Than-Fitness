@@ -2,16 +2,15 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>운동이 기억안난다면?</title>
+  <link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&display=swap" rel="stylesheet">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Do+Hyeon&display=swap');
-
     body {
       margin: 0;
       font-family: 'Do Hyeon', sans-serif;
-      background: #1E1E1E;
-      color: #ECEFF1;
+      background: #001F3F;       /* 딥 네이비 */
+      color: #F8F0E3;            /* 아이보리 */
       text-align: center;
       padding-top: 60px;
     }
@@ -19,33 +18,38 @@
     /* 고정된 닫기 버튼 */
     .close-btn {
       position: fixed;
-      top: 12px; right: 12px;
-      background: rgba(255,255,255,0.1);
+      top: 12px;
+      right: 12px;
+      color: #FFD700;            /* 골드 */
+      background: rgba(248,240,227,0.1);
       border: none;
-      color: #ECEFF1;
       font-size: 28px;
-      width: 40px; height: 40px;
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
       cursor: pointer;
       transition: background 0.2s;
     }
     .close-btn:hover {
-      background: rgba(255,255,255,0.2);
+      background: rgba(248,240,227,0.2);
     }
 
-    /* 헤더 텍스트 */
+    /* 헤더 */
+    .header {
+      padding: 0 16px;
+    }
     .header h2 {
       margin: 0;
       font-size: 24px;
       line-height: 1.4;
-      color: #90CAF9;
+      color: #F8F0E3;            /* 아이보리 */
       text-shadow:
-        2px 2px 0 #80CBC4,
-       -2px -2px 0 #F48FB1;
-      padding: 0 16px;
-      white-space: pre-line;
+        2px 2px 0 rgba(255,215,0,0.6),   /* 골드 그림자 */
+       -2px -2px 0 rgba(255,215,0,0.4);
+      white-space: pre-line;     /* 줄바꿈 허용 */
     }
 
+    /* 이미지 + SVG 래퍼 */
     .wrapper {
       position: relative;
       max-width: 480px;
@@ -70,19 +74,20 @@
       transition: fill 0.2s;
     }
     .wrapper path:hover {
-      fill: rgba(144,202,249,0.3);
+      fill: rgba(255,215,0,0.3);  /* 골드 계열 반투명 */
     }
 
+    /* 팝업 */
     .popup {
       position: absolute;
       background: #263238;
-      color: #ECEFF1;
+      color: #F8F0E3;
       padding: 10px 14px;
       border-radius: 8px;
       font-size: 15px;
       display: none;
       box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-      transform: translate(-50%,-120%);
+      transform: translate(-50%, -120%);
       white-space: nowrap;
       z-index: 10;
     }
@@ -114,11 +119,17 @@
   <div class="wrapper">
     <img src="female-fitness.png" alt="신체 부위 클릭 그림" />
     <svg viewBox="0 0 894 1340">
+      <!-- 팔 -->
       <path id="arm"      d="M130,280 L110,400 L100,500 L108,640 L132,640 L150,500 L140,380 L135,280 Z"/>
+      <!-- 어깨 -->
       <path id="shoulder" d="M130,250 L170,210 L210,250 L170,270 Z"/>
+      <!-- 가슴 -->
       <path id="chest"    d="M195,280 L255,270 L255,310 L195,300 Z"/>
+      <!-- 복부 -->
       <path id="abs"      d="M200,400 L270,420 L270,520 L200,560 Z"/>
+      <!-- 허벅지 -->
       <path id="thigh"    d="M160,550 L180,720 L210,860 L240,720 L210,550 Z"/>
+      <!-- 엉덩이 -->
       <path id="glutes"   d="M550,540 Q640,590 730,540 Q640,670 550,540"/>
     </svg>
   </div>
@@ -137,10 +148,10 @@
 
     document.querySelectorAll('svg path').forEach(part=>{
       part.addEventListener('click',e=>{
-        const id = part.id, ex=data[id]||[];
+        const id = part.id, ex = data[id]||[];
         const bb = part.getBoundingClientRect();
         popup.textContent = `${id.toUpperCase()} 운동: ${ex.join(', ')}`;
-        popup.style.left = `${bb.left+bb.width/2}px`;
+        popup.style.left = `${bb.left + bb.width/2}px`;
         popup.style.top  = `${bb.top}px`;
         popup.classList.add('show');
         clearTimeout(popup.timer);
@@ -151,7 +162,8 @@
     });
 
     function goBack(){
-      document.referrer ? history.back() : location.href='/';
+      if (document.referrer) history.back();
+      else location.href = '/';
     }
   </script>
 </body>
