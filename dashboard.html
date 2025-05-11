@@ -550,9 +550,9 @@ function updateTimeLine(){
   });
 }
 function highlightToday(){
-  const di = new Date().getDay();
+  const di = new Date().getDay(); // 0(일)~6(토)
   const ths = document.querySelectorAll('#scheduleTableCurr th');
-  const idx = di === 0 ? 7 : di;
+  const idx = di === 0 ? 8 : di;  // 일요일은 실제로 8번째 <th>에 해당
   if (ths[idx]){
     ths[idx].style.backgroundColor = '#d4af37';
     ths[idx].style.color = '#0d1b2a';
