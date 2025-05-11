@@ -545,14 +545,14 @@ function updateTimeLine(){
       const line = document.createElement('div');
       line.className = 'current-time-line';
       line.style.top = `${pct}%`;
-      r.children[di].appendChild(line);
+      r.children[di + 1].appendChild(line);
     }
   });
 }
 function highlightToday(){
-  const di = new Date().getDay(); // 0(일)~6(토)
+  const di = new Date().getDay();
   const ths = document.querySelectorAll('#scheduleTableCurr th');
-  const idx = di === 0 ? 8 : di;  // 일요일은 실제로 8번째 <th>에 해당
+  const idx = di === 0 ? 7 : di;
   if (ths[idx]){
     ths[idx].style.backgroundColor = '#d4af37';
     ths[idx].style.color = '#0d1b2a';
