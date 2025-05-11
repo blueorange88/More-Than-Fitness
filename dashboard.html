@@ -545,7 +545,7 @@ function updateTimeLine(){
       const line = document.createElement('div');
       line.className = 'current-time-line';
       line.style.top = `${pct}%`;
-      r.children[di + 1].appendChild(line);
+    r.children[di === 0 ? 7 : di].appendChild(line);
     }
   });
 }
