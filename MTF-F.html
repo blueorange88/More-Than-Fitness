@@ -3,17 +3,22 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>운동이 기억안난다면? 오늘 운동 할 부위를 클릭해 보세요! </title>
+  <title>운동이 기억안난다면? 오늘 운동 할 부위를 클릭해 보세요!</title>
   <style>
     body {
       margin: 0;
-      font-family: sans-serif;
+      font-family: 'Poppins', sans-serif;
       background: #121212;
       color: white;
       text-align: center;
+      padding-top: 50px;  /* 제목 위 여백 */
     }
     h2 {
       margin-top: 1em;
+      font-size: 24px;
+      color: #FFEB3B;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7); /* 텍스트 그림자 */
+      padding: 10px 0;
     }
     .wrapper {
       position: relative;
@@ -23,6 +28,7 @@
     .wrapper img {
       width: 100%;
       display: block;
+      border-radius: 10px;  /* 부드러운 모서리 */
     }
     .wrapper svg {
       position: absolute;
@@ -31,76 +37,83 @@
       width: 100%;
       height: auto;
       pointer-events: none;
+      border-radius: 10px;  /* 부드러운 모서리 */
     }
     .wrapper path {
-  pointer-events: all;
-  fill: rgba(255, 255, 255, 0);  /* 완전 투명 */
-  stroke: none;
-  cursor: pointer;
-  transition: fill 0.2s;
-}
-
-.wrapper path:hover {
-  fill: rgba(255, 255, 255, 0.15);  /* 살짝 반투명하게 보여줘도 좋음 */
-}
+      pointer-events: all;
+      fill: rgba(255, 255, 255, 0);
+      stroke: none;
+      cursor: pointer;
+      transition: fill 0.2s;
+    }
+    .wrapper path:hover {
+      fill: rgba(255, 255, 255, 0.15);
+    }
     .popup {
-  position: absolute;
-  background: #2c2c2c;
-  color: #fff;
-  padding: 10px 14px;
-  border-radius: 8px;
-  font-size: 14px;
-  display: none;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
-  transform: translate(-50%, -120%);
-  white-space: nowrap;
-  z-index: 10;
-}
-.popup::after {
-  content: "";
-  position: absolute;
-  bottom: -8px;
-  left: 50%;
-  transform: translateX(-50%);
-  border-width: 8px;
-  border-style: solid;
-  border-color: #2c2c2c transparent transparent transparent;
-}
-.popup.show {
-  opacity: 1;
-  display: block;
-}
+      position: absolute;
+      background: #2c2c2c;
+      color: #fff;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 16px;
+      display: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+      transform: translate(-50%, -120%);
+      white-space: nowrap;
+      z-index: 10;
+    }
+    .popup::after {
+      content: "";
+      position: absolute;
+      bottom: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-width: 8px;
+      border-style: solid;
+      border-color: #2c2c2c transparent transparent transparent;
+    }
+    .popup.show {
+      opacity: 1;
+      display: block;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px 0;
+    }
+    .close-btn {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
-  <h2>부위를 클릭해보세요</h2>
- <div class="wrapper">
-  <img src="female-fitness.png" alt="운동이 기억안난다면? 신체 부위 별로 클릭해 보세요!" />
- <svg viewBox="0 0 894 1340">
-
-  <!-- 팔 (Arm) - 외측 사선형 -->
-<path id="arm" d="M130,280 L110,400 L100,500 L108,640 L132,640 L150,500 L140,380 L135,280 Z" />
-
-  <!-- 어깨 (Shoulder) -->
-  <path id="shoulder" d="M130,250 L170,210 L210,250 L170,270 Z" />
-
-  <!-- 가슴 (Chest) -->
- <path id="chest" d="M195,280 L255,270 L255,310 L195,300 Z" />
-
-  <!-- 복부 (Abdomen) -->
-  <path id="abs" d="M200,400 L270,420 L270,520 L200,560 Z" />
-
-  <!-- 허벅지 (Thigh) -->
-  <path id="thigh" d="M160,550 L180,720 L210,860 L240,720 L210,550 Z" />
-   
-   
-   <!-- 후면 -->
-   
-   <!-- 엉덩이 -->
-<path id="glutes" d="M550,540 Q640,590 730,540 Q640,670 550,540" />
-  </svg>
-</div>
-<div id="popup" class="popup"></div>
+  <div class="header">
+    <h2>운동이 기억안난다면? 오늘 운동 할 부위를 클릭해 보세요!</h2>
+    <button class="close-btn" onclick="goBack()">×</button>
+  </div>
+  <div class="wrapper">
+    <img src="female-fitness.png" alt="운동이 기억안난다면? 신체 부위 별로 클릭해 보세요!" />
+    <svg viewBox="0 0 894 1340">
+      <!-- 팔 (Arm) -->
+      <path id="arm" d="M130,280 L110,400 L100,500 L108,640 L132,640 L150,500 L140,380 L135,280 Z" />
+      <!-- 어깨 (Shoulder) -->
+      <path id="shoulder" d="M130,250 L170,210 L210,250 L170,270 Z" />
+      <!-- 가슴 (Chest) -->
+      <path id="chest" d="M195,280 L255,270 L255,310 L195,300 Z" />
+      <!-- 복부 (Abdomen) -->
+      <path id="abs" d="M200,400 L270,420 L270,520 L200,560 Z" />
+      <!-- 허벅지 (Thigh) -->
+      <path id="thigh" d="M160,550 L180,720 L210,860 L240,720 L210,550 Z" />
+      <!-- 후면 -->
+      <path id="glutes" d="M550,540 Q640,590 730,540 Q640,670 550,540" />
+    </svg>
+  </div>
+  <div id="popup" class="popup"></div>
 
   <script>
     const data = {
@@ -112,29 +125,36 @@
     };
 
     const popup = document.getElementById("popup");
-    
 
     document.querySelectorAll("svg path").forEach(part => {
-  part.addEventListener("click", (e) => {
-    const id = part.id;
-    const exList = data[id] || [];
+      part.addEventListener("click", (e) => {
+        const id = part.id;
+        const exList = data[id] || [];
 
-    // 위치 계산
-    const bbox = part.getBoundingClientRect();
-    popup.textContent = `${id.toUpperCase()} 운동: ${exList.join(', ')}`;
-    popup.style.left = `${bbox.left + bbox.width / 2}px`;
-    popup.style.top = `${bbox.top}px`;
+        // 위치 계산
+        const bbox = part.getBoundingClientRect();
+        popup.textContent = `${id.toUpperCase()} 운동: ${exList.join(', ')}`;
+        popup.style.left = `${bbox.left + bbox.width / 2}px`;
+        popup.style.top = `${bbox.top}px`;
 
-    popup.style.display = "block";
-    popup.classList.add("show");
+        popup.style.display = "block";
+        popup.classList.add("show");
 
-    clearTimeout(popup._timer);
-    popup._timer = setTimeout(() => {
-      popup.classList.remove("show");
-      popup.style.display = "none";
-    }, 3000);
-  });
-});
+        clearTimeout(popup._timer);
+        popup._timer = setTimeout(() => {
+          popup.classList.remove("show");
+          popup.style.display = "none";
+        }, 3000);
+      });
+    });
+
+    function goBack() {
+      if (document.referrer) {
+        history.back(); // 이전 페이지로
+      } else {
+        location.href = "/"; // 홈으로 대체
+      }
+    }
   </script>
 </body>
 </html>
