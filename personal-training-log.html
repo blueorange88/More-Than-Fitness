@@ -56,7 +56,7 @@
 
     /* 모달 */
     .hidden{display:none}
-    .modal{position:fixed;inset:0;z-index:50}
+    .modal{position:fixed;inset:0;z-index:9999} /* z-index 상향 */
     .modal-dim{position:absolute;inset:0;background:rgba(0,0,0,.35)}
     .modal-card{
       position:relative;background:#fff;width:min(720px,96vw);margin:8vh auto;padding:14px;border-radius:12px;border:1px solid var(--line);
@@ -96,7 +96,8 @@
 
     <div class="meta" aria-label="상단 정보">
       <label class="span2">이름 <input id="m-name" placeholder="회원명"></label>
-      <label>생년월일 <input id="m-birth" type="date"></label>
+      <!-- 변경: 날짜 → 숫자 입력 -->
+      <label>생년월일 <input id="m-birth" inputmode="numeric" pattern="[0-9]*" placeholder="YYYYMMDD"></label>
       <label>연락처 <input id="m-phone" placeholder="010-0000-0000"></label>
       <label>레슨종류 <input id="m-lesson" placeholder="예: PT 50분"></label>
       <label>담당자 <input id="m-trainer" placeholder="트레이너명"></label>
@@ -106,7 +107,7 @@
     </div>
 
     <div class="toolbar">
-      <button onclick="goHome()">취소 / 메인으로</button>
+      <button id="btnHome">취소 / 메인으로</button>
       <button onclick="window.print()">인쇄</button>
     </div>
 
@@ -169,11 +170,13 @@
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <script>
-    /* ===== 설정 ===== */
-    const RESET_PIN = "0000"; // 전체 초기화용 PIN (원하면 변경)
+    /* ===== 라우팅 설정 ===== */
+    // 대시보드 경로를 여기서 정해주세요.
+    const DASHBOARD_URL = "dashboard.html"; // 예: "dashboard.html" 또는 "/MTF-Fhtml/dashboard.html"
+    const RESET_PIN = "0000"; // 전체 초기화 PIN
 
     /* ===== 전역 ===== */
-    const STORE_KEY = "mtf_pt_log_v2"; // v2: 서명 방식 저장 추가
+    const STORE_KEY = "mtf_pt_log_v2";
     const tbody = document.getElementById('tbody');
 
     let currentSign = null; // {cell, role}
@@ -186,6 +189,9 @@
     bindAutoSave();
     initCanvas();
 
+    // 취소 버튼 → 대시보드
+    document.getElementById('btnHome').addEventListener('click', goDashboard);
+
     function buildRow(n){
       const tr = document.createElement('tr');
       tr.dataset.row = String(n);
@@ -195,14 +201,24 @@
         <td><input type="time" aria-label="시간" value="08:00"></td>
         <td class="note"><textarea placeholder="운동내용 / Teaching points"></textarea></td>
         <td class="sign-cell">
-          <button class="sign-btn" onclick="openSignModal(this,'trainer')">서명</button>
+          <button class="sign-btn" data-role="trainer">서명</button>
         </td>
         <td class="sign-cell">
-          <button class="sign-btn" onclick="openSignModal(this,'customer')">서명</button>
+          <button class="sign-btn" data-role="customer">서명</button>
         </td>
       `;
       return tr;
     }
+
+    /* ===== 서명 버튼 클릭(이벤트 위임, 인라인 충돌 방지) ===== */
+    document.addEventListener('click', (e)=>{
+      const btn = e.target.closest('.sign-btn');
+      if (!btn) return;
+      const td = btn.closest('td');
+      if (!td || td.classList.contains('signed')) return;
+      const role = btn.dataset.role || (td.cellIndex === 4 ? 'trainer' : 'customer');
+      openSignModal(btn, role);
+    });
 
     /* ===== 서명 모달 ===== */
     function openSignModal(btn, role){
@@ -315,7 +331,6 @@
           trainerSigValue: trainerVal,
           customerSigType: customerType,
           customerSigValue: customerVal,
-          // 구버전 호환용(타이핑 텍스트로 저장)
           trainerSig: trainerType==='typed' ? trainerVal : "",
           customerSig: customerType==='typed' ? customerVal : "",
           locked: tr.classList.contains('row-locked')
@@ -345,9 +360,7 @@
         tds[2].querySelector('input').value = r.time || "";
         tds[3].querySelector('textarea').value = r.note || "";
 
-        // 트레이너 서명 복원
         restoreCell(tds[4], r.trainerSigType, r.trainerSigValue, r.trainerSig);
-        // 고객 서명 복원
         restoreCell(tds[5], r.customerSigType, r.customerSigValue, r.customerSig);
 
         if (r.locked){ lockRow(tr); }
@@ -379,7 +392,6 @@
     }
 
     function findLastTyped(role){
-      // role: 'trainer' or 'customer'
       const idx = role==='trainer' ? 4 : 5;
       let last = "";
       [...tbody.children].forEach(tr=>{
@@ -400,11 +412,21 @@
       location.reload();
     }
 
-    function goHome(){
-      // 메인으로 이동 (index.html 우선, 없으면 루트)
-      fetch('dashboard.html',{method:'HEAD'}).then(r=>{
-        if(r.ok) location.href='index.html'; else location.href='/';
-      }).catch(()=>{ if (document.referrer) history.back(); else location.href='/'; });
+    function goDashboard(){
+      // 절대/상대 경로 모두 대응
+      if (/^https?:\/\//i.test(DASHBOARD_URL)) { location.href = DASHBOARD_URL; return; }
+      // 후보 경로를 순차 확인
+      const candidates = [DASHBOARD_URL, '/'+DASHBOARD_URL.replace(/^\//,''), '/MTF-Fhtml/dashboard.html'];
+      (async ()=>{
+        for (const url of candidates){
+          try{
+            const r = await fetch(url, {method:'HEAD'});
+            if (r.ok) { location.href = url; return; }
+          }catch(e){}
+        }
+        // 그래도 실패하면 루트
+        location.href = '/';
+      })();
     }
 
     /* ===== Canvas 서명 ===== */
@@ -415,7 +437,6 @@
       ctx = cvs.getContext('2d');
       resizeCanvas();
       window.addEventListener('resize', resizeCanvas);
-      // 입력
       cvs.addEventListener('pointerdown', startDraw);
       cvs.addEventListener('pointermove', moveDraw);
       window.addEventListener('pointerup', endDraw);
@@ -427,7 +448,7 @@
       dpr = Math.max(1, window.devicePixelRatio || 1);
       cvs.width  = Math.floor(rect.width * dpr);
       cvs.height = Math.floor(180 * dpr);
-      ctx.scale(dpr, dpr);
+      ctx.setTransform(dpr,0,0,dpr,0,0);
       clearCanvas();
     }
 
@@ -456,19 +477,16 @@
     }
 
     function clearCanvas(){
-      const rect = cvs.getBoundingClientRect();
       ctx.save();
-      ctx.setTransform(1,0,0,1,0,0); // reset any scale
+      ctx.setTransform(1,0,0,1,0,0);
       ctx.clearRect(0,0,cvs.width,cvs.height);
       ctx.restore();
       // 흰 배경
       ctx.fillStyle = '#fff';
-      ctx.fillRect(0,0,cvs.width,Math.floor(180 * dpr));
+      ctx.fillRect(0,0,cvs.width,cvs.height);
     }
 
     function exportCanvas(){
-      // 빈 캔버스인지 확인(픽셀 비교)
-      // 간단히 dataURL 생성
       return cvs.toDataURL('image/png');
     }
 
