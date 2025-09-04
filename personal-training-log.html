@@ -1,228 +1,488 @@
-<!DOCTYPE html>  <html lang="ko">  
-<head>  
-  <meta charset="UTF-8" />  
-  <meta name="viewport" content="width=device-width,initial-scale=1" />  
-  <title>개인 / 트레이닝 일지</title>  
-  <style>  
-    :root{  
-      --line:#d7d7d7; --ink:#1f2937; --muted:#6b7280; --accent:#f59e0b22; --hl:#ffa500;  
-    }  
-    *{box-sizing:border-box}  
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,sans-serif;  
-         color:var(--ink);margin:24px;background:#fff}  
-    h1{margin:0 0 8px;font-size:20px}  
-    .sheet{max-width:980px;margin:0 auto;border:1px solid var(--line);padding:16px;border-radius:10px;  
-           box-shadow:0 2px 14px rgba(0,0,0,.06)}  
-    .meta{display:grid;gap:6px 8px;margin-bottom:12px;grid-template-columns:repeat(8,1fr);font-size:13px}  
-    .meta label{display:flex;align-items:center;gap:6px;border:1px solid var(--line);padding:6px 8px;border-radius:8px}  
-    .meta input{border:none;outline:none;width:100%;font-size:13px;background:transparent}  
-    .meta .span2{grid-column:span 2}.meta .span3{grid-column:span 3}.meta .span4{grid-column:span 4}  
-    .muted{color:var(--muted)}  
-    .toolbar{display:flex;gap:8px;justify-content:flex-end;margin:10px 0}  
-    .toolbar button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 12px;font-size:13px;cursor:pointer}  
-    table{width:100%;border-collapse:collapse}  
-    th,td{border:1px solid var(--line);padding:6px 8px;font-size:13px;vertical-align:top}  
-    thead th{background:#f8fafc}  
-    .num{width:44px;text-align:center}.date{width:110px}.time{width:90px}  
-    .note textarea{width:100%;min-height:38px;border:none;resize:vertical;font-size:13px;line-height:1.35;outline:none}  
-    .sign-cell{position:relative;text-align:center;width:120px}  
-    .sign-btn{padding:4px 8px;font-size:12px;border:1px solid var(--line);background:#fff;border-radius:8px;cursor:pointer}  
-    .signature{display:inline-flex;align-items:center;gap:6px;font-weight:600}  
-    .signature .pen{font-size:14px} 
-    .sign-note{
-  align-self:center;
-  font-size:14px;     /* 크기 업 */
-  font-weight:700;    /* 볼드 */
-  color:#dc2626;      /* 빨간색 강조 */
-}
-    /* 서명된 칸: 반투명 블럭 + '수정불가' 뱃지 */  
-    .signed{position:relative;pointer-events:none}  
-    .signed::before{content:"";position:absolute;inset:0;background:rgba(0,0,0,.06);border-radius:2px}  
-    .signed::after{content:"수정불가";position:absolute;right:6px;bottom:4px;font-size:10px;  
-      color:#111;background:rgba(255,255,255,.7);padding:1px 6px;border-radius:999px;border:1px solid var(--line)}  
-    /* 두 서명 완료 시 행 잠금 */  
-    tr.row-locked{background:var(--accent)}  
-    tr.row-locked input, tr.row-locked textarea{background:transparent;color:#111}  
-    tr.row-locked .note textarea{pointer-events:none}  
-    /* 20번 행 하이라이트(사진처럼 오렌지 라인) */  
-    tr[data-row="20"] td{border-bottom:2px solid var(--hl)} 
-    /* 20번 행 하이라이트(오렌지 라인) */
-    tr[data-row="20"] td { border-bottom: 2px solid var(--hl); }
-    @media print{  
-      body{margin:0}.sheet{box-shadow:none;border:none;padding:0}.toolbar{display:none}th,td{padding:4px 6px}  
-    }  
-  </style>  
-</head>  
-<body>  
-  <div class="sheet">  
-    <h1>개인 / 트레이닝 일지</h1>  
-    <div class="meta" aria-label="상단 정보">  
-      <label class="span2">이름 <input id="m-name" placeholder="회원명"></label>  
-      <label>생년월일 <input id="m-birth" type="date"></label>  
-      <label>연락처 <input id="m-phone" placeholder="010-0000-0000"></label>  
-      <label>레슨종류 <input id="m-lesson" placeholder="예: PT 50분"></label>  
-      <label>담당자 <input id="m-trainer" placeholder="트레이너명"></label>  
-      <label>시작일 <input id="m-start" type="date"></label>  
-      <label>페이지 <input id="m-page" placeholder="1"></label>  
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>개인 / 트레이닝 일지</title>
+  <style>
+    :root{
+      --line:#d7d7d7; --ink:#1f2937; --muted:#6b7280;
+      --accent:#f59e0b22; --hl:#ffa500; --danger:#dc2626;
+    }
+    *{box-sizing:border-box}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,sans-serif;color:var(--ink);margin:24px;background:#fff}
+    h1{margin:0 0 8px;font-size:20px}
+    .sheet{max-width:980px;margin:0 auto;border:1px solid var(--line);padding:16px;border-radius:10px;box-shadow:0 2px 14px rgba(0,0,0,.06)}
+
+    .meta{display:grid;gap:6px 8px;margin-bottom:12px;grid-template-columns:repeat(8,1fr);font-size:13px}
+    .meta label{display:flex;align-items:center;gap:6px;border:1px solid var(--line);padding:6px 8px;border-radius:8px}
+    .meta input{border:none;outline:none;width:100%;font-size:13px;background:transparent}
+    .meta .span2{grid-column:span 2}.meta .span3{grid-column:span 3}.meta .span4{grid-column:span 4}
+    .sign-note{align-self:center;font-size:14px;font-weight:700;color:var(--danger)}
+
+    .toolbar{display:flex;gap:8px;justify-content:flex-end;margin:10px 0}
+    .toolbar button,.footer-actions button,.sig-tools button,.modal-foot button,.tabbar button{
+      border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 12px;font-size:13px;cursor:pointer
+    }
+
+    table{width:100%;border-collapse:collapse}
+    th,td{border:1px solid var(--line);padding:6px 8px;font-size:13px;vertical-align:top}
+    thead th{background:#f8fafc}
+    .num{width:44px;text-align:center}.date{width:110px}.time{width:90px}
+    .note textarea{width:100%;min-height:38px;border:none;resize:vertical;font-size:13px;line-height:1.35;outline:none}
+    .sign-cell{position:relative;text-align:center;width:140px}
+    .sign-btn{padding:4px 8px;font-size:12px;border:1px solid var(--line);background:#fff;border-radius:8px;cursor:pointer}
+    .signature{display:inline-flex;align-items:center;gap:6px;font-weight:600}
+    .signature .pen{font-size:14px}
+
+    /* 서명된 칸: 반투명 블럭 + '수정불가' 뱃지 */
+    .signed{position:relative;pointer-events:none}
+    .signed::before{content:"";position:absolute;inset:0;background:rgba(0,0,0,.06);border-radius:2px}
+    .signed::after{
+      content:"수정불가";position:absolute;right:6px;bottom:4px;font-size:12px;font-weight:700;
+      color:var(--danger);background:rgba(255,255,255,.9);padding:2px 8px;border-radius:999px;border:1px solid var(--danger)
+    }
+
+    /* 두 서명 완료 시 행 잠금 */
+    tr.row-locked{background:var(--accent)}
+    tr.row-locked input, tr.row-locked textarea{background:transparent;color:#111}
+    tr.row-locked .note textarea{pointer-events:none}
+
+    /* 20번 행 하이라이트 */
+    tr[data-row="20"] td{border-bottom:2px solid var(--hl)}
+
+    /* 푸터 초기화 버튼 */
+    .footer-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+
+    /* 모달 */
+    .hidden{display:none}
+    .modal{position:fixed;inset:0;z-index:50}
+    .modal-dim{position:absolute;inset:0;background:rgba(0,0,0,.35)}
+    .modal-card{
+      position:relative;background:#fff;width:min(720px,96vw);margin:8vh auto;padding:14px;border-radius:12px;border:1px solid var(--line);
+      box-shadow:0 10px 30px rgba(0,0,0,.25)
+    }
+    .modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+    .modal-head h3{margin:0;font-size:16px}
+    .close-btn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 10px;cursor:pointer}
+    .tabbar{display:flex;gap:8px;margin:8px 0 10px}
+    .tabbar button{padding:6px 10px;border-radius:8px}
+    .tabbar button.active{border-color:#111}
+    .tab{display:none}
+    .tab.active{display:block}
+
+    .typed-pane input{width:100%;border:1px solid var(--line);border-radius:8px;padding:10px;font-size:16px}
+    .drawn-pane .canvas-wrap{border:1px dashed var(--line);border-radius:10px;overflow:hidden;background:#fff}
+    .drawn-pane canvas{display:block;width:100%;height:180px;touch-action:none}
+    .sig-tools{display:flex;gap:8px;justify-content:space-between;margin:8px 0}
+    .sig-tools .hint{font-size:12px;color:var(--muted);align-self:center}
+    .modal-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}
+
+    /* 토스트 */
+    .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);
+      background:rgba(17,17,17,.92);color:#fff;padding:10px 14px;border-radius:10px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .25s}
+    .toast.show{opacity:1}
+    @media print{
+      body{margin:0}
+      .sheet{box-shadow:none;border:none;padding:0}
+      .toolbar,.footer-actions,.modal,.toast{display:none !important}
+      th,td{padding:4px 6px}
+    }
+  </style>
+</head>
+<body>
+  <div class="sheet">
+    <h1>개인 / 트레이닝 일지</h1>
+
+    <div class="meta" aria-label="상단 정보">
+      <label class="span2">이름 <input id="m-name" placeholder="회원명"></label>
+      <label>생년월일 <input id="m-birth" type="date"></label>
+      <label>연락처 <input id="m-phone" placeholder="010-0000-0000"></label>
+      <label>레슨종류 <input id="m-lesson" placeholder="예: PT 50분"></label>
+      <label>담당자 <input id="m-trainer" placeholder="트레이너명"></label>
+      <label>시작일 <input id="m-start" type="date"></label>
+      <label>페이지 <input id="m-page" placeholder="1"></label>
       <span class="sign-note">* 서명 후 수정 불가</span>
-    </div>  <div class="toolbar">  
-  <button onclick="goHome()">취소 / 메인으로</button>  
-  <button onclick="clearAll()">초기화</button>  
-  <button onclick="window.print()">인쇄</button>  
-</div>  
+    </div>
 
-<table id="log">  
-  <thead>  
-    <tr>  
-      <th class="num">No</th>  
-      <th class="date">서비스일자</th>  
-      <th class="time">시간</th>  
-      <th>Teaching Point &amp; Check List</th>  
-      <th class="sign-cell">트레이너 서명</th>  
-      <th class="sign-cell">고객 서명</th>  
-      /* 20번 행 하이라이트(오렌지 라인) */
-     
-    </tr>  
-  </thead>  
-  <tbody id="tbody"></tbody>  
-</table>
+    <div class="toolbar">
+      <button onclick="goHome()">취소 / 메인으로</button>
+      <button onclick="window.print()">인쇄</button>
+    </div>
 
-  </div>  
-  
+    <table id="log">
+      <thead>
+        <tr>
+          <th class="num">No</th>
+          <th class="date">서비스일자</th>
+          <th class="time">시간</th>
+          <th>Teaching Point &amp; Check List</th>
+          <th class="sign-cell">트레이너 서명</th>
+          <th class="sign-cell">고객 서명</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+
+    <div class="footer-actions">
+      <button onclick="resetAll()">전체 초기화</button>
+    </div>
+  </div>
+
+  <!-- 서명 모달 -->
+  <div id="signModal" class="modal hidden" role="dialog" aria-modal="true" aria-label="서명 입력">
+    <div class="modal-dim" onclick="closeSignModal()"></div>
+    <div class="modal-card">
+      <div class="modal-head">
+        <h3 id="signTitle">서명 입력</h3>
+        <button class="close-btn" onclick="closeSignModal()">닫기</button>
+      </div>
+
+      <div class="tabbar">
+        <button id="tabTyped" class="active" onclick="switchTab('typed')">타이핑</button>
+        <button id="tabDrawn" onclick="switchTab('drawn')">손글씨</button>
+      </div>
+
+      <div id="paneTyped" class="tab typed-pane active">
+        <input id="typedName" placeholder="이름(서명 표기)" />
+      </div>
+
+      <div id="paneDrawn" class="tab drawn-pane">
+        <div class="canvas-wrap">
+          <canvas id="sigCanvas"></canvas>
+        </div>
+        <div class="sig-tools">
+          <span class="hint">S펜/손가락으로 서명하세요. (두께: 2.5)</span>
+          <div>
+            <button id="sigClear" onclick="clearCanvas()">지우기</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-foot">
+        <button onclick="closeSignModal()">취소</button>
+        <button onclick="applySignature()">적용</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
   <script>
+    /* ===== 설정 ===== */
+    const RESET_PIN = "0000"; // 전체 초기화용 PIN (원하면 변경)
 
-   const HOME_URL = "/"; // 예: "/" 또는 "/MTF-Fhtml/index.html" 또는 "https://more-than-fitness.vercel.app"
-    const STORE_KEY = "mtf_pt_log_v1";  
-    const tbody = document.getElementById('tbody');  
-  
-    // 30행 고정 생성  
-    for (let i=1;i<=30;i++) tbody.appendChild(buildRow(i));  
-    loadFromStorage(); // 저장본 불러오기  
-    bindAutoSave();    // 자동 저장 연결  
-  
-    function buildRow(n){  
-      const tr = document.createElement('tr');  
-      tr.dataset.row = String(n);  
-      tr.innerHTML = `  
-        <td class="num">${n}</td>  
-        <td><input type="date" aria-label="날짜"></td>  
-        <td><input type="time" aria-label="시간" value="08:00"></td>  
-        <td class="note"><textarea placeholder="운동내용 / Teaching points"></textarea></td>  <td class="sign-cell">  
-      <button class="sign-btn" onclick="sign(this,'trainer')">서명</button>  
-    </td>  
-    <td class="sign-cell">  
-      <button class="sign-btn" onclick="sign(this,'customer')">서명</button>  
-    </td>  
-  `;  
-  return tr;  
-}  
+    /* ===== 전역 ===== */
+    const STORE_KEY = "mtf_pt_log_v2"; // v2: 서명 방식 저장 추가
+    const tbody = document.getElementById('tbody');
 
-let lastTrainer = "", lastCustomer = "";  
+    let currentSign = null; // {cell, role}
+    let lastTrainerTyped = ""; // 최근 트레이너 타이핑 서명
+    let lastCustomerTyped = ""; // 최근 고객 타이핑 서명
 
-function sign(btn, role){  
-  const cell = btn.closest('td');  
-  if (cell.classList.contains('signed')) return;  
-  const def = role === 'trainer' ? lastTrainer : lastCustomer;  
-  const name = prompt(`${role==='trainer'?'트레이너':'고객'} 성함(서명 표기)`, def || "");  
-  if (!name) return;  
-  if (role==='trainer') lastTrainer = name; else lastCustomer = name;  
+    // 30행 고정 생성
+    for (let i=1;i<=30;i++) tbody.appendChild(buildRow(i));
+    loadFromStorage();
+    bindAutoSave();
+    initCanvas();
 
-  cell.innerHTML = `<div class="signature"><span class="pen">✍</span>${escapeHtml(name)}</div>`;  
-  cell.classList.add('signed');  
+    function buildRow(n){
+      const tr = document.createElement('tr');
+      tr.dataset.row = String(n);
+      tr.innerHTML = `
+        <td class="num">${n}</td>
+        <td><input type="date" aria-label="날짜"></td>
+        <td><input type="time" aria-label="시간" value="08:00"></td>
+        <td class="note"><textarea placeholder="운동내용 / Teaching points"></textarea></td>
+        <td class="sign-cell">
+          <button class="sign-btn" onclick="openSignModal(this,'trainer')">서명</button>
+        </td>
+        <td class="sign-cell">
+          <button class="sign-btn" onclick="openSignModal(this,'customer')">서명</button>
+        </td>
+      `;
+      return tr;
+    }
 
-  const tr = cell.parentElement;  
-  const both = [...tr.querySelectorAll('.sign-cell')].every(td=>td.classList.contains('signed'));  
-  if (both) lockRow(tr);  
+    /* ===== 서명 모달 ===== */
+    function openSignModal(btn, role){
+      const cell = btn.closest('td');
+      if (cell.classList.contains('signed')) return;
+      currentSign = { cell, role };
 
-  saveToStorage();  
-}  
+      // 제목/기본값
+      document.getElementById('signTitle').textContent = (role==='trainer'?'트레이너':'고객') + ' 서명 입력';
+      document.getElementById('typedName').value = role==='trainer' ? lastTrainerTyped : lastCustomerTyped;
 
-function lockRow(tr){  
-  tr.classList.add('row-locked');  
-  tr.querySelectorAll('input, textarea, button.sign-btn').forEach(el=>{  
-    if (el.tagName === 'BUTTON') el.disabled = true;  
-    else { el.readOnly = true; el.disabled = true; }  
-  });  
-}  
+      // 탭 초기화
+      switchTab('typed');
+      clearCanvas();
 
-function bindAutoSave(){  
-  document.querySelectorAll('input, textarea').forEach(el=>{  
-    el.addEventListener('input', debounce(saveToStorage, 200));  
-  });  
-}  
+      document.getElementById('signModal').classList.remove('hidden');
+    }
 
-function collectData(){  
-  const meta = {  
-    name: val('#m-name'), birth: val('#m-birth'), phone: val('#m-phone'),  
-    lesson: val('#m-lesson'), trainer: val('#m-trainer'), start: val('#m-start'), page: val('#m-page')  
-  };  
-  const rows = [...tbody.children].map(tr=>{  
-    const tds = tr.querySelectorAll('td');  
-    return {  
-      n: tr.dataset.row,  
-      date: tds[1].querySelector('input').value || "",  
-      time: tds[2].querySelector('input').value || "",  
-      note: tds[3].querySelector('textarea').value || "",  
-      trainerSig: tds[4].classList.contains('signed') ? tds[4].innerText.trim() : "",  
-      customerSig: tds[5].classList.contains('signed') ? tds[5].innerText.trim() : "",  
-      locked: tr.classList.contains('row-locked')  
-    };  
-  });  
-  return {meta, rows};  
-}  
+    function closeSignModal(){
+      currentSign = null;
+      document.getElementById('signModal').classList.add('hidden');
+    }
 
-function saveToStorage(){  
-  localStorage.setItem(STORE_KEY, JSON.stringify(collectData()));  
-}  
+    function switchTab(which){
+      document.getElementById('tabTyped').classList.toggle('active', which==='typed');
+      document.getElementById('tabDrawn').classList.toggle('active', which==='drawn');
+      document.getElementById('paneTyped').classList.toggle('active', which==='typed');
+      document.getElementById('paneDrawn').classList.toggle('active', which==='drawn');
+    }
 
-function loadFromStorage(){  
-  const raw = localStorage.getItem(STORE_KEY);  
-  if (!raw) return;  
-  const {meta, rows} = JSON.parse(raw);  
+    function applySignature(){
+      if (!currentSign) return;
+      const { cell, role } = currentSign;
+      const usingTyped = document.getElementById('paneTyped').classList.contains('active');
 
-  setVal('#m-name', meta.name); setVal('#m-birth', meta.birth);  
-  setVal('#m-phone', meta.phone); setVal('#m-lesson', meta.lesson);  
-  setVal('#m-trainer', meta.trainer); setVal('#m-start', meta.start); setVal('#m-page', meta.page);  
+      if (usingTyped){
+        const name = (document.getElementById('typedName').value || "").trim();
+        if (!name) return showToast('이름을 입력하세요');
 
-  rows?.forEach(r=>{  
-    const tr = tbody.querySelector(`tr[data-row="${r.n}"]`);  
-    if (!tr) return;  
-    const tds = tr.querySelectorAll('td');  
-    tds[1].querySelector('input').value = r.date || "";  
-    tds[2].querySelector('input').value = r.time || "";  
-    tds[3].querySelector('textarea').value = r.note || "";  
+        // 이전 타이핑 서명과 비교하여 경고
+        const prev = role==='trainer' ? lastTrainerTyped : lastCustomerTyped;
+        if (prev && prev !== name){
+          showToast('이 전 서명과 다릅니다');
+        }
 
-    if (r.trainerSig){  
-      tds[4].innerHTML = `<div class="signature"><span class="pen">✍</span>${escapeHtml(r.trainerSig)}</div>`;  
-      tds[4].classList.add('signed');  
-    }  
-    if (r.customerSig){  
-      tds[5].innerHTML = `<div class="signature"><span class="pen">✍</span>${escapeHtml(r.customerSig)}</div>`;  
-      tds[5].classList.add('signed');  
-    }  
-    if (r.locked){ lockRow(tr); }  
-  });  
-}  
+        // 최근값 갱신
+        if (role==='trainer') lastTrainerTyped = name; else lastCustomerTyped = name;
 
-function clearAll(){  
-  if (!confirm('모든 내용을 초기화할까요? (되돌릴 수 없음)')) return;  
-  localStorage.removeItem(STORE_KEY);  
-  location.reload();  
-}  
+        cell.innerHTML = `<div class="signature"><span class="pen">✍</span>${escapeHtml(name)}</div>`;
+        cell.dataset.sigType = 'typed';
+        cell.dataset.sigValue = name;
+      } else {
+        // 손글씨
+        const dataURL = exportCanvas();
+        if (!dataURL) return showToast('서명을 먼저 입력하세요');
 
-function goHome(){  
-  // 메인으로 이동 (index.html 우선, 없으면 루트, 그마저도 아니면 뒤로가기)  
-  fetch('index.html',{method:'HEAD'}).then(r=>{  
-    if(r.ok) location.href='index.html'; else location.href='/';  
-  }).catch(()=>{ if (document.referrer) history.back(); else location.href='/'; });  
-}  
+        cell.innerHTML = `<div class="signature" style="flex-direction:column;gap:4px">
+          <img src="${dataURL}" alt="서명 이미지" style="height:48px;max-width:120px;object-fit:contain"/>
+          <small class="muted">손서명</small>
+        </div>`;
+        cell.dataset.sigType = 'drawn';
+        cell.dataset.sigValue = dataURL;
+      }
 
-// helpers  
-function val(sel){const el=document.querySelector(sel);return el?el.value:"";}  
-function setVal(sel,v){const el=document.querySelector(sel); if(el) el.value=v||"";}  
-function escapeHtml(str){return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");}  
-function debounce(fn,ms){let t;return (...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms)}}
+      cell.classList.add('signed');
 
-  </script>  
-</body>  
+      // 두 칸 모두 서명되면 행 잠금
+      const tr = cell.parentElement;
+      const both = [...tr.querySelectorAll('.sign-cell')].every(td=>td.classList.contains('signed'));
+      if (both) lockRow(tr);
+
+      saveToStorage();
+      closeSignModal();
+    }
+
+    function lockRow(tr){
+      tr.classList.add('row-locked');
+      tr.querySelectorAll('input, textarea, button.sign-btn').forEach(el=>{
+        if (el.tagName === 'BUTTON') el.disabled = true;
+        else { el.readOnly = true; el.disabled = true; }
+      });
+    }
+
+    /* ===== 저장/복원 ===== */
+    function bindAutoSave(){
+      document.querySelectorAll('input, textarea').forEach(el=>{
+        el.addEventListener('input', debounce(saveToStorage, 200));
+      });
+    }
+
+    function collectData(){
+      const meta = {
+        name: val('#m-name'), birth: val('#m-birth'), phone: val('#m-phone'),
+        lesson: val('#m-lesson'), trainer: val('#m-trainer'), start: val('#m-start'), page: val('#m-page')
+      };
+      const rows = [...tbody.children].map(tr=>{
+        const tds = tr.querySelectorAll('td');
+        const trainerCell = tds[4], customerCell = tds[5];
+        const trainerType = trainerCell.dataset.sigType || (trainerCell.classList.contains('signed') ? 'typed' : '');
+        const trainerVal  = trainerCell.dataset.sigValue || (trainerCell.classList.contains('signed') ? trainerCell.innerText.trim() : '');
+        const customerType = customerCell.dataset.sigType || (customerCell.classList.contains('signed') ? 'typed' : '');
+        const customerVal  = customerCell.dataset.sigValue || (customerCell.classList.contains('signed') ? customerCell.innerText.trim() : '');
+
+        return {
+          n: tr.dataset.row,
+          date: tds[1].querySelector('input').value || "",
+          time: tds[2].querySelector('input').value || "",
+          note: tds[3].querySelector('textarea').value || "",
+          trainerSigType: trainerType,
+          trainerSigValue: trainerVal,
+          customerSigType: customerType,
+          customerSigValue: customerVal,
+          // 구버전 호환용(타이핑 텍스트로 저장)
+          trainerSig: trainerType==='typed' ? trainerVal : "",
+          customerSig: customerType==='typed' ? customerVal : "",
+          locked: tr.classList.contains('row-locked')
+        };
+      });
+      return {meta, rows};
+    }
+
+    function saveToStorage(){
+      localStorage.setItem(STORE_KEY, JSON.stringify(collectData()));
+    }
+
+    function loadFromStorage(){
+      const raw = localStorage.getItem(STORE_KEY);
+      if (!raw) return;
+      const {meta, rows} = JSON.parse(raw);
+
+      setVal('#m-name', meta.name); setVal('#m-birth', meta.birth);
+      setVal('#m-phone', meta.phone); setVal('#m-lesson', meta.lesson);
+      setVal('#m-trainer', meta.trainer); setVal('#m-start', meta.start); setVal('#m-page', meta.page);
+
+      rows?.forEach(r=>{
+        const tr = tbody.querySelector(`tr[data-row="${r.n}"]`);
+        if (!tr) return;
+        const tds = tr.querySelectorAll('td');
+        tds[1].querySelector('input').value = r.date || "";
+        tds[2].querySelector('input').value = r.time || "";
+        tds[3].querySelector('textarea').value = r.note || "";
+
+        // 트레이너 서명 복원
+        restoreCell(tds[4], r.trainerSigType, r.trainerSigValue, r.trainerSig);
+        // 고객 서명 복원
+        restoreCell(tds[5], r.customerSigType, r.customerSigValue, r.customerSig);
+
+        if (r.locked){ lockRow(tr); }
+      });
+
+      // 최근 타이핑 서명값 갱신(경고 비교용)
+      lastTrainerTyped = findLastTyped('trainer');
+      lastCustomerTyped = findLastTyped('customer');
+    }
+
+    function restoreCell(td, type, value, legacyText){
+      if (!type && !legacyText) return;
+      if (type === 'drawn' && value){
+        td.innerHTML = `<div class="signature" style="flex-direction:column;gap:4px">
+          <img src="${value}" alt="서명 이미지" style="height:48px;max-width:120px;object-fit:contain"/>
+          <small class="muted">손서명</small>
+        </div>`;
+        td.classList.add('signed');
+        td.dataset.sigType = 'drawn';
+        td.dataset.sigValue = value;
+      } else {
+        const text = value || legacyText || "";
+        if (!text) return;
+        td.innerHTML = `<div class="signature"><span class="pen">✍</span>${escapeHtml(text)}</div>`;
+        td.classList.add('signed');
+        td.dataset.sigType = 'typed';
+        td.dataset.sigValue = text;
+      }
+    }
+
+    function findLastTyped(role){
+      // role: 'trainer' or 'customer'
+      const idx = role==='trainer' ? 4 : 5;
+      let last = "";
+      [...tbody.children].forEach(tr=>{
+        const td = tr.querySelectorAll('td')[idx];
+        if (td && td.dataset.sigType === 'typed' && td.dataset.sigValue){
+          last = td.dataset.sigValue;
+        }
+      });
+      return last;
+    }
+
+    /* ===== 초기화 & 이동 ===== */
+    function resetAll(){
+      const pin = prompt('전체 초기화를 위해 PIN을 입력하세요 (기본 0000)');
+      if (pin !== RESET_PIN){ showToast('비밀번호가 일치하지 않습니다'); return; }
+      if (!confirm('모든 내용을 초기화할까요? (되돌릴 수 없음)')) return;
+      localStorage.removeItem(STORE_KEY);
+      location.reload();
+    }
+
+    function goHome(){
+      // 메인으로 이동 (index.html 우선, 없으면 루트)
+      fetch('index.html',{method:'HEAD'}).then(r=>{
+        if(r.ok) location.href='index.html'; else location.href='/';
+      }).catch(()=>{ if (document.referrer) history.back(); else location.href='/'; });
+    }
+
+    /* ===== Canvas 서명 ===== */
+    let cvs, ctx, dpr=1, drawing=false, lastX=0, lastY=0;
+
+    function initCanvas(){
+      cvs = document.getElementById('sigCanvas');
+      ctx = cvs.getContext('2d');
+      resizeCanvas();
+      window.addEventListener('resize', resizeCanvas);
+      // 입력
+      cvs.addEventListener('pointerdown', startDraw);
+      cvs.addEventListener('pointermove', moveDraw);
+      window.addEventListener('pointerup', endDraw);
+      cvs.addEventListener('pointerleave', endDraw);
+    }
+
+    function resizeCanvas(){
+      const rect = cvs.getBoundingClientRect();
+      dpr = Math.max(1, window.devicePixelRatio || 1);
+      cvs.width  = Math.floor(rect.width * dpr);
+      cvs.height = Math.floor(180 * dpr);
+      ctx.scale(dpr, dpr);
+      clearCanvas();
+    }
+
+    function startDraw(e){
+      drawing = true;
+      const {x,y} = getPos(e);
+      lastX = x; lastY = y;
+    }
+    function moveDraw(e){
+      if (!drawing) return;
+      const {x,y} = getPos(e);
+      ctx.lineWidth = 2.5;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = '#111';
+      ctx.beginPath();
+      ctx.moveTo(lastX, lastY);
+      ctx.lineTo(x, y);
+      ctx.stroke();
+      lastX = x; lastY = y;
+    }
+    function endDraw(){ drawing = false; }
+    function getPos(e){
+      const r = cvs.getBoundingClientRect();
+      return { x: (e.clientX - r.left), y: (e.clientY - r.top) };
+    }
+
+    function clearCanvas(){
+      const rect = cvs.getBoundingClientRect();
+      ctx.save();
+      ctx.setTransform(1,0,0,1,0,0); // reset any scale
+      ctx.clearRect(0,0,cvs.width,cvs.height);
+      ctx.restore();
+      // 흰 배경
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0,0,cvs.width,Math.floor(180 * dpr));
+    }
+
+    function exportCanvas(){
+      // 빈 캔버스인지 확인(픽셀 비교)
+      // 간단히 dataURL 생성
+      return cvs.toDataURL('image/png');
+    }
+
+    /* ===== 유틸 ===== */
+    function val(sel){const el=document.querySelector(sel);return el?el.value:"";}
+    function setVal(sel,v){const el=document.querySelector(sel); if(el) el.value=v||"";}
+    function escapeHtml(str){return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");}
+    function debounce(fn,ms){let t;return (...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms)}}
+    function showToast(msg){
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.classList.add('show');
+      setTimeout(()=>el.classList.remove('show'), 1800);
+    }
+  </script>
+</body>
 </html>
