@@ -56,7 +56,7 @@
 
     /* 모달 */
     .hidden{display:none}
-    .modal{position:fixed;inset:0;z-index:9999} /* z-index 상향 */
+    .modal{position:fixed;inset:0;z-index:9999}
     .modal-dim{position:absolute;inset:0;background:rgba(0,0,0,.35)}
     .modal-card{
       position:relative;background:#fff;width:min(720px,96vw);margin:8vh auto;padding:14px;border-radius:12px;border:1px solid var(--line);
@@ -96,8 +96,10 @@
 
     <div class="meta" aria-label="상단 정보">
       <label class="span2">이름 <input id="m-name" placeholder="회원명"></label>
-      <!-- 변경: 날짜 → 숫자 입력 -->
-      <label>생년월일 <input id="m-birth" inputmode="numeric" pattern="[0-9]*" placeholder="YYYYMMDD"></label>
+      <!-- 숫자 입력 + 자동 하이픈 -->
+      <label>생년월일
+        <input id="m-birth" inputmode="numeric" pattern="[0-9\-]*" maxlength="10" placeholder="YYYY-MM-DD">
+      </label>
       <label>연락처 <input id="m-phone" placeholder="010-0000-0000"></label>
       <label>레슨종류 <input id="m-lesson" placeholder="예: PT 50분"></label>
       <label>담당자 <input id="m-trainer" placeholder="트레이너명"></label>
@@ -107,7 +109,8 @@
     </div>
 
     <div class="toolbar">
-      <button id="btnHome">취소 / 메인으로</button>
+      <!-- 클릭 안먹는 이슈 방지: 인라인 연결 -->
+      <button id="btnHome" onclick="goDashboard()">취소 / 메인으로</button>
       <button onclick="window.print()">인쇄</button>
     </div>
 
@@ -170,27 +173,24 @@
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <script>
-    /* ===== 라우팅 설정 ===== */
-    // 대시보드 경로를 여기서 정해주세요.
-    const DASHBOARD_URL = "dashboard.html"; // 예: "dashboard.html" 또는 "/MTF-Fhtml/dashboard.html"
-    const RESET_PIN = "0000"; // 전체 초기화 PIN
+    /* ===== 라우팅 / PIN ===== */
+    const DASHBOARD_URL = "dashboard.html"; // 대시보드 이동 경로
+    const RESET_PIN = "0000";
 
     /* ===== 전역 ===== */
-    const STORE_KEY = "mtf_pt_log_v2";
+    const STORE_KEY = "mtf_pt_log_v3"; // v3: 입력 포맷, 핸들러 보강
     const tbody = document.getElementById('tbody');
 
     let currentSign = null; // {cell, role}
-    let lastTrainerTyped = ""; // 최근 트레이너 타이핑 서명
-    let lastCustomerTyped = ""; // 최근 고객 타이핑 서명
+    let lastTrainerTyped = "";
+    let lastCustomerTyped = "";
 
-    // 30행 고정 생성
+    // 30행 고정 생성 + 버튼에 인라인 핸들러 부여(확실한 동작 보장)
     for (let i=1;i<=30;i++) tbody.appendChild(buildRow(i));
     loadFromStorage();
     bindAutoSave();
     initCanvas();
-
-    // 취소 버튼 → 대시보드
-    document.getElementById('btnHome').addEventListener('click', goDashboard);
+    initBirthAutoHyphen();
 
     function buildRow(n){
       const tr = document.createElement('tr');
@@ -201,24 +201,22 @@
         <td><input type="time" aria-label="시간" value="08:00"></td>
         <td class="note"><textarea placeholder="운동내용 / Teaching points"></textarea></td>
         <td class="sign-cell">
-          <button class="sign-btn" data-role="trainer">서명</button>
+          <button class="sign-btn" data-role="trainer" onclick="handleSignClick(this)">서명</button>
         </td>
         <td class="sign-cell">
-          <button class="sign-btn" data-role="customer">서명</button>
+          <button class="sign-btn" data-role="customer" onclick="handleSignClick(this)">서명</button>
         </td>
       `;
       return tr;
     }
 
-    /* ===== 서명 버튼 클릭(이벤트 위임, 인라인 충돌 방지) ===== */
-    document.addEventListener('click', (e)=>{
-      const btn = e.target.closest('.sign-btn');
-      if (!btn) return;
+    /* ===== 서명 버튼: 인라인 핸들러 진입점 ===== */
+    function handleSignClick(btn){
       const td = btn.closest('td');
       if (!td || td.classList.contains('signed')) return;
       const role = btn.dataset.role || (td.cellIndex === 4 ? 'trainer' : 'customer');
       openSignModal(btn, role);
-    });
+    }
 
     /* ===== 서명 모달 ===== */
     function openSignModal(btn, role){
@@ -226,29 +224,24 @@
       if (cell.classList.contains('signed')) return;
       currentSign = { cell, role };
 
-      // 제목/기본값
       document.getElementById('signTitle').textContent = (role==='trainer'?'트레이너':'고객') + ' 서명 입력';
       document.getElementById('typedName').value = role==='trainer' ? lastTrainerTyped : lastCustomerTyped;
 
-      // 탭 초기화
       switchTab('typed');
       clearCanvas();
 
       document.getElementById('signModal').classList.remove('hidden');
     }
-
     function closeSignModal(){
       currentSign = null;
       document.getElementById('signModal').classList.add('hidden');
     }
-
     function switchTab(which){
       document.getElementById('tabTyped').classList.toggle('active', which==='typed');
       document.getElementById('tabDrawn').classList.toggle('active', which==='drawn');
       document.getElementById('paneTyped').classList.toggle('active', which==='typed');
       document.getElementById('paneDrawn').classList.toggle('active', which==='drawn');
     }
-
     function applySignature(){
       if (!currentSign) return;
       const { cell, role } = currentSign;
@@ -258,20 +251,15 @@
         const name = (document.getElementById('typedName').value || "").trim();
         if (!name) return showToast('이름을 입력하세요');
 
-        // 이전 타이핑 서명과 비교하여 경고
         const prev = role==='trainer' ? lastTrainerTyped : lastCustomerTyped;
-        if (prev && prev !== name){
-          showToast('이 전 서명과 다릅니다');
-        }
+        if (prev && prev !== name) showToast('이 전 서명과 다릅니다');
 
-        // 최근값 갱신
         if (role==='trainer') lastTrainerTyped = name; else lastCustomerTyped = name;
 
         cell.innerHTML = `<div class="signature"><span class="pen">✍</span>${escapeHtml(name)}</div>`;
         cell.dataset.sigType = 'typed';
         cell.dataset.sigValue = name;
       } else {
-        // 손글씨
         const dataURL = exportCanvas();
         if (!dataURL) return showToast('서명을 먼저 입력하세요');
 
@@ -285,7 +273,6 @@
 
       cell.classList.add('signed');
 
-      // 두 칸 모두 서명되면 행 잠금
       const tr = cell.parentElement;
       const both = [...tr.querySelectorAll('.sign-cell')].every(td=>td.classList.contains('signed'));
       if (both) lockRow(tr);
@@ -293,7 +280,6 @@
       saveToStorage();
       closeSignModal();
     }
-
     function lockRow(tr){
       tr.classList.add('row-locked');
       tr.querySelectorAll('input, textarea, button.sign-btn').forEach(el=>{
@@ -308,7 +294,6 @@
         el.addEventListener('input', debounce(saveToStorage, 200));
       });
     }
-
     function collectData(){
       const meta = {
         name: val('#m-name'), birth: val('#m-birth'), phone: val('#m-phone'),
@@ -338,19 +323,27 @@
       });
       return {meta, rows};
     }
-
     function saveToStorage(){
-      localStorage.setItem(STORE_KEY, JSON.stringify(collectData()));
+      try{
+        localStorage.setItem(STORE_KEY, JSON.stringify(collectData()));
+      }catch(e){ console.warn('save error', e); }
     }
-
     function loadFromStorage(){
-      const raw = localStorage.getItem(STORE_KEY);
+      let raw;
+      try{ raw = localStorage.getItem(STORE_KEY); }catch(e){}
       if (!raw) return;
-      const {meta, rows} = JSON.parse(raw);
+      let data;
+      try{ data = JSON.parse(raw); }catch(e){ return; }
+      const {meta, rows} = data;
 
-      setVal('#m-name', meta.name); setVal('#m-birth', meta.birth);
-      setVal('#m-phone', meta.phone); setVal('#m-lesson', meta.lesson);
-      setVal('#m-trainer', meta.trainer); setVal('#m-start', meta.start); setVal('#m-page', meta.page);
+      setVal('#m-name', meta.name);
+      // 저장값이 8자리 숫자면 자동 하이픈
+      setVal('#m-birth', formatBirth(meta.birth || ""));
+      setVal('#m-phone', meta.phone);
+      setVal('#m-lesson', meta.lesson);
+      setVal('#m-trainer', meta.trainer);
+      setVal('#m-start', meta.start);
+      setVal('#m-page', meta.page);
 
       rows?.forEach(r=>{
         const tr = tbody.querySelector(`tr[data-row="${r.n}"]`);
@@ -366,11 +359,9 @@
         if (r.locked){ lockRow(tr); }
       });
 
-      // 최근 타이핑 서명값 갱신(경고 비교용)
       lastTrainerTyped = findLastTyped('trainer');
       lastCustomerTyped = findLastTyped('customer');
     }
-
     function restoreCell(td, type, value, legacyText){
       if (!type && !legacyText) return;
       if (type === 'drawn' && value){
@@ -390,7 +381,6 @@
         td.dataset.sigValue = text;
       }
     }
-
     function findLastTyped(role){
       const idx = role==='trainer' ? 4 : 5;
       let last = "";
@@ -403,35 +393,40 @@
       return last;
     }
 
+    /* ===== 생년월일 자동 하이픈 ===== */
+    function initBirthAutoHyphen(){
+      const el = document.getElementById('m-birth');
+      el.addEventListener('input', (e)=>{
+        const v = e.target.value.replace(/\D/g,'').slice(0,8); // 숫자만 최대 8자리
+        e.target.value = formatBirth(v);
+      });
+      el.addEventListener('blur', (e)=>{
+        const v = e.target.value.replace(/\D/g,'');
+        e.target.value = formatBirth(v);
+      });
+    }
+    function formatBirth(raw){
+      const v = String(raw).replace(/\D/g,'').slice(0,8);
+      if (v.length <= 4) return v;
+      if (v.length <= 6) return v.slice(0,4)+'-'+v.slice(4);
+      return v.slice(0,4)+'-'+v.slice(4,6)+'-'+v.slice(6,8);
+    }
+
     /* ===== 초기화 & 이동 ===== */
     function resetAll(){
       const pin = prompt('전체 초기화를 위해 PIN을 입력하세요 (기본 0000)');
       if (pin !== RESET_PIN){ showToast('비밀번호가 일치하지 않습니다'); return; }
       if (!confirm('모든 내용을 초기화할까요? (되돌릴 수 없음)')) return;
-      localStorage.removeItem(STORE_KEY);
+      try{ localStorage.removeItem(STORE_KEY); }catch(e){}
       location.reload();
     }
-
     function goDashboard(){
-      // 절대/상대 경로 모두 대응
-      if (/^https?:\/\//i.test(DASHBOARD_URL)) { location.href = DASHBOARD_URL; return; }
-      // 후보 경로를 순차 확인
-      const candidates = [DASHBOARD_URL, '/'+DASHBOARD_URL.replace(/^\//,''), '/MTF-Fhtml/dashboard.html'];
-      (async ()=>{
-        for (const url of candidates){
-          try{
-            const r = await fetch(url, {method:'HEAD'});
-            if (r.ok) { location.href = url; return; }
-          }catch(e){}
-        }
-        // 그래도 실패하면 루트
-        location.href = '/';
-      })();
+      // 단순 이동: fetch/HEAD 없이 바로 이동 (CORS/파일스킴 이슈 회피)
+      location.href = DASHBOARD_URL;
     }
 
     /* ===== Canvas 서명 ===== */
     let cvs, ctx, dpr=1, drawing=false, lastX=0, lastY=0;
-
     function initCanvas(){
       cvs = document.getElementById('sigCanvas');
       ctx = cvs.getContext('2d');
@@ -442,7 +437,6 @@
       window.addEventListener('pointerup', endDraw);
       cvs.addEventListener('pointerleave', endDraw);
     }
-
     function resizeCanvas(){
       const rect = cvs.getBoundingClientRect();
       dpr = Math.max(1, window.devicePixelRatio || 1);
@@ -451,44 +445,21 @@
       ctx.setTransform(dpr,0,0,dpr,0,0);
       clearCanvas();
     }
-
-    function startDraw(e){
-      drawing = true;
-      const {x,y} = getPos(e);
-      lastX = x; lastY = y;
-    }
+    function startDraw(e){ drawing = true; const p = getPos(e); lastX=p.x; lastY=p.y; }
     function moveDraw(e){
       if (!drawing) return;
-      const {x,y} = getPos(e);
-      ctx.lineWidth = 2.5;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-      ctx.strokeStyle = '#111';
-      ctx.beginPath();
-      ctx.moveTo(lastX, lastY);
-      ctx.lineTo(x, y);
-      ctx.stroke();
-      lastX = x; lastY = y;
+      const p = getPos(e);
+      ctx.lineWidth = 2.5; ctx.lineCap='round'; ctx.lineJoin='round'; ctx.strokeStyle='#111';
+      ctx.beginPath(); ctx.moveTo(lastX,lastY); ctx.lineTo(p.x,p.y); ctx.stroke();
+      lastX=p.x; lastY=p.y;
     }
     function endDraw(){ drawing = false; }
-    function getPos(e){
-      const r = cvs.getBoundingClientRect();
-      return { x: (e.clientX - r.left), y: (e.clientY - r.top) };
-    }
-
+    function getPos(e){ const r = cvs.getBoundingClientRect(); return {x:e.clientX-r.left, y:e.clientY-r.top}; }
     function clearCanvas(){
-      ctx.save();
-      ctx.setTransform(1,0,0,1,0,0);
-      ctx.clearRect(0,0,cvs.width,cvs.height);
-      ctx.restore();
-      // 흰 배경
-      ctx.fillStyle = '#fff';
-      ctx.fillRect(0,0,cvs.width,cvs.height);
+      ctx.save(); ctx.setTransform(1,0,0,1,0,0); ctx.clearRect(0,0,cvs.width,cvs.height); ctx.restore();
+      ctx.fillStyle='#fff'; ctx.fillRect(0,0,cvs.width,cvs.height);
     }
-
-    function exportCanvas(){
-      return cvs.toDataURL('image/png');
-    }
+    function exportCanvas(){ return cvs.toDataURL('image/png'); }
 
     /* ===== 유틸 ===== */
     function val(sel){const el=document.querySelector(sel);return el?el.value:"";}
