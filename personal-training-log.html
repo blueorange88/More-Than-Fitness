@@ -97,7 +97,9 @@
         <!-- 숫자 → 자동 하이픈 -->
         <input id="m-birth" inputmode="numeric" pattern="[0-9\-]*" maxlength="10" placeholder="YYYY-MM-DD">
       </label>
-      <label>연락처 <input id="m-phone" placeholder="010-0000-0000"></label>
+     <label>연락처
+      <input id="m-phone" inputmode="numeric" pattern="[0-9\-]*" maxlength="13" placeholder="010-0000-0000">
+      </label>
       <label>레슨종류 <input id="m-lesson" placeholder="예: PT 50분"></label>
       <label>담당자 <input id="m-trainer" placeholder="트레이너명"></label>
       <label>시작일 <input id="m-start" type="date"></label>
@@ -152,7 +154,7 @@
           <canvas id="sigCanvas"></canvas>
         </div>
         <div class="sig-tools">
-          <span class="hint">S펜/손가락으로 서명하세요. (두께: 2.5)</span>
+          <span class="hint"> 서명하세요. (두께: 2.5)</span>
           <div>
             <button type="button" id="sigClear" onclick="clearCanvas()">지우기</button>
           </div>
@@ -189,6 +191,7 @@
         bindAutoSave();
         initCanvas();
         initBirthAutoHyphen();
+        initPhoneAutoHyphen();
 
         // 안전망: 델리게이션으로도 서명 버튼 제어 (인라인이 막혀도 동작)
         document.addEventListener('click', (e)=>{
@@ -227,7 +230,23 @@
       `;
       return tr;
     }
+/* ===== 전화번호 자동 하이픈 ===== */
+function initPhoneAutoHyphen(){
+  const el = document.getElementById('m-phone');
+  if (!el) return;
+  const handler = (e)=>{
+    e.target.value = formatPhone(e.target.value);
+  };
+  el.addEventListener('input', handler);
+  el.addEventListener('blur', handler);
+}
 
+function formatPhone(raw){
+  const v = String(raw).replace(/\D/g,'').slice(0,11); // 숫자만 최대 11자리
+  if (v.length <= 3) return v;
+  if (v.length <= 7) return v.slice(0,3) + '-' + v.slice(3);
+  return v.slice(0,3) + '-' + v.slice(3,7) + '-' + v.slice(7); // 010-0000-0000
+}
     /* ===== 서명 버튼 (인라인 진입점) ===== */
     function handleSignClick(btn){
       const td = btn.closest('td');
@@ -353,7 +372,7 @@
 
       setVal('#m-name', meta.name);
       setVal('#m-birth', formatBirth(meta.birth || ""));
-      setVal('#m-phone', meta.phone);
+      setVal('#m-phone', formatPhone(meta.phone || ""));
       setVal('#m-lesson', meta.lesson);
       setVal('#m-trainer', meta.trainer);
       setVal('#m-start', meta.start);
