@@ -402,7 +402,7 @@
 
     function goHome(){
       // 메인으로 이동 (index.html 우선, 없으면 루트)
-      fetch('index.html',{method:'HEAD'}).then(r=>{
+      fetch('dashboard.html',{method:'HEAD'}).then(r=>{
         if(r.ok) location.href='index.html'; else location.href='/';
       }).catch(()=>{ if (document.referrer) history.back(); else location.href='/'; });
     }
