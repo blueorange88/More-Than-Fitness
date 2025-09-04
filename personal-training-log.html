@@ -5,10 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>개인 / 트레이닝 일지</title>
   <style>
-    :root{
-      --line:#d7d7d7; --ink:#1f2937; --muted:#6b7280;
-      --accent:#f59e0b22; --hl:#ffa500; --danger:#dc2626;
-    }
+    :root{ --line:#d7d7d7; --ink:#1f2937; --muted:#6b7280; --accent:#f59e0b22; --hl:#ffa500; --danger:#dc2626; }
     *{box-sizing:border-box}
     body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,sans-serif;color:var(--ink);margin:24px;background:#fff}
     h1{margin:0 0 8px;font-size:20px}
@@ -96,8 +93,8 @@
 
     <div class="meta" aria-label="상단 정보">
       <label class="span2">이름 <input id="m-name" placeholder="회원명"></label>
-      <!-- 숫자 입력 + 자동 하이픈 -->
       <label>생년월일
+        <!-- 숫자 → 자동 하이픈 -->
         <input id="m-birth" inputmode="numeric" pattern="[0-9\-]*" maxlength="10" placeholder="YYYY-MM-DD">
       </label>
       <label>연락처 <input id="m-phone" placeholder="010-0000-0000"></label>
@@ -109,9 +106,8 @@
     </div>
 
     <div class="toolbar">
-      <!-- 클릭 안먹는 이슈 방지: 인라인 연결 -->
-      <button id="btnHome" onclick="goDashboard()">취소 / 메인으로</button>
-      <button onclick="window.print()">인쇄</button>
+      <button type="button" id="btnHome" onclick="goDashboard()">취소 / 메인으로</button>
+      <button type="button" onclick="window.print()">인쇄</button>
     </div>
 
     <table id="log">
@@ -129,7 +125,7 @@
     </table>
 
     <div class="footer-actions">
-      <button onclick="resetAll()">전체 초기화</button>
+      <button type="button" onclick="resetAll()">전체 초기화</button>
     </div>
   </div>
 
@@ -139,12 +135,12 @@
     <div class="modal-card">
       <div class="modal-head">
         <h3 id="signTitle">서명 입력</h3>
-        <button class="close-btn" onclick="closeSignModal()">닫기</button>
+        <button type="button" class="close-btn" onclick="closeSignModal()">닫기</button>
       </div>
 
       <div class="tabbar">
-        <button id="tabTyped" class="active" onclick="switchTab('typed')">타이핑</button>
-        <button id="tabDrawn" onclick="switchTab('drawn')">손글씨</button>
+        <button type="button" id="tabTyped" class="active" onclick="switchTab('typed')">타이핑</button>
+        <button type="button" id="tabDrawn" onclick="switchTab('drawn')">손글씨</button>
       </div>
 
       <div id="paneTyped" class="tab typed-pane active">
@@ -158,14 +154,14 @@
         <div class="sig-tools">
           <span class="hint">S펜/손가락으로 서명하세요. (두께: 2.5)</span>
           <div>
-            <button id="sigClear" onclick="clearCanvas()">지우기</button>
+            <button type="button" id="sigClear" onclick="clearCanvas()">지우기</button>
           </div>
         </div>
       </div>
 
       <div class="modal-foot">
-        <button onclick="closeSignModal()">취소</button>
-        <button onclick="applySignature()">적용</button>
+        <button type="button" onclick="closeSignModal()">취소</button>
+        <button type="button" onclick="applySignature()">적용</button>
       </div>
     </div>
   </div>
@@ -173,24 +169,46 @@
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <script>
+    "use strict";
+
     /* ===== 라우팅 / PIN ===== */
-    const DASHBOARD_URL = "dashboard.html"; // 대시보드 이동 경로
+    const DASHBOARD_URL = "dashboard.html"; // 필요시 절대경로로 교체
     const RESET_PIN = "0000";
 
     /* ===== 전역 ===== */
-    const STORE_KEY = "mtf_pt_log_v3"; // v3: 입력 포맷, 핸들러 보강
-    const tbody = document.getElementById('tbody');
+    const STORE_KEY = "mtf_pt_log_v4"; // v4: DOMContentLoaded, button type, error toast
+    let tbody, currentSign = null, lastTrainerTyped = "", lastCustomerTyped = "";
+    let cvs, ctx, dpr=1, drawing=false, lastX=0, lastY=0;
 
-    let currentSign = null; // {cell, role}
-    let lastTrainerTyped = "";
-    let lastCustomerTyped = "";
+    /* 초기화: DOM 준비된 뒤 실행 */
+    window.addEventListener('DOMContentLoaded', () => {
+      try {
+        tbody = document.getElementById('tbody');
+        for (let i=1;i<=30;i++) tbody.appendChild(buildRow(i));
+        loadFromStorage();
+        bindAutoSave();
+        initCanvas();
+        initBirthAutoHyphen();
 
-    // 30행 고정 생성 + 버튼에 인라인 핸들러 부여(확실한 동작 보장)
-    for (let i=1;i<=30;i++) tbody.appendChild(buildRow(i));
-    loadFromStorage();
-    bindAutoSave();
-    initCanvas();
-    initBirthAutoHyphen();
+        // 안전망: 델리게이션으로도 서명 버튼 제어 (인라인이 막혀도 동작)
+        document.addEventListener('click', (e)=>{
+          const btn = e.target.closest('.sign-btn');
+          if (!btn) return;
+          const td = btn.closest('td');
+          if (!td || td.classList.contains('signed')) return;
+          const role = btn.dataset.role || (td.cellIndex === 4 ? 'trainer' : 'customer');
+          openSignModal(btn, role);
+        });
+      } catch(err){
+        showToast('초기화 오류: ' + (err?.message || err));
+        console.error(err);
+      }
+    });
+
+    /* 전역 에러 → 토스트로 표시 (디버깅 도움) */
+    window.addEventListener('error', (e)=>{
+      showToast('오류: ' + (e.error?.message || e.message));
+    });
 
     function buildRow(n){
       const tr = document.createElement('tr');
@@ -201,16 +219,16 @@
         <td><input type="time" aria-label="시간" value="08:00"></td>
         <td class="note"><textarea placeholder="운동내용 / Teaching points"></textarea></td>
         <td class="sign-cell">
-          <button class="sign-btn" data-role="trainer" onclick="handleSignClick(this)">서명</button>
+          <button type="button" class="sign-btn" data-role="trainer" onclick="handleSignClick(this)">서명</button>
         </td>
         <td class="sign-cell">
-          <button class="sign-btn" data-role="customer" onclick="handleSignClick(this)">서명</button>
+          <button type="button" class="sign-btn" data-role="customer" onclick="handleSignClick(this)">서명</button>
         </td>
       `;
       return tr;
     }
 
-    /* ===== 서명 버튼: 인라인 핸들러 진입점 ===== */
+    /* ===== 서명 버튼 (인라인 진입점) ===== */
     function handleSignClick(btn){
       const td = btn.closest('td');
       if (!td || td.classList.contains('signed')) return;
@@ -324,20 +342,16 @@
       return {meta, rows};
     }
     function saveToStorage(){
-      try{
-        localStorage.setItem(STORE_KEY, JSON.stringify(collectData()));
-      }catch(e){ console.warn('save error', e); }
+      try{ localStorage.setItem(STORE_KEY, JSON.stringify(collectData())); }
+      catch(e){ showToast('저장 오류'); console.warn(e); }
     }
     function loadFromStorage(){
-      let raw;
-      try{ raw = localStorage.getItem(STORE_KEY); }catch(e){}
+      let raw; try{ raw = localStorage.getItem(STORE_KEY); }catch(e){}
       if (!raw) return;
-      let data;
-      try{ data = JSON.parse(raw); }catch(e){ return; }
+      let data; try{ data = JSON.parse(raw); }catch(e){ return; }
       const {meta, rows} = data;
 
       setVal('#m-name', meta.name);
-      // 저장값이 8자리 숫자면 자동 하이픈
       setVal('#m-birth', formatBirth(meta.birth || ""));
       setVal('#m-phone', meta.phone);
       setVal('#m-lesson', meta.lesson);
@@ -397,7 +411,7 @@
     function initBirthAutoHyphen(){
       const el = document.getElementById('m-birth');
       el.addEventListener('input', (e)=>{
-        const v = e.target.value.replace(/\D/g,'').slice(0,8); // 숫자만 최대 8자리
+        const v = e.target.value.replace(/\D/g,'').slice(0,8);
         e.target.value = formatBirth(v);
       });
       el.addEventListener('blur', (e)=>{
@@ -420,13 +434,9 @@
       try{ localStorage.removeItem(STORE_KEY); }catch(e){}
       location.reload();
     }
-    function goDashboard(){
-      // 단순 이동: fetch/HEAD 없이 바로 이동 (CORS/파일스킴 이슈 회피)
-      location.href = DASHBOARD_URL;
-    }
+    function goDashboard(){ location.href = DASHBOARD_URL; }
 
     /* ===== Canvas 서명 ===== */
-    let cvs, ctx, dpr=1, drawing=false, lastX=0, lastY=0;
     function initCanvas(){
       cvs = document.getElementById('sigCanvas');
       ctx = cvs.getContext('2d');
@@ -470,7 +480,7 @@
       const el = document.getElementById('toast');
       el.textContent = msg;
       el.classList.add('show');
-      setTimeout(()=>el.classList.remove('show'), 1800);
+      setTimeout(()=>el.classList.remove('show'), 2000);
     }
   </script>
 </body>
