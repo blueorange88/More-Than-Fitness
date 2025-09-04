@@ -45,7 +45,8 @@
     tr.row-locked input, tr.row-locked textarea{background:transparent;color:#111}
     tr.row-locked .note textarea{pointer-events:none}
 
-    /* 20번 행 하이라이트 */
+    /* 10번 20번 행 하이라이트 */
+    tr[data-row="10"] td{border-bottom:2px solid var(--hl)}
     tr[data-row="20"] td{border-bottom:2px solid var(--hl)}
 
     /* 푸터 초기화 버튼 */
@@ -108,7 +109,6 @@
     </div>
 
     <div class="toolbar">
-      <button type="button" id="btnHome" onclick="goDashboard()">취소 / 메인으로</button>
       <button type="button" onclick="window.print()">인쇄</button>
     </div>
 
@@ -127,6 +127,7 @@
     </table>
 
     <div class="footer-actions">
+      <button type="button" id="btnHome" onclick="goDashboard()">취소 / 메인으로</button>
       <button type="button" onclick="resetAll()">전체 초기화</button>
     </div>
   </div>
