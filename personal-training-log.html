@@ -1,5 +1,124 @@
-개인 트레이닝 일지 body { font-family: sans-serif; padding: 20px; } table { width: 100%; border-collapse: collapse; margin-top: 10px; } th, td { border: 1px solid #ccc; text-align: center; padding: 6px; } .signed { background-color: rgba(200, 200, 200, 0.5); pointer-events: none; } .sign-btn { padding: 3px 6px; font-size: 0.9em; } 
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>개인 트레이닝 일지</title>
+  <style>
+    body {
+      font-family: 'Pretendard', sans-serif;
+      padding: 20px;
+      background-color: #f9f9f9;
+      color: #333;
+    }
 
-개인 트레이닝 일지
+    h2 {
+      margin-bottom: 20px;
+    }
 
-번호날짜시간운동 내용트레이너 사인고객 사인1SignSign2SignSign3SignSign function sign(button, role) { const cell = button.parentElement; cell.innerHTML = (role === 'trainer') ? '🖋️ Leon' : '🖋️ 고객'; cell.classList.add('signed'); } 
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+
+    input[type="text"],
+    input[type="date"],
+    textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    textarea {
+      resize: vertical;
+      height: 120px;
+    }
+
+    .btn-group {
+      margin-top: 20px;
+    }
+
+    button {
+      padding: 10px 20px;
+      margin-right: 10px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .btn-save {
+      background-color: #222;
+      color: white;
+    }
+
+    .btn-cancel {
+      background-color: #ccc;
+      color: #222;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>개인 트레이닝 일지</h2>
+
+  <div class="form-group">
+    <label for="memberName">회원 이름</label>
+    <input type="text" id="memberName" placeholder="이름을 입력하세요">
+  </div>
+
+  <div class="form-group">
+    <label for="trainingDate">운동 일자</label>
+    <input type="date" id="trainingDate">
+  </div>
+
+  <div class="form-group">
+    <label for="workoutDetail">운동 내용</label>
+    <textarea id="workoutDetail" placeholder="예: 스쿼트 3세트 15회 / 플랭크 1분 유지 등"></textarea>
+  </div>
+
+  <div class="form-group">
+    <label for="memo">메모</label>
+    <textarea id="memo" placeholder="특이사항, 컨디션 등 기록"></textarea>
+  </div>
+
+  <div class="btn-group">
+    <button class="btn-save" onclick="saveLog()">저장</button>
+    <button class="btn-cancel" onclick="cancelLog()">취소</button>
+  </div>
+
+  <script>
+    function saveLog() {
+      const name = document.getElementById("memberName").value;
+      const date = document.getElementById("trainingDate").value;
+      const detail = document.getElementById("workoutDetail").value;
+      const memo = document.getElementById("memo").value;
+
+      if (!name || !date || !detail) {
+        alert("회원 이름, 일자, 운동 내용은 필수입니다.");
+        return;
+      }
+
+      // 저장 로직 (Firebase나 로컬스토리지 등과 연동 가능)
+      console.log("저장됨:", { name, date, detail, memo });
+      alert("트레이닝 일지가 저장되었습니다.");
+    }
+
+    function cancelLog() {
+      if (confirm("입력을 취소하시겠습니까?")) {
+        document.getElementById("memberName").value = "";
+        document.getElementById("trainingDate").value = "";
+        document.getElementById("workoutDetail").value = "";
+        document.getElementById("memo").value = "";
+      }
+    }
+  </script>
+
+</body>
+</html>
