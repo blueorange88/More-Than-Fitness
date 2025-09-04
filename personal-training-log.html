@@ -1,124 +1,214 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <title>개인 트레이닝 일지</title>
-  <style>
-    body {
-      font-family: 'Pretendard', sans-serif;
-      padding: 20px;
-      background-color: #f9f9f9;
-      color: #333;
-    }
+<!DOCTYPE html>  <html lang="ko">  
+<head>  
+  <meta charset="UTF-8" />  
+  <meta name="viewport" content="width=device-width,initial-scale=1" />  
+  <title>개인 / 트레이닝 일지</title>  
+  <style>  
+    :root{  
+      --line:#d7d7d7; --ink:#1f2937; --muted:#6b7280; --accent:#f59e0b22; --hl:#ffa500;  
+    }  
+    *{box-sizing:border-box}  
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,sans-serif;  
+         color:var(--ink);margin:24px;background:#fff}  
+    h1{margin:0 0 8px;font-size:20px}  
+    .sheet{max-width:980px;margin:0 auto;border:1px solid var(--line);padding:16px;border-radius:10px;  
+           box-shadow:0 2px 14px rgba(0,0,0,.06)}  
+    .meta{display:grid;gap:6px 8px;margin-bottom:12px;grid-template-columns:repeat(8,1fr);font-size:13px}  
+    .meta label{display:flex;align-items:center;gap:6px;border:1px solid var(--line);padding:6px 8px;border-radius:8px}  
+    .meta input{border:none;outline:none;width:100%;font-size:13px;background:transparent}  
+    .meta .span2{grid-column:span 2}.meta .span3{grid-column:span 3}.meta .span4{grid-column:span 4}  
+    .muted{color:var(--muted)}  
+    .toolbar{display:flex;gap:8px;justify-content:flex-end;margin:10px 0}  
+    .toolbar button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 12px;font-size:13px;cursor:pointer}  
+    table{width:100%;border-collapse:collapse}  
+    th,td{border:1px solid var(--line);padding:6px 8px;font-size:13px;vertical-align:top}  
+    thead th{background:#f8fafc}  
+    .num{width:44px;text-align:center}.date{width:110px}.time{width:90px}  
+    .note textarea{width:100%;min-height:38px;border:none;resize:vertical;font-size:13px;line-height:1.35;outline:none}  
+    .sign-cell{position:relative;text-align:center;width:120px}  
+    .sign-btn{padding:4px 8px;font-size:12px;border:1px solid var(--line);background:#fff;border-radius:8px;cursor:pointer}  
+    .signature{display:inline-flex;align-items:center;gap:6px;font-weight:600}  
+    .signature .pen{font-size:14px}  
+    /* 서명된 칸: 반투명 블럭 + '수정불가' 뱃지 */  
+    .signed{position:relative;pointer-events:none}  
+    .signed::before{content:"";position:absolute;inset:0;background:rgba(0,0,0,.06);border-radius:2px}  
+    .signed::after{content:"수정불가";position:absolute;right:6px;bottom:4px;font-size:10px;  
+      color:#111;background:rgba(255,255,255,.7);padding:1px 6px;border-radius:999px;border:1px solid var(--line)}  
+    /* 두 서명 완료 시 행 잠금 */  
+    tr.row-locked{background:var(--accent)}  
+    tr.row-locked input, tr.row-locked textarea{background:transparent;color:#111}  
+    tr.row-locked .note textarea{pointer-events:none}  
+    /* 20번 행 하이라이트(사진처럼 오렌지 라인) */  
+    tr[data-row="20"] td{border-bottom:2px solid var(--hl)}  
+    @media print{  
+      body{margin:0}.sheet{box-shadow:none;border:none;padding:0}.toolbar{display:none}th,td{padding:4px 6px}  
+    }  
+  </style>  
+</head>  
+<body>  
+  <div class="sheet">  
+    <h1>개인 / 트레이닝 일지</h1>  
+    <div class="meta" aria-label="상단 정보">  
+      <label class="span2">이름 <input id="m-name" placeholder="회원명"></label>  
+      <label>생년월일 <input id="m-birth" type="date"></label>  
+      <label>연락처 <input id="m-phone" placeholder="010-0000-0000"></label>  
+      <label>레슨종류 <input id="m-lesson" placeholder="예: PT 50분"></label>  
+      <label>담당자 <input id="m-trainer" placeholder="트레이너명"></label>  
+      <label>시작일 <input id="m-start" type="date"></label>  
+      <label>페이지 <input id="m-page" placeholder="1"></label>  
+      <span class="muted" style="align-self:center">* 서명 후 수정 불가</span>  
+    </div>  <div class="toolbar">  
+  <button onclick="goHome()">취소 / 메인으로</button>  
+  <button onclick="clearAll()">초기화</button>  
+  <button onclick="window.print()">인쇄</button>  
+</div>  
 
-    h2 {
-      margin-bottom: 20px;
-    }
+<table id="log">  
+  <thead>  
+    <tr>  
+      <th class="num">No</th>  
+      <th class="date">서비스일자</th>  
+      <th class="time">시간</th>  
+      <th>Teaching Point &amp; Check List</th>  
+      <th class="sign-cell">트레이너 서명</th>  
+      <th class="sign-cell">고객 서명</th>  
+    </tr>  
+  </thead>  
+  <tbody id="tbody"></tbody>  
+</table>
 
-    .form-group {
-      margin-bottom: 15px;
-    }
+  </div>    <script>  
+    const STORE_KEY = "mtf_pt_log_v1";  
+    const tbody = document.getElementById('tbody');  
+  
+    // 30행 고정 생성  
+    for (let i=1;i<=30;i++) tbody.appendChild(buildRow(i));  
+    loadFromStorage(); // 저장본 불러오기  
+    bindAutoSave();    // 자동 저장 연결  
+  
+    function buildRow(n){  
+      const tr = document.createElement('tr');  
+      tr.dataset.row = String(n);  
+      tr.innerHTML = `  
+        <td class="num">${n}</td>  
+        <td><input type="date" aria-label="날짜"></td>  
+        <td><input type="time" aria-label="시간" value="08:00"></td>  
+        <td class="note"><textarea placeholder="운동내용 / Teaching points"></textarea></td>  <td class="sign-cell">  
+      <button class="sign-btn" onclick="sign(this,'trainer')">서명</button>  
+    </td>  
+    <td class="sign-cell">  
+      <button class="sign-btn" onclick="sign(this,'customer')">서명</button>  
+    </td>  
+  `;  
+  return tr;  
+}  
 
-    label {
-      display: block;
-      font-weight: bold;
-      margin-bottom: 6px;
-    }
+let lastTrainer = "", lastCustomer = "";  
 
-    input[type="text"],
-    input[type="date"],
-    textarea {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 14px;
-    }
+function sign(btn, role){  
+  const cell = btn.closest('td');  
+  if (cell.classList.contains('signed')) return;  
+  const def = role === 'trainer' ? lastTrainer : lastCustomer;  
+  const name = prompt(`${role==='trainer'?'트레이너':'고객'} 성함(서명 표기)`, def || "");  
+  if (!name) return;  
+  if (role==='trainer') lastTrainer = name; else lastCustomer = name;  
 
-    textarea {
-      resize: vertical;
-      height: 120px;
-    }
+  cell.innerHTML = `<div class="signature"><span class="pen">✍</span>${escapeHtml(name)}</div>`;  
+  cell.classList.add('signed');  
 
-    .btn-group {
-      margin-top: 20px;
-    }
+  const tr = cell.parentElement;  
+  const both = [...tr.querySelectorAll('.sign-cell')].every(td=>td.classList.contains('signed'));  
+  if (both) lockRow(tr);  
 
-    button {
-      padding: 10px 20px;
-      margin-right: 10px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-    }
+  saveToStorage();  
+}  
 
-    .btn-save {
-      background-color: #222;
-      color: white;
-    }
+function lockRow(tr){  
+  tr.classList.add('row-locked');  
+  tr.querySelectorAll('input, textarea, button.sign-btn').forEach(el=>{  
+    if (el.tagName === 'BUTTON') el.disabled = true;  
+    else { el.readOnly = true; el.disabled = true; }  
+  });  
+}  
 
-    .btn-cancel {
-      background-color: #ccc;
-      color: #222;
-    }
-  </style>
-</head>
-<body>
+function bindAutoSave(){  
+  document.querySelectorAll('input, textarea').forEach(el=>{  
+    el.addEventListener('input', debounce(saveToStorage, 200));  
+  });  
+}  
 
-  <h2>개인 트레이닝 일지</h2>
+function collectData(){  
+  const meta = {  
+    name: val('#m-name'), birth: val('#m-birth'), phone: val('#m-phone'),  
+    lesson: val('#m-lesson'), trainer: val('#m-trainer'), start: val('#m-start'), page: val('#m-page')  
+  };  
+  const rows = [...tbody.children].map(tr=>{  
+    const tds = tr.querySelectorAll('td');  
+    return {  
+      n: tr.dataset.row,  
+      date: tds[1].querySelector('input').value || "",  
+      time: tds[2].querySelector('input').value || "",  
+      note: tds[3].querySelector('textarea').value || "",  
+      trainerSig: tds[4].classList.contains('signed') ? tds[4].innerText.trim() : "",  
+      customerSig: tds[5].classList.contains('signed') ? tds[5].innerText.trim() : "",  
+      locked: tr.classList.contains('row-locked')  
+    };  
+  });  
+  return {meta, rows};  
+}  
 
-  <div class="form-group">
-    <label for="memberName">회원 이름</label>
-    <input type="text" id="memberName" placeholder="이름을 입력하세요">
-  </div>
+function saveToStorage(){  
+  localStorage.setItem(STORE_KEY, JSON.stringify(collectData()));  
+}  
 
-  <div class="form-group">
-    <label for="trainingDate">운동 일자</label>
-    <input type="date" id="trainingDate">
-  </div>
+function loadFromStorage(){  
+  const raw = localStorage.getItem(STORE_KEY);  
+  if (!raw) return;  
+  const {meta, rows} = JSON.parse(raw);  
 
-  <div class="form-group">
-    <label for="workoutDetail">운동 내용</label>
-    <textarea id="workoutDetail" placeholder="예: 스쿼트 3세트 15회 / 플랭크 1분 유지 등"></textarea>
-  </div>
+  setVal('#m-name', meta.name); setVal('#m-birth', meta.birth);  
+  setVal('#m-phone', meta.phone); setVal('#m-lesson', meta.lesson);  
+  setVal('#m-trainer', meta.trainer); setVal('#m-start', meta.start); setVal('#m-page', meta.page);  
 
-  <div class="form-group">
-    <label for="memo">메모</label>
-    <textarea id="memo" placeholder="특이사항, 컨디션 등 기록"></textarea>
-  </div>
+  rows?.forEach(r=>{  
+    const tr = tbody.querySelector(`tr[data-row="${r.n}"]`);  
+    if (!tr) return;  
+    const tds = tr.querySelectorAll('td');  
+    tds[1].querySelector('input').value = r.date || "";  
+    tds[2].querySelector('input').value = r.time || "";  
+    tds[3].querySelector('textarea').value = r.note || "";  
 
-  <div class="btn-group">
-    <button class="btn-save" onclick="saveLog()">저장</button>
-    <button class="btn-cancel" onclick="cancelLog()">취소</button>
-  </div>
+    if (r.trainerSig){  
+      tds[4].innerHTML = `<div class="signature"><span class="pen">✍</span>${escapeHtml(r.trainerSig)}</div>`;  
+      tds[4].classList.add('signed');  
+    }  
+    if (r.customerSig){  
+      tds[5].innerHTML = `<div class="signature"><span class="pen">✍</span>${escapeHtml(r.customerSig)}</div>`;  
+      tds[5].classList.add('signed');  
+    }  
+    if (r.locked){ lockRow(tr); }  
+  });  
+}  
 
-  <script>
-    function saveLog() {
-      const name = document.getElementById("memberName").value;
-      const date = document.getElementById("trainingDate").value;
-      const detail = document.getElementById("workoutDetail").value;
-      const memo = document.getElementById("memo").value;
+function clearAll(){  
+  if (!confirm('모든 내용을 초기화할까요? (되돌릴 수 없음)')) return;  
+  localStorage.removeItem(STORE_KEY);  
+  location.reload();  
+}  
 
-      if (!name || !date || !detail) {
-        alert("회원 이름, 일자, 운동 내용은 필수입니다.");
-        return;
-      }
+function goHome(){  
+  // 메인으로 이동 (index.html 우선, 없으면 루트, 그마저도 아니면 뒤로가기)  
+  fetch('index.html',{method:'HEAD'}).then(r=>{  
+    if(r.ok) location.href='index.html'; else location.href='/';  
+  }).catch(()=>{ if (document.referrer) history.back(); else location.href='/'; });  
+}  
 
-      // 저장 로직 (Firebase나 로컬스토리지 등과 연동 가능)
-      console.log("저장됨:", { name, date, detail, memo });
-      alert("트레이닝 일지가 저장되었습니다.");
-    }
+// helpers  
+function val(sel){const el=document.querySelector(sel);return el?el.value:"";}  
+function setVal(sel,v){const el=document.querySelector(sel); if(el) el.value=v||"";}  
+function escapeHtml(str){return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");}  
+function debounce(fn,ms){let t;return (...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms)}}
 
-    function cancelLog() {
-      if (confirm("입력을 취소하시겠습니까?")) {
-        document.getElementById("memberName").value = "";
-        document.getElementById("trainingDate").value = "";
-        document.getElementById("workoutDetail").value = "";
-        document.getElementById("memo").value = "";
-      }
-    }
-  </script>
-
-</body>
+  </script>  
+</body>  
 </html>
