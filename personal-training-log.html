@@ -28,7 +28,13 @@
     .sign-cell{position:relative;text-align:center;width:120px}  
     .sign-btn{padding:4px 8px;font-size:12px;border:1px solid var(--line);background:#fff;border-radius:8px;cursor:pointer}  
     .signature{display:inline-flex;align-items:center;gap:6px;font-weight:600}  
-    .signature .pen{font-size:14px}  
+    .signature .pen{font-size:14px} 
+    .sign-note{
+  align-self:center;
+  font-size:14px;     /* 크기 업 */
+  font-weight:700;    /* 볼드 */
+  color:#dc2626;      /* 빨간색 강조 */
+}
     /* 서명된 칸: 반투명 블럭 + '수정불가' 뱃지 */  
     .signed{position:relative;pointer-events:none}  
     .signed::before{content:"";position:absolute;inset:0;background:rgba(0,0,0,.06);border-radius:2px}  
@@ -39,7 +45,9 @@
     tr.row-locked input, tr.row-locked textarea{background:transparent;color:#111}  
     tr.row-locked .note textarea{pointer-events:none}  
     /* 20번 행 하이라이트(사진처럼 오렌지 라인) */  
-    tr[data-row="20"] td{border-bottom:2px solid var(--hl)}  
+    tr[data-row="20"] td{border-bottom:2px solid var(--hl)} 
+    /* 20번 행 하이라이트(오렌지 라인) */
+    tr[data-row="20"] td { border-bottom: 2px solid var(--hl); }
     @media print{  
       body{margin:0}.sheet{box-shadow:none;border:none;padding:0}.toolbar{display:none}th,td{padding:4px 6px}  
     }  
@@ -56,7 +64,7 @@
       <label>담당자 <input id="m-trainer" placeholder="트레이너명"></label>  
       <label>시작일 <input id="m-start" type="date"></label>  
       <label>페이지 <input id="m-page" placeholder="1"></label>  
-      <span class="muted" style="align-self:center">* 서명 후 수정 불가</span>  
+      <span class="sign-note">* 서명 후 수정 불가</span>
     </div>  <div class="toolbar">  
   <button onclick="goHome()">취소 / 메인으로</button>  
   <button onclick="clearAll()">초기화</button>  
@@ -72,12 +80,18 @@
       <th>Teaching Point &amp; Check List</th>  
       <th class="sign-cell">트레이너 서명</th>  
       <th class="sign-cell">고객 서명</th>  
+      /* 20번 행 하이라이트(오렌지 라인) */
+     
     </tr>  
   </thead>  
   <tbody id="tbody"></tbody>  
 </table>
 
-  </div>    <script>  
+  </div>  
+  
+  <script>
+
+   const HOME_URL = "/"; // 예: "/" 또는 "/MTF-Fhtml/index.html" 또는 "https://more-than-fitness.vercel.app"
     const STORE_KEY = "mtf_pt_log_v1";  
     const tbody = document.getElementById('tbody');  
   
