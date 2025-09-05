@@ -1,180 +1,155 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <title>회원 정보 확인</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <style>
-    body {
-      font-family: 'Poppins', sans-serif;
-      background: #f5f0e8;
-      padding: 20px;
-      color: #0d1b2a;
-    }
-    .section-title {
-      font-size: 18px;
-      font-weight: bold;
-      margin-bottom: 10px;
-    }
-    input[type="text"] {
-      margin-bottom: 10px;
-      padding: 6px;
-      width: 100%;
-      max-width: 300px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: #fff;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-    th, td {
-      padding: 10px;
-      border: 1px solid #ccc;
-      text-align: center;
-    }
-    th {
-      background-color: #0d1b2a;
-      color: #fff;
-      cursor: pointer;
-    }
-    th:hover {
-      background-color: #143f50;
-    }
-   
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>회원 정보 편집</title>
+<style>
+  :root{ --navy:#0B1E3A; --gold:#C8A848; --uw:#F7F6F2; --line:#e5e7eb; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--uw);font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,sans-serif;color:#0d1b2a}
+  header{position:sticky;top:0;background:#fff;border-bottom:2px solid var(--gold);padding:12px 16px}
+  header h1{margin:0;font-size:18px;color:var(--navy)}
+  main{max-width:780px;margin:18px auto;padding:16px;background:#fff;border:1px solid var(--line);border-radius:12px}
+  .row{display:grid;grid-template-columns:140px 1fr;gap:8px 12px;align-items:center;margin-bottom:10px}
+  label{color:#334155;font-size:14px}
+  input,select,textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px;font-size:14px;background:#fff}
+  textarea{min-height:80px;resize:vertical}
+  .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+  .btn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 14px;font-size:14px;cursor:pointer}
+  .btn.primary{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .hint{font-size:12px;color:#64748b}
+</style>
 </head>
 <body>
-  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-  <div class="section-title">회원 목록</div>
-  <button id="closeMemberView" style="font-size: 20px; border: none; background: none; cursor: pointer;">✕</button>
-</div>
-<input type="text" id="searchInput" placeholder="회원 이름 또는 번호 검색" />
-  <div class="schedule-wrapper">
-    <table id="memberTable">
-      <thead>
-        <tr>
-          <th onclick="sortTable('name')">이름</th>
-          <th onclick="sortTable('phone')">성별</th>
-          <th onclick="sortTable('phone')">휴대폰번호</th>
-          <th onclick="sortTable('trainer')">담당 트레이너</th>
-          <th onclick="sortTable('type')">레슨 유형</th>
-          <th onclick="sortTable('level')">회원 등급</th>
-          <th onclick="sortTable('createdAt')">최초 등록일</th>
-        </tr>
-        
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
+  <header><h1>회원 정보 편집</h1></header>
+
+  <main>
+    <div class="row"><label for="name">이름</label>       <input id="name" placeholder="홍길동" /></div>
+    <div class="row"><label for="phone">휴대폰</label>     <input id="phone" inputmode="numeric" maxlength="13" placeholder="010-0000-0000" /></div>
+    <div class="row"><label for="birth">생년월일</label>   <input id="birth" inputmode="numeric" maxlength="10" placeholder="YYYY-MM-DD" /></div>
+    <div class="row"><label for="gender">성별</label>
+      <select id="gender"><option value="">선택</option><option>남성</option><option>여성</option></select>
+    </div>
+    <div class="row"><label for="trainer">담당 트레이너</label> <input id="trainer" placeholder="담당자" /></div>
+    <div class="row"><label for="lessonType">레슨 유형</label>  <input id="lessonType" placeholder="예: PT 50분 / GOLF" /></div>
+    <div class="row"><label for="level">회원 등급</label>
+      <select id="level"><option value="">선택</option><option>VIP</option><option>정회원</option><option>프로모션</option></select>
+    </div>
+    <div class="row"><label for="family">가족관계</label>
+      <textarea id="family" placeholder="예) 배우자: 김OO / 자녀: 1명"></textarea>
+    </div>
+    <div class="row"><label for="address">주소</label>     <input id="address" placeholder="(선택)" /></div>
+    <div class="row"><span class="hint"></span><span class="hint">전화/생년월일은 자동 하이픈 표시, 저장 시 숫자만 보관</span></div>
+
+    <div class="actions">
+      <button class="btn" onclick="location.href='member-list.html'">목록</button>
+      <button class="btn primary" id="saveBtn">저장</button>
+    </div>
+  </main>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
-    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
+  import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCjdyveDx0qFPUzmaChnEy9Ni0VjTysYnM",
-      authDomain: "more-than-fitness-f6adb.firebaseapp.com",
-      projectId: "more-than-fitness-f6adb",
-      storageBucket: "more-than-fitness-f6adb.appspot.com",
-      messagingSenderId: "993248877411",
-      appId: "1:993248877411:web:c0e6785162cf252fbcd156",
-      measurementId: "G-MK0RVFG296"
-    };
+  /* ==== Firebase ==== */
+  const firebaseConfig = {
+    apiKey: "AIzaSyCjdyveDx0qFPUzmaChnEy9Ni0VjTysYnM",
+    authDomain: "more-than-fitness-f6adb.firebaseapp.com",
+    projectId: "more-than-fitness-f6adb",
+    storageBucket: "more-than-fitness-f6adb.appspot.com",
+    messagingSenderId: "993248877411",
+    appId: "1:993248877411:web:c0e6785162cf252fbcd156",
+    measurementId: "G-MK0RVFG296"
+  };
+  const app = initializeApp(firebaseConfig);
+  const db  = getFirestore(app);
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+  /* ==== Settings ==== */
+  const COL = "members"; // ← 아직 fitness_members면 여기만 바꿔줘
 
-    let memberList = [];
-    let sortKey = '';
-    let sortAsc = true;
+  /* ==== Utils ==== */
+  const $ = s => document.querySelector(s);
+  const set = (id,v)=>{ const el=$(id); if(el) el.value=v??""; };
+  function formatPhone(raw){
+    const v = String(raw||"").replace(/\D/g,"").slice(0,11);
+    if (v.length<=3) return v;
+    if (v.length<=7) return v.slice(0,3)+"-"+v.slice(3);
+    return v.slice(0,3)+"-"+v.slice(3,7)+"-"+v.slice(7);
+  }
+  function formatBirth(raw){
+    const v = String(raw||"").replace(/\D/g,"").slice(0,8);
+    if (v.length<=4) return v;
+    if (v.length<=6) return v.slice(0,4)+"-"+v.slice(4);
+    return v.slice(0,4)+"-"+v.slice(4,6)+"-"+v.slice(6,8);
+  }
 
-    async function loadMembers() {
-      const snapshot = await getDocs(collection(db, "fitness_members"));
-      memberList = [];
-      snapshot.forEach(doc => {
-        const data = doc.data();
-       memberList.push({
-      id: doc.id, // 중요
-     ...data,
-       createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : null
-});
-      });
-      renderTable(memberList);
-      memberList.sort((a, b) => b.createdAt - a.createdAt);
+  // 입력 하이픈 자동
+  $("#phone").addEventListener("input", e=> e.target.value = formatPhone(e.target.value));
+  $("#birth").addEventListener("input", e=> e.target.value = formatBirth(e.target.value));
+
+  // 편집 대상 ID: localStorage 또는 쿼리스트링에서
+  let memberId = localStorage.getItem("editMemberId") || new URLSearchParams(location.search).get("id") || "";
+
+  // 로드
+  (async function load(){
+    if (!memberId) return; // 새 회원
+    try{
+      const snap = await getDoc(doc(db, COL, memberId));
+      if (!snap.exists()) return;
+      const x = snap.data();
+      set("#name", x.name);
+      set("#phone", formatPhone(x.phone));
+      set("#birth", formatBirth(x.birth));
+      set("#gender", x.gender);
+      set("#trainer", x.trainer);
+      set("#lessonType", x.lessonType || x.type);
+      set("#level", x.level);
+      set("#family", typeof x.family==="string" ? x.family :
+                     Array.isArray(x.family) ? x.family.map(f=>`${f.relation||""}${f.name?": "+f.name:""}`).join(" / ") :
+                     (x.family ? Object.entries(x.family).map(([k,v])=>`${k}: ${v}`).join(" / ") : ""));
+      set("#address", x.address);
+    }catch(e){
+      alert("회원 정보를 불러오지 못했습니다.");
+      console.error(e);
     }
+  })();
 
-    function renderTable(data) {
-  const tableBody = document.querySelector("#memberTable tbody");
-  tableBody.innerHTML = "";
-  data.forEach(m => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td style="text-decoration: underline; color: blue;">${m.name || ''}</td>
-      <td>${m.gender || ''}</td>
-      <td>${m.phone || ''}</td>
-      <td>${m.trainer || ''}</td>
-      <td>${m.type || ''}</td>
-      <td>${m.level || ''}</td>
-      <td>${m.createdAt ? m.createdAt.toLocaleDateString() : ''}</td>
-    `;
-    tr.style.cursor = "pointer";
-    tr.style.backgroundColor = "#f9f9f9";
-    tr.onmouseover = () => (tr.style.backgroundColor = "#e6e6e6");
-    tr.onmouseout = () => (tr.style.backgroundColor = "#f9f9f9");
-    tr.onclick = () => {
-      localStorage.setItem("editMemberId", m.id); // m.id를 사용하려면 push할 때 id 포함
-      window.location.href = "/edit-member.html";
-    };
-    tableBody.appendChild(tr);
-  });
-}
+  // 저장
+  $("#saveBtn").addEventListener("click", async ()=>{
+    try{
+      const name = $("#name").value.trim();
+      const phoneDigits = $("#phone").value.replace(/\D/g,"");
+      if (!name) return alert("이름을 입력하세요.");
+      if (phoneDigits.length < 10) return alert("휴대폰 번호를 확인하세요.");
 
-    function sortTable(key) {
-      sortAsc = sortKey === key ? !sortAsc : true;
-      sortKey = key;
-      const sorted = [...memberList].sort((a, b) => {
-        const valA = a[key] || '';
-        const valB = b[key] || '';
-        return sortAsc
-          ? valA > valB ? 1 : -1
-          : valA < valB ? 1 : -1;
-      });
-      renderTable(sorted);
+      const payload = {
+        name,
+        phone: phoneDigits,               // 숫자만 저장
+        birth: $("#birth").value.replace(/\D/g,"").slice(0,8), // YYYYMMDD 저장
+        gender: $("#gender").value,
+        trainer: $("#trainer").value,
+        lessonType: $("#lessonType").value,
+        level: $("#level").value,
+        family: $("#family").value,       // 편하게 문자열 저장 (원하면 객체/배열로 확장)
+        address: $("#address").value,
+        updatedAt: serverTimestamp(),
+        createdAt: memberId ? undefined : serverTimestamp()
+      };
+
+      // 새 회원이면: 전화번호를 문서 ID로 사용(중복 방지), 없으면 기존 ID로 merge
+      if (!memberId){
+        memberId = phoneDigits;
+        localStorage.setItem("editMemberId", memberId);
+      }
+      await setDoc(doc(db, COL, memberId), payload, { merge:true });
+
+      alert("저장되었습니다.");
+    }catch(e){
+      alert("저장 중 오류가 발생했습니다.");
+      console.error(e);
     }
-   document.getElementById("closeMemberView").addEventListener("click", () => {
-    window.location.href = "/dashboard.html"; // 또는 이전 페이지
-});
-    window.showMemberList = async function () {
-  const snapshot = await getDocs(collection(db, "fitness_members"));
-  const tbody = document.querySelector("#memberTable tbody");
-  tbody.innerHTML = "";
-  snapshot.forEach(doc => {
-    const m = doc.data();
-    const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${m.name}</td><td>${m.phone}</td><td>${m.trainer}</td><td>${m.level}</td>`;
-    tr.style.cursor = "pointer";
-    tr.onclick = () => {
-      localStorage.setItem("editMemberId", doc.id);
-      window.location.href = "/edit-member.html";
-    };
-    tbody.appendChild(tr);
   });
-};
-    
-    
-    document.getElementById("searchInput").addEventListener("input", function () {
-      const keyword = this.value.toLowerCase();
-      const filtered = memberList.filter(m =>
-        m.name?.toLowerCase().includes(keyword) || m.phone?.includes(keyword)
-      );
-      renderTable(filtered);
-    });
-
-    loadMembers();
   </script>
-
 </body>
 </html>
