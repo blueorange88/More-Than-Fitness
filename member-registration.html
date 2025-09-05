@@ -300,7 +300,7 @@
     }
     $("#phone")?.addEventListener("blur", prefillFromExisting);
 
-  /* ==== 제출 ==== */
+ /* ==== 제출 ==== */
 const form = document.getElementById("registrationForm");
 form.addEventListener("submit", async (e)=>{
   e.preventDefault();
@@ -316,7 +316,7 @@ form.addEventListener("submit", async (e)=>{
   const months      = toInt(raw.membershipMonths);   // 회원권 개월
   const purchaseN   = toInt(raw.purchaseSessions);   // 이번 구매 세션수
   const price       = toInt(raw.paymentAmount);
-  const startDateStr= raw.startDate || new Date().toISOString().slice(0,10);
+  const startDateStr= raw.startDate || todayLocalISO();   // ← 로컬 날짜
   const startDate   = new Date(startDateStr);
   const payAt       = raw.paymentDate ? new Date(raw.paymentDate) : new Date();
 
@@ -407,9 +407,6 @@ form.addEventListener("submit", async (e)=>{
 
 // 초기 진입 시(휴대폰이 미리 채워져 있으면) 한번 시도
 prefillFromExisting().catch(()=>{});
-          const ref = doc(db, COL, docId);
-          const exists = snap.exists();
-          const prev = exists ? snap.data() : {};
 
           // 이전 값
           const prevRemain   = Number(prev.remainingSessions || 0);
