@@ -5,51 +5,34 @@
   <title>회원 등록</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
-    body {
-      font-family: system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,sans-serif;
-      background-color: #f5f0e8;
-      color: #0d1b2a;
-      margin: 0;
-      padding: 24px;
-    }
-    .container {
-      max-width: 760px;
-      margin: auto;
-      background: #fff;
-      padding: 24px;
-      border-radius: 12px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-    }
-    .row { display: flex; gap: 20px; margin-bottom: 12px; }
-    .col { flex: 1; }
-    .topbar { display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px; }
-    .close { background:none; border:none; font-size:20px; cursor:pointer; }
-    .top-right-box { display: flex; justify-content: flex-end; gap: 16px; margin: 14px 0 20px; }
-    .top-right-box .col { flex:0 0 30%; }
-    label { font-weight: 600; font-size: 14px; display:block; margin-bottom:6px; }
-    input, select, textarea {
-      width: 100%; padding: 8px; font-size: 14px;
-      border:1px solid #ccc; border-radius:6px; background:#fff;
-    }
-    input:disabled { background:#f0f0f0; }
-    textarea { resize: vertical; }
-    .button { display:block; margin: 24px auto 0; padding:10px 24px; font-size:15px;
-      background:#0d3b5a; color:#fff; border:none; border-radius:6px; cursor:pointer; }
-    .button:hover { background:#0d1b2a; }
-
-    /* 재등록/중복 안내 배너 */
-    #dupBanner {
-      display:none; margin:12px 0; padding:10px 12px; border-radius:8px;
-      background:#fff7e6; border:1px solid #facc15; color:#7a4b00; font-size:14px;
-    }
-    #dupBanner strong { margin-right:6px; }
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,sans-serif;
+         background:#f5f0e8;color:#0d1b2a;margin:0;padding:24px}
+    .container{max-width:760px;margin:auto;background:#fff;padding:24px;border-radius:12px;
+               box-shadow:0 2px 10px rgba(0,0,0,.08)}
+    .row{display:flex;gap:20px;margin-bottom:12px}
+    .col{flex:1}
+    .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+    .close{background:none;border:none;font-size:20px;cursor:pointer}
+    .top-right-box{display:flex;justify-content:flex-end;gap:16px;margin:14px 0 20px}
+    .top-right-box .col{flex:0 0 30%}
+    label{font-weight:600;font-size:14px;display:block;margin-bottom:6px}
+    input,select,textarea{width:100%;padding:8px;font-size:14px;border:1px solid #ccc;border-radius:6px;background:#fff}
+    input:disabled{background:#f0f0f0}
+    textarea{resize:vertical}
+    .button{display:block;margin:24px auto 0;padding:10px 24px;font-size:15px;background:#0d3b5a;
+            color:#fff;border:none;border-radius:6px;cursor:pointer}
+    .button:hover{background:#0d1b2a}
+    /* 배너/읽기전용 정보 */
+    #dupBanner{display:none;margin:12px 0;padding:10px 12px;border-radius:8px;background:#fff7e6;border:1px solid #facc15;color:#7a4b00;font-size:14px}
+    #dupBanner strong{margin-right:6px}
+    #readOnlyInfo{display:none;margin:10px 0 16px;padding:10px 12px;border:1px dashed #cbd5e1;border-radius:8px;background:#f8fafc;color:#334155;font-size:14px}
   </style>
 </head>
 <body>
   <div class="container">
     <form id="registrationForm">
       <div class="topbar">
-        <h2 style="margin:0;">회원 등록</h2>
+        <h2 style="margin:0">회원 등록</h2>
         <button id="cancelBtn" type="button" class="close" aria-label="닫기">✕</button>
       </div>
 
@@ -57,6 +40,13 @@
       <div id="dupBanner">
         <strong>기존 회원입니다.</strong>
         <span id="dupText"></span>
+      </div>
+
+      <!-- 읽기 전용 현재 상태 -->
+      <div id="readOnlyInfo">
+        <div><strong>현재 잔여:</strong> <span id="infoRemain">0</span>회</div>
+        <div><strong>재등록 횟수:</strong> <span id="infoRenewal">0</span>회 · <strong>결제건수:</strong> <span id="infoPays">0</span>건</div>
+        <div><strong>최근 결제:</strong> <span id="infoLastPay">-</span> · <strong>만료일:</strong> <span id="infoExpire">-</span></div>
       </div>
 
       <!-- 최초 레슨/담당/유형 -->
@@ -226,7 +216,7 @@
     const db  = getFirestore(app);
 
     /* ==== Settings ==== */
-    const COL = "members"; // ← 기존에 fitness_members를 쓰면 여기만 바꿔주세요
+    const COL = "members"; // ← 필요 시 "fitness_members" 로 변경
 
     /* ==== Utils ==== */
     const $ = (s)=>document.querySelector(s);
@@ -255,7 +245,7 @@
     }
     function endOfDay(d){ const t=new Date(d); t.setHours(23,59,59,999); return t; }
 
-    /* ==== 입력 마스킹 ==== */
+    /* ==== 입력 하이픈 ==== */
     $("#phone")?.addEventListener("input", e=> e.target.value = formatPhone(e.target.value));
     $("#emergency")?.addEventListener("input", e=> e.target.value = formatPhone(e.target.value));
     $("#birth")?.addEventListener("input", e=> e.target.value = formatBirth(e.target.value));
@@ -266,34 +256,49 @@
 
     /* 취소 버튼 */
     $("#cancelBtn")?.addEventListener("click", ()=>{
-      if (confirm("취소하시겠습니까?")) location.href = "/dashboard.html";
+      if (confirm("취소하시겠습니까?")) location.href = "dashboard.html";
     });
 
-    /* ==== 중복/재등록 안내(휴대폰 기준) ==== */
-    const phoneEl = $("#phone"), dupBanner = $("#dupBanner"), dupText = $("#dupText");
-    async function checkDuplicate(){
+    /* ==== 중복/재등록 안내 + 이전 정보 자동 채움 ==== */
+    const dupBanner = $("#dupBanner"), dupText = $("#dupText");
+    async function prefillFromExisting(){
+      const phoneEl = $("#phone");
       const digits = onlyDigits(phoneEl.value);
-      if (digits.length < 10) { dupBanner.style.display="none"; return; }
+      if (digits.length < 10){ dupBanner.style.display="none"; $("#readOnlyInfo").style.display="none"; return; }
+
       const ref = doc(db, COL, digits);
       const snap = await getDoc(ref);
-      if (!snap.exists()){ dupBanner.style.display="none"; return; }
+      if (!snap.exists()){ dupBanner.style.display="none"; $("#readOnlyInfo").style.display="none"; return; }
+
       const x = snap.data();
-      const last = toDate(x.lastPurchaseAt);
-      const expireAt = toDate(x.expireAt);
+      const set = (name, val)=>{ const el=document.querySelector(`[name="${name}"]`); if(el) el.value = val ?? ""; };
 
-      // 표시용 필드 채우기(있다면)
-      const enrolledEl = document.querySelector('input[name="enrolled"]');
-      const remainingEl= document.querySelector('input[name="remaining"]');
-      if (enrolledEl)  enrolledEl.value  = x.totalSessionsPurchased ?? 0;
-      if (remainingEl) remainingEl.value = x.remainingSessions ?? 0;
+      // 입력칸 자동 채움(사용자 수정 가능)
+      set("name", x.name ?? "");
+      set("gender", x.gender ?? "");
+      set("birth", x.birth ? formatBirth(x.birth) : "");
+      set("trainer", x.trainer ?? "");
+      set("lessonType", x.lessonType ?? "");
+      set("address", x.address ?? "");
+      set("level", x.level ?? "");
 
+      // 배너 & 읽기전용 정보
+      const last   = toDate(x.lastPurchaseAt);
+      const expire = toDate(x.expireAt);
       dupText.textContent =
         `이름: ${x.name||'-'} · 재등록 ${x.renewalCount??0}회 · 잔여 ${x.remainingSessions??0}회` +
         (last ? ` · 최근 결제: ${last.toISOString().slice(0,10)}` : '') +
-        (expireAt ? ` · 회원권 만료: ${expireAt.toISOString().slice(0,10)}` : '');
-      dupBanner.style.display="block";
+        (expire ? ` · 회원권 만료: ${expire.toISOString().slice(0,10)}` : '');
+      dupBanner.style.display = "block";
+
+      $("#infoRemain").textContent  = x.remainingSessions ?? 0;
+      $("#infoRenewal").textContent = x.renewalCount ?? 0;
+      $("#infoPays").textContent    = x.totalPayments ?? 0;
+      $("#infoLastPay").textContent = last ? last.toISOString().slice(0,10) : "-";
+      $("#infoExpire").textContent  = expire ? expire.toISOString().slice(0,10) : "-";
+      $("#readOnlyInfo").style.display = "block";
     }
-    phoneEl?.addEventListener("blur", checkDuplicate);
+    $("#phone")?.addEventListener("blur", prefillFromExisting);
 
     /* ==== 제출 ==== */
     const form = document.getElementById("registrationForm");
@@ -407,15 +412,15 @@
         });
 
         alert("저장되었습니다.");
-        location.href = "/dashboard.html";
+        location.href = "dashboard.html";
       }catch(err){
         console.error(err);
         alert("저장 실패: " + err.message);
       }
     });
 
-    // 페이지 진입 시 중복 배너 갱신(휴대폰이 미리 채워져 있을 때)
-    checkDuplicate().catch(()=>{});
+    // 초기 진입 시(휴대폰이 미리 채워져 있으면) 한번 시도
+    prefillFromExisting().catch(()=>{});
   </script>
 </body>
 </html>
