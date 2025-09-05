@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>회원 등록</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,sans-serif;
+      background-color: #f5f0e8;
+      color: #0d1b2a;
+      margin: 0;
+      padding: 24px;
+    }
+    .container {
+      max-width: 760px;
+      margin: auto;
+      background: #fff;
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+    .row { display: flex; gap: 20px; margin-bottom: 12px; }
+    .col { flex: 1; }
+    .topbar { display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px; }
+    .close { background:none; border:none; font-size:20px; cursor:pointer; }
+    .top-right-box { display: flex; justify-content: flex-end; gap: 16px; margin: 14px 0 20px; }
+    .top-right-box .col { flex:0 0 30%; }
+    label { font-weight: 600; font-size: 14px; display:block; margin-bottom:6px; }
+    input, select, textarea {
+      width: 100%; padding: 8px; font-size: 14px;
+      border:1px solid #ccc; border-radius:6px; background:#fff;
+    }
+    input:disabled { background:#f0f0f0; }
+    textarea { resize: vertical; }
+    .button { display:block; margin: 24px auto 0; padding:10px 24px; font-size:15px;
+      background:#0d3b5a; color:#fff; border:none; border-radius:6px; cursor:pointer; }
+    .button:hover { background:#0d1b2a; }
+
+    /* 재등록/중복 안내 배너 */
+    #dupBanner {
+      display:none; margin:12px 0; padding:10px 12px; border-radius:8px;
+      background:#fff7e6; border:1px solid #facc15; color:#7a4b00; font-size:14px;
+    }
+    #dupBanner strong { margin-right:6px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <form id="registrationForm">
+      <div class="topbar">
+        <h2 style="margin:0;">회원 등록</h2>
+        <button id="cancelBtn" type="button" class="close" aria-label="닫기">✕</button>
+      </div>
+
+      <!-- 중복/재등록 안내 배너 -->
+      <div id="dupBanner">
+        <strong>기존 회원입니다.</strong>
+        <span id="dupText"></span>
+      </div>
+
+      <!-- 최초 레슨/담당/유형 -->
+      <div class="top-right-box">
+        <div class="col">
+          <label>최초 레슨 등록일</label>
+          <input type="date" name="startDate">
+        </div>
+        <div class="col">
+          <label>담당 트레이너</label>
+          <input type="text" name="trainer" required>
+        </div>
+        <div class="col">
+          <label>레슨 유형</label>
+          <select name="lessonType" required>
+            <option value="">선택</option>
+            <option>PT</option>
+            <option>PILATES</option>
+            <option>GOLF</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 기본 정보 -->
+      <div class="row">
+        <div class="col">
+          <label>이름</label>
+          <input type="text" name="name" required />
+        </div>
+        <div class="col">
+          <label>성별</label>
+          <select name="gender">
+            <option>여성</option>
+            <option>남성</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col">
+          <label>생년월일</label>
+          <input id="birth" type="text" name="birth" inputmode="numeric" pattern="[0-9\-]*" maxlength="10" placeholder="YYYY-MM-DD" required />
+        </div>
+        <div class="col">
+          <label>휴대폰번호</label>
+          <input id="phone" type="tel" name="phone" inputmode="numeric" pattern="[0-9\-]*" maxlength="13" placeholder="010-0000-0000" required />
+        </div>
+        <div class="col">
+          <label>긴급 연락처</label>
+          <input id="emergency" type="tel" name="emergency" inputmode="numeric" pattern="[0-9\-]*" maxlength="13" placeholder="010-0000-0000" />
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col">
+          <label>주소</label>
+          <input type="text" name="address" />
+        </div>
+        <div class="col">
+          <label>회원 등급</label>
+          <select name="level">
+            <option>VIP</option>
+            <option>일반</option>
+            <option>프로모션</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 표시용(관리 화면에서 실제 차감/계산) -->
+      <div class="row">
+        <div class="col">
+          <label>등록 횟수(표시)</label>
+          <input type="number" name="enrolled" disabled />
+        </div>
+        <div class="col">
+          <label>남은 횟수(표시)</label>
+          <input type="number" name="remaining" disabled />
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col">
+          <label>NO SHOW 차감 횟수</label>
+          <input type="number" name="noShowDeducted" />
+        </div>
+        <div class="col">
+          <label>NO SHOW 미차감 횟수</label>
+          <input type="number" name="noShowUndeducted" />
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col">
+          <label>골격근량 (kg)</label>
+          <input type="number" step="0.1" name="muscleMass" />
+        </div>
+        <div class="col">
+          <label>체지방율 (%)</label>
+          <input type="number" step="0.1" name="bodyFat" />
+        </div>
+      </div>
+
+      <!-- 회원권(개월) + 결제 -->
+      <div class="row">
+        <div class="col">
+          <label>회원권 기간(개월)</label>
+          <select id="membershipMonths" name="membershipMonths" required>
+            <option value="0">미설정</option>
+            <option value="1">1 개월</option>
+            <option value="3">3 개월</option>
+            <option value="6">6 개월</option>
+            <option value="12">12 개월</option>
+          </select>
+        </div>
+        <div class="col">
+          <label>이번 구매 세션수</label>
+          <input type="number" id="purchaseSessions" name="purchaseSessions" min="0" step="1" value="0" />
+        </div>
+        <div class="col">
+          <label>결제 금액(원)</label>
+          <input type="number" id="paymentAmount" name="paymentAmount" min="0" step="1000" placeholder="예: 660000" />
+        </div>
+      </div>
+      <div class="row">
+        <div class="col">
+          <label>결제일</label>
+          <input type="date" id="paymentDate" name="paymentDate" />
+        </div>
+        <div class="col">
+          <label>결제 메모</label>
+          <input type="text" id="purchaseMemo" name="purchaseMemo" placeholder="현금/카드, 프로모션, 영수증 등" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>건강 특이사항</label>
+        <textarea rows="3" name="healthMemo"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>회원 메모 사항</label>
+        <textarea rows="3" name="memberMemo"></textarea>
+      </div>
+
+      <button type="submit" class="button">회원 등록</button>
+    </form>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
+    import {
+      getFirestore, doc, getDoc, setDoc, runTransaction,
+      serverTimestamp, arrayUnion
+    } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+
+    /* ==== Firebase ==== */
+    const firebaseConfig = {
+      apiKey: "AIzaSyCjdyveDx0qFPUzmaChnEy9Ni0VjTysYnM",
+      authDomain: "more-than-fitness-f6adb.firebaseapp.com",
+      projectId: "more-than-fitness-f6adb",
+      storageBucket: "more-than-fitness-f6adb.appspot.com",
+      messagingSenderId: "993248877411",
+      appId: "1:993248877411:web:c0e6785162cf252fbcd156",
+      measurementId: "G-MK0RVFG296"
+    };
+    const app = initializeApp(firebaseConfig);
+    const db  = getFirestore(app);
+
+    /* ==== Settings ==== */
+    const COL = "members"; // ← 기존에 fitness_members를 쓰면 여기만 바꿔주세요
+
+    /* ==== Utils ==== */
+    const $ = (s)=>document.querySelector(s);
+    const onlyDigits = (s)=>String(s||"").replace(/\D/g,"");
+    const toInt = (v)=>{ const n=parseInt(v,10); return Number.isFinite(n)?n:0; };
+    const toFloat=(v)=>{ const n=parseFloat(v);  return Number.isFinite(n)?n:null; };
+    function formatPhone(raw){
+      const v = onlyDigits(raw).slice(0,11);
+      if (v.length<=3) return v;
+      if (v.length<=7) return v.slice(0,3)+"-"+v.slice(3);
+      return v.slice(0,3)+"-"+v.slice(3,7)+"-"+v.slice(7);
+    }
+    function formatBirth(raw){
+      const v = onlyDigits(raw).slice(0,8);
+      if (v.length<=4) return v;
+      if (v.length<=6) return v.slice(0,4)+"-"+v.slice(4);
+      return v.slice(0,4)+"-"+v.slice(4,6)+"-"+v.slice(6,8);
+    }
+    function toDate(val){ try{ return val?.toDate ? val.toDate() : (val?new Date(val):null);}catch{return null;} }
+    function addMonths(d, m){
+      const dt = new Date(d);
+      const day = dt.getDate();
+      dt.setMonth(dt.getMonth()+m);
+      if (dt.getDate() < day) dt.setDate(0); // 말일 보정
+      return dt;
+    }
+    function endOfDay(d){ const t=new Date(d); t.setHours(23,59,59,999); return t; }
+
+    /* ==== 입력 마스킹 ==== */
+    $("#phone")?.addEventListener("input", e=> e.target.value = formatPhone(e.target.value));
+    $("#emergency")?.addEventListener("input", e=> e.target.value = formatPhone(e.target.value));
+    $("#birth")?.addEventListener("input", e=> e.target.value = formatBirth(e.target.value));
+
+    /* 결제일 기본값 = 오늘 */
+    const payDate = $("#paymentDate");
+    if (payDate) payDate.value = new Date().toISOString().slice(0,10);
+
+    /* 취소 버튼 */
+    $("#cancelBtn")?.addEventListener("click", ()=>{
+      if (confirm("취소하시겠습니까?")) location.href = "/dashboard.html";
+    });
+
+    /* ==== 중복/재등록 안내(휴대폰 기준) ==== */
+    const phoneEl = $("#phone"), dupBanner = $("#dupBanner"), dupText = $("#dupText");
+    async function checkDuplicate(){
+      const digits = onlyDigits(phoneEl.value);
+      if (digits.length < 10) { dupBanner.style.display="none"; return; }
+      const ref = doc(db, COL, digits);
+      const snap = await getDoc(ref);
+      if (!snap.exists()){ dupBanner.style.display="none"; return; }
+      const x = snap.data();
+      const last = toDate(x.lastPurchaseAt);
+      const expireAt = toDate(x.expireAt);
+
+      // 표시용 필드 채우기(있다면)
+      const enrolledEl = document.querySelector('input[name="enrolled"]');
+      const remainingEl= document.querySelector('input[name="remaining"]');
+      if (enrolledEl)  enrolledEl.value  = x.totalSessionsPurchased ?? 0;
+      if (remainingEl) remainingEl.value = x.remainingSessions ?? 0;
+
+      dupText.textContent =
+        `이름: ${x.name||'-'} · 재등록 ${x.renewalCount??0}회 · 잔여 ${x.remainingSessions??0}회` +
+        (last ? ` · 최근 결제: ${last.toISOString().slice(0,10)}` : '') +
+        (expireAt ? ` · 회원권 만료: ${expireAt.toISOString().slice(0,10)}` : '');
+      dupBanner.style.display="block";
+    }
+    phoneEl?.addEventListener("blur", checkDuplicate);
+
+    /* ==== 제출 ==== */
+    const form = document.getElementById("registrationForm");
+    form.addEventListener("submit", async (e)=>{
+      e.preventDefault();
+
+      // 1) 폼 수집 + 정규화
+      const fd  = new FormData(form);
+      const raw = Object.fromEntries(fd.entries());
+
+      const phoneDigits = onlyDigits(raw.phone);
+      const emerDigits  = onlyDigits(raw.emergency);
+      const birth8      = onlyDigits(raw.birth).slice(0,8);
+
+      const months      = toInt(raw.membershipMonths);   // 회원권 개월
+      const purchaseN   = toInt(raw.purchaseSessions);   // 이번 구매 세션수
+      const price       = toInt(raw.paymentAmount);
+      const startDateStr= raw.startDate || new Date().toISOString().slice(0,10);
+      const startDate   = new Date(startDateStr);
+      const payAt       = raw.paymentDate ? new Date(raw.paymentDate) : new Date();
+
+      if (!raw.name?.trim())           return alert("이름을 입력하세요.");
+      if (phoneDigits.length < 10)     return alert("휴대폰 번호를 확인하세요.");
+      if (birth8.length !== 8)         return alert("생년월일은 YYYY-MM-DD 형식으로 입력하세요.");
+
+      const docId = phoneDigits; // 전화번호 = 문서ID
+
+      // 2) 트랜잭션: 신규/재등록 처리 + 누적/유효기간 갱신
+      try{
+        await runTransaction(db, async (tx)=>{
+          const ref = doc(db, COL, docId);
+          const snap = await tx.get(ref);
+          const exists = snap.exists();
+          const prev = exists ? snap.data() : {};
+
+          // 이전 값
+          const prevRemain   = Number(prev.remainingSessions || 0);
+          const prevRenewal  = Number(prev.renewalCount || 0);
+          const prevPays     = Number(prev.totalPayments || 0);
+          const prevTotalS   = Number(prev.totalSessionsPurchased || 0);
+          const prevTotalMon = Number(prev.totalMembershipMonths || 0);
+          const prevExpire   = toDate(prev.expireAt);
+
+          // 회원권 만료 계산: 기존 만료가 미래면 그 다음 날부터, 아니면 startDate 기준
+          let base = startDate;
+          const today = new Date(); today.setHours(0,0,0,0);
+          if (prevExpire && prevExpire >= today) {
+            base = new Date(prevExpire.getTime());
+            base.setDate(base.getDate()+1);
+          }
+          const newExpire = months>0 ? endOfDay(addMonths(base, months)) : (prevExpire || null);
+
+          // 집계
+          const newRemain   = prevRemain + purchaseN;
+          const hasPayment  = (purchaseN>0 || months>0 || price>0);
+          const newPays     = prevPays + (hasPayment ? 1 : 0);
+          const newRenewal  = exists ? (prevRenewal + (purchaseN>0 || months>0 ? 1 : 0)) : 0;
+          const totalS      = prevTotalS + purchaseN;
+          const totalMon    = prevTotalMon + months;
+
+          // 프로필 업서트
+          const profile = {
+            name: raw.name.trim(),
+            gender: raw.gender || "",
+            phone: phoneDigits,             // 숫자만 저장
+            emergency: emerDigits,          // 숫자만 저장
+            birth: birth8,                  // YYYYMMDD
+            startDate: startDateStr,
+            trainer: raw.trainer || "",
+            lessonType: raw.lessonType || "",
+            address: raw.address || "",
+            level: raw.level || "일반",
+            noShowDeducted: toInt(raw.noShowDeducted),
+            noShowUndeducted: toInt(raw.noShowUndeducted),
+            muscleMass: toFloat(raw.muscleMass),
+            bodyFat: toFloat(raw.bodyFat),
+            healthMemo: raw.healthMemo || "",
+            memberMemo: raw.memberMemo || "",
+
+            // 보기 편의
+            phoneDisplay: formatPhone(phoneDigits),
+            birthDisplay: formatBirth(birth8),
+
+            // 누적/상태
+            remainingSessions: newRemain,
+            renewalCount: newRenewal,
+            totalPayments: newPays,
+            totalSessionsPurchased: totalS,
+            totalMembershipMonths: totalMon,
+            expireAt: newExpire || null,
+
+            // 마지막 결제/회원권
+            lastPurchaseAt: hasPayment ? payAt : (prev.lastPurchaseAt || null),
+            lastPurchaseSessions: purchaseN>0 ? purchaseN : (prev.lastPurchaseSessions || 0),
+            lastPurchaseAmount: price>0 ? price : (prev.lastPurchaseAmount || 0),
+
+            updatedAt: serverTimestamp()
+          };
+          if (!exists) profile.createdAt = serverTimestamp();
+
+          // 결제 히스토리 append
+          if (hasPayment) {
+            const purchaseRecord = {
+              at: payAt, sessions: purchaseN, months, amount: price,
+              memo: raw.purchaseMemo || "", by: profile.trainer || ""
+            };
+            tx.set(ref, { purchaseHistory: arrayUnion(purchaseRecord) }, { merge:true });
+          }
+
+          tx.set(ref, profile, { merge:true });
+        });
+
+        alert("저장되었습니다.");
+        location.href = "/dashboard.html";
+      }catch(err){
+        console.error(err);
+        alert("저장 실패: " + err.message);
+      }
+    });
+
+    // 페이지 진입 시 중복 배너 갱신(휴대폰이 미리 채워져 있을 때)
+    checkDuplicate().catch(()=>{});
+  </script>
+</body>
+</html>
