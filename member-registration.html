@@ -26,6 +26,10 @@
     #dupBanner{display:none;margin:12px 0;padding:10px 12px;border-radius:8px;background:#fff7e6;border:1px solid #facc15;color:#7a4b00;font-size:14px}
     #dupBanner strong{margin-right:6px}
     #readOnlyInfo{display:none;margin:10px 0 16px;padding:10px 12px;border:1px dashed #cbd5e1;border-radius:8px;background:#f8fafc;color:#334155;font-size:14px}
+    #formatBanner{
+    display:none; margin:12px 0; padding:10px 12px; border-radius:8px;
+    background:#fee2e2; border:1px solid #ef4444; color:#991b1b; font-size:14px
+  }
   </style>
 </head>
 <body>
@@ -35,7 +39,8 @@
         <h2 style="margin:0">회원 등록</h2>
         <button id="cancelBtn" type="button" class="close" aria-label="닫기">✕</button>
       </div>
-
+     <!-- 입력 형식 경고 배너 -->
+     <div id="formatBanner" role="alert">형식에 맞지 않습니다.</div>
       <!-- 중복/재등록 안내 배너 -->
       <div id="dupBanner">
         <strong>기존 회원입니다.</strong>
@@ -195,306 +200,257 @@
     </form>
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
-    import {
-      getFirestore, doc, getDoc, runTransaction,
-      serverTimestamp, arrayUnion
-    } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+ <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
+  import {
+    getFirestore, doc, getDoc, runTransaction,
+    serverTimestamp, arrayUnion
+  } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
 
-    /* ==== Firebase ==== */
-    const firebaseConfig = {
-      apiKey: "AIzaSyCjdyveDx0qFPUzmaChnEy9Ni0VjTysYnM",
-      authDomain: "more-than-fitness-f6adb.firebaseapp.com",
-      projectId: "more-than-fitness-f6adb",
-      storageBucket: "more-than-fitness-f6adb.appspot.com",
-      messagingSenderId: "993248877411",
-      appId: "1:993248877411:web:c0e6785162cf252fbcd156",
-      measurementId: "G-MK0RVFG296"
-    };
-    const app = initializeApp(firebaseConfig);
-    const db  = getFirestore(app);
+  /* ==== Firebase ==== */
+  const firebaseConfig = {
+    apiKey: "AIzaSyCjdyveDx0qFPUzmaChnEy9Ni0VjTysYnM",
+    authDomain: "more-than-fitness-f6adb.firebaseapp.com",
+    projectId: "more-than-fitness-f6adb",
+    storageBucket: "more-than-fitness-f6adb.appspot.com",
+    messagingSenderId: "993248877411",
+    appId: "1:993248877411:web:c0e6785162cf252fbcd156",
+    measurementId: "G-MK0RVFG296"
+  };
+  const app = initializeApp(firebaseConfig);
+  const db  = getFirestore(app);
 
-    /* ==== Settings ==== */
-    const COL = "fitness_members"; //
+  /* ==== Settings ==== */
+  // 콘솔에서 쓰는 컬렉션명으로 통일하세요. (권장: "members")
+  const COL = "members";
 
-    /* ==== Utils ==== */
-    const $ = (s)=>document.querySelector(s);
-    const onlyDigits = (s)=>String(s||"").replace(/\D/g,"");
-    const toInt = (v)=>{ const n=parseInt(v,10); return Number.isFinite(n)?n:0; };
-    const toFloat=(v)=>{ const n=parseFloat(v);  return Number.isFinite(n)?n:null; };
-    function formatPhone(raw){
-      const v = onlyDigits(raw).slice(0,11);
-      if (v.length<=3) return v;
-      if (v.length<=7) return v.slice(0,3)+"-"+v.slice(3);
-      return v.slice(0,3)+"-"+v.slice(3,7)+"-"+v.slice(7);
-    }
-    function formatBirth(raw){
-      const v = onlyDigits(raw).slice(0,8);
-      if (v.length<=4) return v;
-      if (v.length<=6) return v.slice(0,4)+"-"+v.slice(4);
-      return v.slice(0,4)+"-"+v.slice(4,6)+"-"+v.slice(6,8);
-    }
-    function toDate(val){ try{ return val?.toDate ? val.toDate() : (val?new Date(val):null);}catch{return null;} }
-    function addMonths(d, m){
-      const dt = new Date(d);
-      const day = dt.getDate();
-      dt.setMonth(dt.getMonth()+m);
-      if (dt.getDate() < day) dt.setDate(0); // 말일 보정
-      return dt;
-    }
-    function endOfDay(d){ const t=new Date(d); t.setHours(23,59,59,999); return t; }
+  /* ==== Utils ==== */
+  const $ = (s)=>document.querySelector(s);
+  const onlyDigits = (s)=>String(s||"").replace(/\D/g,"");
+  const toInt = (v)=>{ const n=parseInt(v,10); return Number.isFinite(n)?n:0; };
+  const toFloat=(v)=>{ const n=parseFloat(v);  return Number.isFinite(n)?n:null; };
 
-    /* ==== 입력 하이픈 ==== */
-    $("#phone")?.addEventListener("input", e=> e.target.value = formatPhone(e.target.value));
-    $("#emergency")?.addEventListener("input", e=> e.target.value = formatPhone(e.target.value));
-    $("#birth")?.addEventListener("input", e=> e.target.value = formatBirth(e.target.value));
-
-    /* 결제일 기본값 = 오늘 */
-    const payDate = $("#paymentDate");
-    if (payDate) payDate.value = new Date().toISOString().slice(0,10);
-
-    /* 취소 버튼 */
-    $("#cancelBtn")?.addEventListener("click", ()=>{
-      if (confirm("취소하시겠습니까?")) location.href = "dashboard.html";
-    });
-
-    /* ==== 중복/재등록 안내 + 이전 정보 자동 채움 ==== */
-    const dupBanner = $("#dupBanner"), dupText = $("#dupText");
-    async function prefillFromExisting(){
-      const phoneEl = $("#phone");
-      const digits = onlyDigits(phoneEl.value);
-      if (digits.length < 10){ dupBanner.style.display="none"; $("#readOnlyInfo").style.display="none"; return; }
-
-      const ref = doc(db, COL, digits);
-      const snap = await getDoc(ref);
-      if (!snap.exists()){ dupBanner.style.display="none"; $("#readOnlyInfo").style.display="none"; return; }
-
-      const x = snap.data();
-      const set = (name, val)=>{ const el=document.querySelector(`[name="${name}"]`); if(el) el.value = val ?? ""; };
-
-      // 입력칸 자동 채움(사용자 수정 가능)
-      set("name", x.name ?? "");
-      set("gender", x.gender ?? "");
-      set("birth", x.birth ? formatBirth(x.birth) : "");
-      set("trainer", x.trainer ?? "");
-      set("lessonType", x.lessonType ?? "");
-      set("address", x.address ?? "");
-      set("level", x.level ?? "");
-
-      // 배너 & 읽기전용 정보
-      const last   = toDate(x.lastPurchaseAt);
-      const expire = toDate(x.expireAt);
-      dupText.textContent =
-        `이름: ${x.name||'-'} · 재등록 ${x.renewalCount??0}회 · 잔여 ${x.remainingSessions??0}회` +
-        (last ? ` · 최근 결제: ${last.toISOString().slice(0,10)}` : '') +
-        (expire ? ` · 회원권 만료: ${expire.toISOString().slice(0,10)}` : '');
-      dupBanner.style.display = "block";
-
-      $("#infoRemain").textContent  = x.remainingSessions ?? 0;
-      $("#infoRenewal").textContent = x.renewalCount ?? 0;
-      $("#infoPays").textContent    = x.totalPayments ?? 0;
-      $("#infoLastPay").textContent = last ? last.toISOString().slice(0,10) : "-";
-      $("#infoExpire").textContent  = expire ? expire.toISOString().slice(0,10) : "-";
-      $("#readOnlyInfo").style.display = "block";
-    }
-    $("#phone")?.addEventListener("blur", prefillFromExisting);
-
- /* ==== 제출 ==== */
-const form = document.getElementById("registrationForm");
-form.addEventListener("submit", async (e)=>{
-  e.preventDefault();
-
-  // 1) 폼 수집 + 정규화
-  const fd  = new FormData(form);
-  const raw = Object.fromEntries(fd.entries());
-
-  const phoneDigits = onlyDigits(raw.phone);
-  const emerDigits  = onlyDigits(raw.emergency);
-  const birth8      = onlyDigits(raw.birth).slice(0,8);
-
-  const months      = toInt(raw.membershipMonths);   // 회원권 개월
-  const purchaseN   = toInt(raw.purchaseSessions);   // 이번 구매 세션수
-  const price       = toInt(raw.paymentAmount);
-  const startDateStr= raw.startDate || todayLocalISO();   // ← 로컬 날짜
-  const startDate   = new Date(startDateStr);
-  const payAt       = raw.paymentDate ? new Date(raw.paymentDate) : new Date();
-
-  if (!raw.name?.trim())           return alert("이름을 입력하세요.");
-  if (phoneDigits.length < 10)     return alert("휴대폰 번호를 확인하세요.");
-  if (birth8.length !== 8)         return alert("생년월일은 YYYY-MM-DD 형식으로 입력하세요.");
-
-  const docId = phoneDigits;  // "010xxxxxxxx" 숫자만
-
-  try {
-    await runTransaction(db, async (tx) => {
-      const ref = doc(db, COL, docId);        // 트랜잭션 안에서 한 번만
-      const snap = await tx.get(ref);
-      const exists = snap.exists();
-      const prev = exists ? snap.data() : {};
-
-      // ── 이전값
-      const prevRemain   = Number(prev.remainingSessions || 0);
-      const prevRenewal  = Number(prev.renewalCount || 0);
-      const prevPays     = Number(prev.totalPayments || 0);
-      const prevTotalS   = Number(prev.totalSessionsPurchased || 0);
-      const prevTotalMon = Number(prev.totalMembershipMonths || 0);
-      const prevExpire   = prev.expireAt?.toDate ? prev.expireAt.toDate() : (prev.expireAt ? new Date(prev.expireAt) : null);
-
-      // ── 만료일 계산(기존 만료가 살아있으면 다음날부터 연장)
-      const today = new Date(); today.setHours(0,0,0,0);
-      let base = startDate;
-      if (prevExpire && prevExpire >= today) { base = new Date(prevExpire); base.setDate(base.getDate()+1); }
-      const newExpire = months > 0 ? endOfDay(addMonths(base, months)) : (prevExpire || null);
-
-      // ── 집계/상태
-      const newRemain  = prevRemain + purchaseN;
-      const hasPayment = (purchaseN > 0 || months > 0 || price > 0);
-
-      const profile = {
-        name: raw.name.trim(),
-        gender: raw.gender || "",
-        phone: phoneDigits,                 // 숫자만 저장
-        emergency: emerDigits,              // 숫자만 저장
-        birth: birth8,                      // YYYYMMDD
-        startDate: startDateStr,
-        trainer: raw.trainer || "",
-        lessonType: raw.lessonType || "",
-        address: raw.address || "",
-        level: raw.level || "일반",
-        noShowDeducted: toInt(raw.noShowDeducted),
-        noShowUndeducted: toInt(raw.noShowUndeducted),
-        muscleMass: toFloat(raw.muscleMass),
-        bodyFat: toFloat(raw.bodyFat),
-        healthMemo: raw.healthMemo || "",
-        memberMemo: raw.memberMemo || "",
-        phoneDisplay: formatPhone(phoneDigits),
-        birthDisplay: formatBirth(birth8),
-
-        remainingSessions: newRemain,
-        renewalCount: exists ? (prevRenewal + (hasPayment ? 1 : 0)) : 0,
-        totalPayments: prevPays + (hasPayment ? 1 : 0),
-        totalSessionsPurchased: prevTotalS + purchaseN,
-        totalMembershipMonths: prevTotalMon + months,
-        expireAt: newExpire || null,
-
-        lastPurchaseAt: hasPayment ? payAt : (prev.lastPurchaseAt || null),
-        lastPurchaseSessions: purchaseN > 0 ? purchaseN : (prev.lastPurchaseSessions || 0),
-        lastPurchaseAmount:  price     > 0 ? price     : (prev.lastPurchaseAmount  || 0),
-
-        updatedAt: serverTimestamp(),
-        ...(exists ? {} : { createdAt: serverTimestamp() })
-      };
-
-      tx.set(ref, profile, { merge: true });  // 업서트
-
-      if (hasPayment) {
-        const purchaseRecord = {
-          at: payAt, sessions: purchaseN, months, amount: price,
-          memo: raw.purchaseMemo || "", by: profile.trainer || ""
-        };
-        tx.set(ref, { purchaseHistory: arrayUnion(purchaseRecord) }, { merge: true });
-      }
-    });
-
-    alert("저장되었습니다.");
-    location.href = "dashboard.html";
-  } catch (err) {
-    console.error(err);
-    alert("저장 실패: " + err.message);
+  function formatPhone(raw){
+    const v = onlyDigits(raw).slice(0,11);
+    if (v.length<=3) return v;
+    if (v.length<=7) return v.slice(0,3)+"-"+v.slice(3);
+    return v.slice(0,3)+"-"+v.slice(3,7)+"-"+v.slice(7);
   }
-});
+  function formatBirth(raw){
+    const v = onlyDigits(raw).slice(0,8);
+    if (v.length<=4) return v;
+    if (v.length<=6) return v.slice(0,4)+"-"+v.slice(4);
+    return v.slice(0,4)+"-"+v.slice(4,6)+"-"+v.slice(6,8);
+  }
+  function toDate(val){ try{ return val?.toDate ? val.toDate() : (val?new Date(val):null);}catch{return null;} }
+  function addMonths(d, m){
+    const dt = new Date(d);
+    const day = dt.getDate();
+    dt.setMonth(dt.getMonth()+m);
+    if (dt.getDate() < day) dt.setDate(0); // 말일 보정
+    return dt;
+  }
+  function endOfDay(d){ const t=new Date(d); t.setHours(23,59,59,999); return t; }
+  function todayLocalISO(){
+    const d = new Date();
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    return d.toISOString().slice(0,10);
+  }
 
-// 초기 진입 시(휴대폰이 미리 채워져 있으면) 한번 시도
-prefillFromExisting().catch(()=>{});
+  /* ==== 형식 배너 & 검증 ==== */
+  const formatBanner = $("#formatBanner");
+  function showFormat(msg){
+    if (!formatBanner) return;
+    formatBanner.textContent = msg || "양식에 맞지 않습니다.";
+    formatBanner.style.display = "block";
+    clearTimeout(showFormat._t);
+    showFormat._t = setTimeout(()=>{ formatBanner.style.display="none"; }, 3000);
+  }
+  function validatePhone(v){
+    const d = onlyDigits(v);
+    return d.length>=10 && d.length<=11 && /^01\d/.test(d);
+  }
+  function validateBirth(v){
+    const d = onlyDigits(v);
+    if (d.length !== 8) return false;
+    const y = +d.slice(0,4), m = +d.slice(4,6), day = +d.slice(6,8);
+    if (m<1 || m>12 || day<1 || day>31) return false;
+    const dt = new Date(y, m-1, day);
+    if (dt.getFullYear()!==y || dt.getMonth()!==m-1 || dt.getDate()!==day) return false;
+    if (y<1900 || y>2100) return false;
+    return true;
+  }
 
-          // 이전 값
-          const prevRemain   = Number(prev.remainingSessions || 0);
-          const prevRenewal  = Number(prev.renewalCount || 0);
-          const prevPays     = Number(prev.totalPayments || 0);
-          const prevTotalS   = Number(prev.totalSessionsPurchased || 0);
-          const prevTotalMon = Number(prev.totalMembershipMonths || 0);
-          const prevExpire   = toDate(prev.expireAt);
+  /* ==== 입력 하이픈 ==== */
+  $("#phone")?.addEventListener("input", e=> e.target.value = formatPhone(e.target.value));
+  $("#emergency")?.addEventListener("input", e=> e.target.value = formatPhone(e.target.value));
+  $("#birth")?.addEventListener("input", e=> e.target.value = formatBirth(e.target.value));
 
-          // 회원권 만료 계산: 기존 만료가 미래면 그 다음 날부터, 아니면 startDate 기준
-          let base = startDate;
-          const today = new Date(); today.setHours(0,0,0,0);
-          if (prevExpire && prevExpire >= today) {
-            base = new Date(prevExpire.getTime());
-            base.setDate(base.getDate()+1);
-          }
-          const newExpire = months>0 ? endOfDay(addMonths(base, months)) : (prevExpire || null);
+  // 블러 시 형식 체크 + 배너
+  $("#phone")?.addEventListener("blur", e=>{
+    if (!validatePhone(e.target.value)) showFormat("휴대폰 번호 형식이 올바르지 않습니다. 예) 010-1234-5678");
+  });
+  $("#birth")?.addEventListener("blur", e=>{
+    if (!validateBirth(e.target.value)) showFormat("생년월일 형식이 올바르지 않습니다. 예) 1990-05-21");
+  });
 
-          // 집계
-          const newRemain   = prevRemain + purchaseN;
-          const hasPayment  = (purchaseN>0 || months>0 || price>0);
-          const newPays     = prevPays + (hasPayment ? 1 : 0);
-          const newRenewal  = exists ? (prevRenewal + (purchaseN>0 || months>0 ? 1 : 0)) : 0;
-          const totalS      = prevTotalS + purchaseN;
-          const totalMon    = prevTotalMon + months;
+  /* 결제일 기본값 = 오늘(로컬) */
+  const payDate = $("#paymentDate");
+  if (payDate) payDate.value = todayLocalISO();
 
-          // 프로필 업서트
-          const profile = {
-            name: raw.name.trim(),
-            gender: raw.gender || "",
-            phone: phoneDigits,             // 숫자만 저장
-            emergency: emerDigits,          // 숫자만 저장
-            birth: birth8,                  // YYYYMMDD
-            startDate: startDateStr,
-            trainer: raw.trainer || "",
-            lessonType: raw.lessonType || "",
-            address: raw.address || "",
-            level: raw.level || "일반",
-            noShowDeducted: toInt(raw.noShowDeducted),
-            noShowUndeducted: toInt(raw.noShowUndeducted),
-            muscleMass: toFloat(raw.muscleMass),
-            bodyFat: toFloat(raw.bodyFat),
-            healthMemo: raw.healthMemo || "",
-            memberMemo: raw.memberMemo || "",
+  /* 취소 버튼 */
+  $("#cancelBtn")?.addEventListener("click", ()=>{
+    if (confirm("취소하시겠습니까?")) location.href = "dashboard.html";
+  });
 
-            // 보기 편의
-            phoneDisplay: formatPhone(phoneDigits),
-            birthDisplay: formatBirth(birth8),
+  /* ==== 중복/재등록 안내 + 이전 정보 자동 채움 ==== */
+  const dupBanner = $("#dupBanner"), dupText = $("#dupText");
+  async function prefillFromExisting(){
+    const phoneEl = $("#phone");
+    const digits = onlyDigits(phoneEl.value);
+    if (digits.length < 10){ dupBanner.style.display="none"; $("#readOnlyInfo").style.display="none"; return; }
 
-            // 누적/상태
-            remainingSessions: newRemain,
-            renewalCount: newRenewal,
-            totalPayments: newPays,
-            totalSessionsPurchased: totalS,
-            totalMembershipMonths: totalMon,
-            expireAt: newExpire || null,
+    const ref = doc(db, COL, digits);
+    const snap = await getDoc(ref);
+    if (!snap.exists()){ dupBanner.style.display="none"; $("#readOnlyInfo").style.display="none"; return; }
 
-            // 마지막 결제/회원권
-            lastPurchaseAt: hasPayment ? payAt : (prev.lastPurchaseAt || null),
-            lastPurchaseSessions: purchaseN>0 ? purchaseN : (prev.lastPurchaseSessions || 0),
-            lastPurchaseAmount: price>0 ? price : (prev.lastPurchaseAmount || 0),
+    const x = snap.data();
+    const set = (name, val)=>{ const el=document.querySelector(`[name="${name}"]`); if(el) el.value = val ?? ""; };
 
-            updatedAt: serverTimestamp()
+    // 입력칸 자동 채움(사용자 수정 가능)
+    set("name", x.name ?? "");
+    set("gender", x.gender ?? "");
+    set("birth", x.birth ? formatBirth(x.birth) : "");
+    set("trainer", x.trainer ?? "");
+    set("lessonType", x.lessonType ?? "");
+    set("address", x.address ?? "");
+    set("level", x.level ?? "");
+
+    // 배너 & 읽기전용 정보
+    const last   = toDate(x.lastPurchaseAt);
+    const expire = toDate(x.expireAt);
+    dupText.textContent =
+      `이름: ${x.name||'-'} · 재등록 ${x.renewalCount??0}회 · 잔여 ${x.remainingSessions??0}회` +
+      (last ? ` · 최근 결제: ${last.toISOString().slice(0,10)}` : '') +
+      (expire ? ` · 회원권 만료: ${expire.toISOString().slice(0,10)}` : '');
+    dupBanner.style.display = "block";
+
+    $("#infoRemain").textContent  = x.remainingSessions ?? 0;
+    $("#infoRenewal").textContent = x.renewalCount ?? 0;
+    $("#infoPays").textContent    = x.totalPayments ?? 0;
+    $("#infoLastPay").textContent = last ? last.toISOString().slice(0,10) : "-";
+    $("#infoExpire").textContent  = expire ? expire.toISOString().slice(0,10) : "-";
+    $("#readOnlyInfo").style.display = "block";
+  }
+  $("#phone")?.addEventListener("blur", prefillFromExisting);
+
+  /* ==== 제출 ==== */
+  const form = document.getElementById("registrationForm");
+  form.addEventListener("submit", async (e)=>{
+    e.preventDefault();
+
+    // 1) 폼 수집 + 정규화
+    const fd  = new FormData(form);
+    const raw = Object.fromEntries(fd.entries());
+
+    const phoneDigits = onlyDigits(raw.phone);
+    const emerDigits  = onlyDigits(raw.emergency);
+    const birth8      = onlyDigits(raw.birth).slice(0,8);
+
+    const months      = toInt(raw.membershipMonths);   // 회원권 개월
+    const purchaseN   = toInt(raw.purchaseSessions);   // 이번 구매 세션수
+    const price       = toInt(raw.paymentAmount);
+    const startDateStr= raw.startDate || todayLocalISO();
+    const startDate   = new Date(startDateStr);
+    const payAt       = raw.paymentDate ? new Date(raw.paymentDate) : new Date();
+
+    if (!raw.name?.trim())            return showFormat("이름을 입력하세요.");
+    if (!validatePhone(raw.phone))    return showFormat("휴대폰 번호 형식이 올바르지 않습니다.");
+    if (!validateBirth(raw.birth))    return showFormat("생년월일 형식이 올바르지 않습니다. (YYYY-MM-DD)");
+
+    const docId = phoneDigits;  // "010xxxxxxxx"
+
+    try {
+      await runTransaction(db, async (tx) => {
+        const ref = doc(db, COL, docId);
+        const snap = await tx.get(ref);
+        const exists = snap.exists();
+        const prev = exists ? snap.data() : {};
+
+        // 이전값
+        const prevRemain   = Number(prev.remainingSessions || 0);
+        const prevRenewal  = Number(prev.renewalCount || 0);
+        const prevPays     = Number(prev.totalPayments || 0);
+        const prevTotalS   = Number(prev.totalSessionsPurchased || 0);
+        const prevTotalMon = Number(prev.totalMembershipMonths || 0);
+        const prevExpire   = prev.expireAt?.toDate ? prev.expireAt.toDate() : (prev.expireAt ? new Date(prev.expireAt) : null);
+
+        // 만료일 계산(기존 만료가 살아있으면 다음날부터 연장)
+        const today = new Date(); today.setHours(0,0,0,0);
+        let base = startDate;
+        if (prevExpire && prevExpire >= today) { base = new Date(prevExpire); base.setDate(base.getDate()+1); }
+        const newExpire = months > 0 ? endOfDay(addMonths(base, months)) : (prevExpire || null);
+
+        // 집계/상태
+        const newRemain  = prevRemain + purchaseN;
+        const hasPayment = (purchaseN > 0 || months > 0 || price > 0);
+
+        const profile = {
+          name: raw.name.trim(),
+          gender: raw.gender || "",
+          phone: phoneDigits,                 // 숫자만 저장
+          emergency: emerDigits,              // 숫자만 저장
+          birth: birth8,                      // YYYYMMDD
+          startDate: startDateStr,
+          trainer: raw.trainer || "",
+          lessonType: raw.lessonType || "",
+          address: raw.address || "",
+          level: raw.level || "일반",
+          noShowDeducted: toInt(raw.noShowDeducted),
+          noShowUndeducted: toInt(raw.noShowUndeducted),
+          muscleMass: toFloat(raw.muscleMass),
+          bodyFat: toFloat(raw.bodyFat),
+          healthMemo: raw.healthMemo || "",
+          memberMemo: raw.memberMemo || "",
+          phoneDisplay: formatPhone(phoneDigits),
+          birthDisplay: formatBirth(birth8),
+
+          remainingSessions: newRemain,
+          renewalCount: exists ? (prevRenewal + (hasPayment ? 1 : 0)) : 0,
+          totalPayments: prevPays + (hasPayment ? 1 : 0),
+          totalSessionsPurchased: prevTotalS + purchaseN,
+          totalMembershipMonths: prevTotalMon + months,
+          expireAt: newExpire || null,
+
+          lastPurchaseAt: hasPayment ? payAt : (prev.lastPurchaseAt || null),
+          lastPurchaseSessions: purchaseN > 0 ? purchaseN : (prev.lastPurchaseSessions || 0),
+          lastPurchaseAmount:  price > 0 ? price : (prev.lastPurchaseAmount || 0),
+
+          updatedAt: serverTimestamp(),
+          ...(exists ? {} : { createdAt: serverTimestamp() })
+        };
+
+        tx.set(ref, profile, { merge: true });  // 업서트
+
+        if (hasPayment) {
+          const purchaseRecord = {
+            at: payAt, sessions: purchaseN, months, amount: price,
+            memo: raw.purchaseMemo || "", by: profile.trainer || ""
           };
-          if (!exists) profile.createdAt = serverTimestamp();
+          tx.set(ref, { purchaseHistory: arrayUnion(purchaseRecord) }, { merge: true });
+        }
+      });
 
-          // 결제 히스토리 append
-          if (hasPayment) {
-            const purchaseRecord = {
-              at: payAt, sessions: purchaseN, months, amount: price,
-              memo: raw.purchaseMemo || "", by: profile.trainer || ""
-            };
-            tx.set(ref, { purchaseHistory: arrayUnion(purchaseRecord) }, { merge:true });
-          }
+      alert("저장되었습니다.");
+      location.href = "dashboard.html";
+    } catch (err) {
+      console.error(err);
+      alert("저장 실패: " + err.message);
+    }
+  });
 
-          tx.set(ref, profile, { merge:true });
-        });
-
-        alert("저장되었습니다.");
-        location.href = "dashboard.html";
-      }catch(err){
-        console.error(err);
-        alert("저장 실패: " + err.message);
-      }
-    });
-
-    // 초기 진입 시(휴대폰이 미리 채워져 있으면) 한번 시도
-    prefillFromExisting().catch(()=>{});
-  </script>
+  // 초기 진입 시(휴대폰이 미리 채워져 있으면) 한번 시도
+  prefillFromExisting().catch(()=>{});
+</script>
 </body>
 </html>
