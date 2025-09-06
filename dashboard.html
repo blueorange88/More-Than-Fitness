@@ -388,12 +388,16 @@ function highlightToday(){
 }
 </script>
 
-<!-- ===== Firebase & 기능들 ===== -->
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
-  import { getFirestore, doc, setDoc, getDoc, collection, addDoc, getDocs, writeBatch, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+  /* ===== Firebase ===== */
+  import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
+  import { 
+    getFirestore, collection, addDoc, serverTimestamp 
+  } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
 
-  /* Firebase 설정 */
+  // (선택) 익명 로그인 - 규칙에서 authed()를 쓰는 경우 편함
+  import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
+
   const firebaseConfig = {
     apiKey: "AIzaSyCjdyveDx0qFPUzmaChnEy9Ni0VjTysYnM",
     authDomain: "more-than-fitness-f6adb.firebaseapp.com",
@@ -403,126 +407,61 @@ function highlightToday(){
     appId: "1:993248877411:web:c0e6785162cf252fbcd156",
     measurementId: "G-MK0RVFG296"
   };
-  const app = initializeApp(firebaseConfig);
+
+  // 이미 초기화되어 있으면 재사용
+  const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
   const db  = getFirestore(app);
-  window.db = db; // 디버깅용
 
-  /* 유틸 */
-  const onlyDigits = s => String(s||"").replace(/\D/g,"");
-  const fmtPhone = raw => {
-    const v = onlyDigits(raw).slice(0,11);
-    if (v.length<=3) return v;
-    if (v.length<=7) return v.slice(0,3)+'-'+v.slice(3);
-    return v.slice(0,3)+'-'+v.slice(3,7)+'-'+v.slice(7);
+  // (선택) 익명 로그인
+  const auth = getAuth(app);
+  onAuthStateChanged(auth, (user) => { 
+    if (!user) signInAnonymously(auth).catch(console.error);
+  });
+
+  /* ===== 유틸 ===== */
+  // 로컬 날짜(YYYY-MM-DD)
+  const todayLocalISO = () => {
+    const d = new Date();
+    const p = n => String(n).padStart(2,"0");
+    return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;
   };
-  const dateToISO = d => d instanceof Date ? d.toISOString().slice(0,10) : (d ? new Date(d).toISOString().slice(0,10) : "");
 
-  /* 빠른등록: 폰 입력 즉시 포맷 */
-  const qp = document.getElementById('quickPhone');
-  qp.addEventListener('input', e => e.target.value = fmtPhone(e.target.value));
+  /* ===== 스케줄 단건 저장 ===== */
+  async function saveScheduleToFirestore({ date, trainer, member, start, end, type }) {
+    await addDoc(collection(db, "schedules"), {
+      date, trainer, member, start, end, type,
+      createdAt: serverTimestamp()
+    });
+  }
 
-  /* 빠른등록: 파이어스토어 저장 + 중복검사 + 버튼중복 방지 */
-  window.submitQuickMember = async function () {
-    const btn = document.getElementById('btnQuickSubmit');
-    const name = document.getElementById('quickName').value.trim();
-    const gender = document.getElementById('quickGender').value;
-    const phoneDisplay = document.getElementById('quickPhone').value.trim();
-    const phone = onlyDigits(phoneDisplay);
-    const preferred = document.getElementById('quickTime').value.trim();
-    const trainer = document.getElementById('quickTrainer').value;
-    const lessonType = document.getElementById('quickLessonType').value;
-    const agreed = document.getElementById('quickAgree').checked;
-
-    if (!name || !phone || trainer === '선택' || gender === '선택' || !agreed) { alert('필수 항목을 입력하고 동의해 주세요.'); return; }
-    btn.disabled = true;
-
-    try {
-      const ref = doc(db, "members", phone);         // 문서ID = 숫자폰
-      const snap = await getDoc(ref);
-      if (snap.exists() && snap.data().name && snap.data().name !== name) {
-        alert(`이미 다른 이름으로 등록된 번호입니다: ${snap.data().name}`);
-        return;
-      }
-
+  /* ===== 버튼 핸들러(중복 방지) ===== */
+  const btn = document.getElementById("saveScheduleBtn");
+  if (btn && !btn.dataset.bound) {
+    btn.dataset.bound = "1";
+    btn.addEventListener("click", async () => {
+      // TODO: 실제 UI 값으로 교체
       const payload = {
-        name,
-        gender,
-        phone,
-        phoneDisplay: fmtPhone(phone),
-        trainer,
-        lessonType,
-        level: snap.exists() ? (snap.data().level || '일반') : '일반',
-        preferredTime: preferred || null,
-        createdAt: snap.exists() ? (snap.data().createdAt || serverTimestamp()) : serverTimestamp(),
-        updatedAt: serverTimestamp()
+        date: todayLocalISO(),
+        trainer: "남명구Master",
+        member:  "홍길동",
+        start:   "10:00",
+        end:     "11:00",
+        type:    "PT"
       };
 
-      await setDoc(ref, payload, { merge: true });
-      document.getElementById('quickRegisterCard').style.display='none';
-      toast('빠른등록 완료!');
-      // 방금 등록한 회원 하이라이트용 포커스 파라미터
-      // location.href = `/member-list-edit.html?focus=${phone}`;
-    } catch (e) {
-      console.error(e); alert('등록 실패: ' + e.message);
-    } finally {
-      btn.disabled = false;
-    }
-  };
-
-  /* 멤버 목록 출력(대시보드에서 간단 확인용: 필요시 버튼으로 호출) */
-  window.showMemberList = async function(){
-    const tableBody = document.querySelector("#memberTable tbody");
-    if (!tableBody) return;
-    tableBody.innerHTML = "";
-    const snap = await getDocs(collection(db, "members"));
-    snap.forEach(docu=>{
-      const m = docu.data();
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${m.name||''}</td><td>${m.phoneDisplay||m.phone||''}</td><td>${m.trainer||''}</td><td>${m.lessonType||''}</td><td>${m.level||''}</td><td>${m.createdAt?.toDate? m.createdAt.toDate().toLocaleDateString() : ''}</td>`;
-      tableBody.appendChild(tr);
-    });
-  };
-
-  /* 이번 주(현재 표시된 표) → Firestore 동기화 */
-  function mondayISO(d=new Date()){
-    const t=new Date(d); const day=(t.getDay()+6)%7; t.setHours(0,0,0,0); t.setDate(t.getDate()-day); return t.toISOString().slice(0,10);
-  }
-  function addDaysISO(iso, n){ const d=new Date(iso); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10); }
-
-  async function syncCurrentWeekToFirestore(weekStartISO){
-    const tb = document.querySelector('#scheduleTableCurr tbody');
-    const rows = Array.from(tb.querySelectorAll('tr'));
-    const col = collection(db, 'schedules_week', weekStartISO, 'slots');
-    const batch = writeBatch(db);
-
-    rows.forEach(r=>{
-      const time = r.firstChild.textContent; // "HH:mm"
-      for(let di=1; di<=7; di++){
-        const c = r.children[di];
-        if(c && c.dataset.info){
-          const d = JSON.parse(c.dataset.info);
-          batch.set(doc(col), {
-            date: addDaysISO(weekStartISO, di-1),
-            time,
-            member: d.name,
-            enrolled: d.enrolled,
-            cap: d.cap,
-            di,
-            createdAt: serverTimestamp()
-          });
+      try {
+        await saveScheduleToFirestore(payload);
+        alert("스케줄이 저장되었습니다!");
+      } catch (e) {
+        console.error(e);
+        if (e.code === "permission-denied") {
+          alert("권한 오류: Firestore 규칙/로그인(익명 로그인)을 확인해주세요.");
+        } else {
+          alert("저장 실패: " + e.message);
         }
       }
     });
-    await batch.commit();
-    toast('이번 주 스케줄이 저장되었습니다.');
   }
-  document.getElementById('saveScheduleBtn').addEventListener('click', ()=>{
-    const iso = mondayISO(new Date());
-    syncCurrentWeekToFirestore(iso);
-  });
-
-  // 외부에서 쓰는 네비
-  window.goToRegister = ()=> location.href='member-registration.html';
 </script>
 </body>
 </html>
