@@ -155,9 +155,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
-    import {
-      getFirestore, doc, getDoc, updateDoc, serverTimestamp
-    } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
 
     /* ===== Firebase ===== */
     const firebaseConfig = {
@@ -173,7 +171,7 @@
     const db  = getFirestore(app);
 
     /* ===== Settings ===== */
-    const COL = "members"; // ← 목록 페이지와 동일하게
+    const COL = "members"; // 목록/등록과 동일
 
     /* ===== DOM ===== */
     const $ = (s)=>document.querySelector(s);
@@ -201,7 +199,6 @@
       const yyyy = +d.slice(0,4), mm = +d.slice(4,6), dd = +d.slice(6,8);
       if (mm < 1 || mm > 12) return false;
       if (dd < 1 || dd > 31) return false;
-      // 간단한 월별 일수 체크(엄격 검증은 필요시 추가)
       return true;
     };
     const toDateValue = (v)=>{
@@ -212,9 +209,7 @@
     };
     const fromDateInput = (val)=>{
       if (!val) return null;
-      // input type=date는 지역오프셋 문제가 있어 날짜만 보존
-      const d = new Date(val + "T00:00:00");
-      return d;
+      return new Date(val + "T00:00:00");
     };
 
     // 입력 하이픈
@@ -225,9 +220,17 @@
     $("#btnBack").addEventListener("click", ()=> location.href="/member-list-edit.html");
     $("#btnCancel").addEventListener("click", ()=> location.href="/member-list-edit.html");
 
-    /* ===== Load doc by mid ===== */
-    const params = new URLSearchParams(location.search);
-    const mid = params.get("mid");
+    /* ===== mid 가져오기: 1) ?mid= 2) localStorage.editMemberId (둘 다 지원) ===== */
+    function getMemberId(){
+      const p = new URLSearchParams(location.search);
+      let id = p.get("mid");
+      if (!id) {
+        id = localStorage.getItem("editMemberId") || "";
+        if (id) localStorage.removeItem("editMemberId"); // 사용 후 정리
+      }
+      return id;
+    }
+    const mid = getMemberId();
     if (!mid){
       alert("잘못된 접근입니다 (mid 없음)");
       location.href = "/member-list-edit.html";
@@ -235,6 +238,7 @@
       load(mid);
     }
 
+    /* ===== 로드 ===== */
     async function load(id){
       try{
         const ref = doc(db, COL, id);
@@ -282,7 +286,7 @@
       return el ? el.value : "";
     }
 
-    /* ===== Save ===== */
+    /* ===== 저장 ===== */
     form.addEventListener("submit", async (e)=>{
       e.preventDefault();
       banner.style.display = "none";
@@ -291,7 +295,7 @@
       const birthStr = getVal("birth");
       const emer = getVal("emergency");
       const expireAt = fromDateInput(getVal("expireAt"));
-      const startDate = getVal("startDate"); // YYYY-MM-DD
+      const startDate = getVal("startDate");
 
       if (!name){ return showError("이름을 입력하세요."); }
       if (birthStr && !isValidBirth(birthStr)){ return showError("생년월일 형식이 올바르지 않습니다."); }
@@ -299,8 +303,7 @@
       const payload = {
         name,
         gender: getVal("gender") || "",
-        // phone은 문서ID로 고정(미수정). 화면 표시용만 업데이트
-        phoneDisplay: getVal("phone"), // disabled지만 혹시 포맷 수정시 반영
+        phoneDisplay: getVal("phone"), // 문서ID는 그대로, 표시용만
         emergency: onlyDigits(emer),
         birth: onlyDigits(birthStr) || null,
         birthDisplay: birthStr || null,
