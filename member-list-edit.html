@@ -1,81 +1,60 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8" />
+<meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>회원 목록 · 수정</title>
 <style>
-  :root{ --ink:#0d1b2a; --bg:#f5f0e8; --card:#fff; --line:#e5e7eb; --brand:#0d1b2a; --brand2:#cfa35e; }
+  :root{ --ink:#0d1b2a; --bg:#f5f0e8; --card:#fff; --line:#e5e7eb; --brand:#0d1b2a; --gold:#cfa35e; --danger:#ef4444; }
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,sans-serif}
-  header{position:sticky;top:0;background:linear-gradient(#fff, var(--bg));padding:12px;border-bottom:2px solid var(--brand2);z-index:5}
-  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-  input[type="search"]{flex:1;min-width:160px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff}
-  .btn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 12px;cursor:pointer}
+  header{position:sticky;top:0;z-index:10;background:linear-gradient(#fff,var(--bg));border-bottom:2px solid var(--gold);padding:12px 14px}
+  h1{margin:0 0 8px;font-size:18px}
+  .tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .tools input[type="search"]{flex:1;min-width:180px;border:1px solid var(--line);border-radius:10px;padding:9px 10px;background:#fff}
+  .tools select{border:1px solid var(--line);border-radius:10px;padding:9px 10px;background:#fff}
+  .btn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 12px;cursor:pointer}
   .btn-primary{border-color:var(--brand);color:var(--brand);font-weight:700}
-  .btn-primary:hover{background:linear-gradient(90deg,var(--brand),var(--brand2));color:#fff}
-  main{max-width:960px;margin:14px auto;padding:0 12px}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.05);overflow:hidden}
-  table{width:100%;border-collapse:collapse;font-size:14px}
-  thead th{position:sticky;top:0;background:#0d1b2a;color:#fff;padding:10px}
-  td,th{border-bottom:1px solid var(--line);padding:8px;text-align:left;vertical-align:middle}
-  tbody tr:hover{background:#faf7ef}
-  .edit-btn{background:#fff;border:1px solid var(--line);border-radius:8px;padding:6px 8px;cursor:pointer}
-  .edit-btn:active{transform:scale(.98)}
-  .muted{color:#6b7280}
-  .meta{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-top:1px solid var(--line);background:#fff}
-  /* 모바일: 첫 칸(수정 버튼) 고정 폭 */
-  col.editcol{width:52px}
-  @media (max-width:640px){
-    table{font-size:13px}
-    td.phone{white-space:nowrap}
-    td.badge{white-space:nowrap}
-  }
+  main{padding:12px}
+  /* 리스트 */
+  .list{display:flex;flex-direction:column;gap:10px}
+  .row{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px}
+  .edit{flex:0 0 auto;border:1px solid var(--line);border-radius:999px;background:#fff;padding:6px 9px;cursor:pointer}
+  .meta{flex:1 1 auto;min-width:0}
+  .name{font-weight:800;display:flex;align-items:center;gap:6px}
+  .badge{font-size:11px;border:1px solid var(--line);border-radius:999px;padding:2px 7px}
+  .badge.vip{border-color:var(--gold);color:#8a6d1d;background:#fff8e6}
+  .sub{font-size:13px;color:#64748b;display:flex;gap:10px;flex-wrap:wrap}
+  .right{flex:0 0 auto;text-align:right;font-size:12px;color:#475569}
+  .danger{color:var(--danger)}
+  .empty{padding:40px 8px;text-align:center;color:#64748b}
 </style>
 </head>
 <body>
 <header>
-  <div class="row">
+  <h1>회원 목록 · 수정</h1>
+  <div class="tools">
     <input id="q" type="search" placeholder="이름/연락처/담당/등급 검색" />
-    <select id="sortBy" class="btn" aria-label="정렬">
-      <option value="recent">최근 수정순</option>
+    <select id="sortBy" aria-label="정렬">
+      <option value="recent" selected>최근 작성순</option>
       <option value="name">이름(가나다)</option>
-      <option value="level">등급</option>
-      <option value="created">등록일 최신</option>
+      <option value="grade">등급</option>
+      <option value="first">최초 등록일</option>
     </select>
-    <button class="btn btn-primary" onclick="location.href='/member-registration.html'">+ 신규 등록</button>
+    <button class="btn btn-primary" id="btnNew">+ 신규 등록</button>
   </div>
 </header>
 
 <main>
-  <div class="card">
-    <table id="tbl">
-      <colgroup>
-        <col class="editcol" />
-        <col /><col /><col /><col /><col />
-      </colgroup>
-      <thead>
-        <tr>
-          <th>수정</th>
-          <th>이름</th>
-          <th>연락처</th>
-          <th>담당</th>
-          <th>레슨</th>
-          <th>등급</th>
-        </tr>
-      </thead>
-      <tbody id="tbody">
-        <!-- rows -->
-      </tbody>
-    </table>
-    <div class="meta"><span id="count" class="muted">0명</span><span class="muted">문서ID = 숫자만 전화번호</span></div>
-  </div>
+  <div id="list" class="list" aria-live="polite"></div>
+  <div id="empty" class="empty" hidden>등록된 회원이 없습니다.</div>
 </main>
 
 <script type="module">
+  /* ========== Firebase ========== */
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
-  import { getFirestore, collection, onSnapshot, query } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
   import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
+  import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyCjdyveDx0qFPUzmaChnEy9Ni0VjTysYnM",
@@ -87,101 +66,149 @@
     measurementId: "G-MK0RVFG296"
   };
   const app = initializeApp(firebaseConfig);
-  const db  = getFirestore(app);
   const auth = getAuth(app);
-  onAuthStateChanged(auth, u=>{ if(!u) signInAnonymously(auth).catch(console.error); });
+  const db   = getFirestore(app);
+  onAuthStateChanged(auth, u => { if(!u) signInAnonymously(auth).catch(console.error); });
 
-  const $ = s=>document.querySelector(s);
-  const qinp = $("#q");
-  const sortSel = $("#sortBy");
-  const tbody = $("#tbody");
-  const countEl = $("#count");
+  /* ========== DOM refs ========== */
+  const listEl  = document.getElementById('list');
+  const emptyEl = document.getElementById('empty');
+  const qEl     = document.getElementById('q');
+  const sortSel = document.getElementById('sortBy');
+  document.getElementById('btnNew').onclick = ()=> location.href = "/member-registration.html";
 
-  let all = [];
-
-  const fmtPhone = raw=>{
-    const v = String(raw||"").replace(/\D/g,"").slice(0,11);
-    if(v.length<=3) return v;
-    if(v.length<=7) return v.slice(0,3)+"-"+v.slice(3);
-    return v.slice(0,3)+"-"+v.slice(3,7)+"-"+v.slice(7);
+  /* ========== Utils ========== */
+  const onlyDigits = s => String(s||"").replace(/\D/g,"");
+  const fmtPhone = raw => {
+    const v = onlyDigits(raw).slice(0,11);
+    if (v.length<=3) return v;
+    if (v.length<=7) return v.slice(0,3)+'-'+v.slice(3);
+    return v.slice(0,3)+'-'+v.slice(3,7)+'-'+v.slice(7);
+  };
+  const toISO = d => d instanceof Date
+    ? new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10)
+    : "";
+  const toDateStr = v => {
+    try { const d = v?.toDate ? v.toDate() : (v ? new Date(v) : null); return d ? toISO(d) : ""; }
+    catch { return ""; }
+  };
+  const daysUntil = (dateStr) => {
+    if(!dateStr) return null;
+    const d = new Date(dateStr+'T00:00:00');
+    const today = new Date(); today.setHours(0,0,0,0);
+    return Math.ceil((d - today)/86400000);
   };
 
+  /* ========== State ========== */
+  let members = [];
+
   function render(){
-    const keyword = (qinp.value||"").trim().toLowerCase();
-    const norm = s=>String(s||"").toLowerCase();
-    let list = all.filter(m=>{
-      const phoneHit = fmtPhone(m.phoneDisplay||m.phone).replace(/\D/g,"").includes(keyword.replace(/\D/g,""));
-      return !keyword
-        || norm(m.name).includes(keyword)
-        || phoneHit
-        || norm(m.trainer).includes(keyword)
-        || norm(m.lessonType).includes(keyword)
-        || norm(m.level).includes(keyword);
+    listEl.innerHTML = "";
+    // 검색 & 정렬
+    const keyword = (qEl.value||"").trim().toLowerCase();
+    const norm = s => String(s||"").toLowerCase();
+
+    let rows = members.filter(m=>{
+      if(!keyword) return true;
+      const phoneMatch = onlyDigits(m.phone||m.phoneDisplay||"").includes(onlyDigits(keyword));
+      return norm(m.name).includes(keyword)
+          || norm(m.trainer).includes(keyword)
+          || norm(m.level).includes(keyword)
+          || phoneMatch;
     });
 
     const by = sortSel.value;
-    list.sort((a,b)=>{
-      if(by==='name')   return a.name.localeCompare(b.name,'ko');
-      if(by==='level')  return (a.level||"").localeCompare(b.level||"",'ko');
-      if(by==='created')return (b.createdAt||"").localeCompare(a.createdAt||"");
-      // recent: updatedAt desc
-      return (b.updatedAt||"").localeCompare(a.updatedAt||"");
+    rows.sort((a,b)=>{
+      if(by==='recent') return (b.lastLog || '').localeCompare(a.lastLog || '');
+      if(by==='name')   return a.name.localeCompare(b.name, 'ko');
+      if(by==='grade')  return (a.level||'').localeCompare(b.level||'', 'ko');
+      if(by==='first')  return (b.first || '').localeCompare(a.first || '');
+      return 0;
     });
 
-    tbody.innerHTML = "";
-    list.forEach(x=>{
-      const tr = document.createElement("tr");
+    if (!rows.length){ emptyEl.hidden = false; return; }
+    emptyEl.hidden = true;
 
-      const btn = document.createElement("button");
-      btn.className = "edit-btn"; btn.title = "수정";
-      btn.textContent = "✏️";
-      btn.onclick = (e)=>{ e.stopPropagation(); goEdit(x.id); };
+    rows.forEach(m=>{
+      const dLeft = daysUntil(m.expireAt);
+      const badgeCls = (m.level||"").toLowerCase()==='vip' ? 'badge vip' : 'badge';
+      const right = dLeft!==null && dLeft<=7
+        ? `<div class="right"><div class="danger">만료 D-${Math.max(0,dLeft)}</div><div>${m.expireAt||""}</div></div>`
+        : `<div class="right"><div>남은 회차 ${m.remaining||0}</div><div>${m.expireAt||""}</div></div>`;
 
-      const td0 = document.createElement("td"); td0.append(btn);
-      const td1 = document.createElement("td"); td1.textContent = x.name||"";
-      const td2 = document.createElement("td"); td2.className="phone"; td2.textContent = fmtPhone(x.phoneDisplay||x.phone||"");
-      const td3 = document.createElement("td"); td3.textContent = x.trainer||"";
-      const td4 = document.createElement("td"); td4.textContent = x.lessonType||"";
-      const td5 = document.createElement("td"); td5.textContent = x.level||"";
+      const row = document.createElement('div');
+      row.className = 'row';
 
-      tr.append(td0,td1,td2,td3,td4,td5);
-      tr.style.cursor = "pointer";
-      tr.onclick = ()=> goEdit(x.id);
-      tbody.appendChild(tr);
+      // ✏️ 수정 버튼 (이름 앞)
+      const btn = document.createElement('button');
+      btn.className = 'edit';
+      btn.setAttribute('aria-label', `${m.name} 수정`);
+      btn.textContent = '✏️';
+      btn.onclick = (e)=>{ e.stopPropagation(); goEdit(m.id); };
+
+      // 중앙 메타
+      const meta = document.createElement('div');
+      meta.className = 'meta';
+      meta.innerHTML = `
+        <div class="name">
+          <span>${m.name}</span>
+          ${m.level ? `<span class="${badgeCls}">${m.level}</span>` : ""}
+        </div>
+        <div class="sub">
+          <span>${fmtPhone(m.phone || m.phoneDisplay || "")}</span>
+          <span>${m.trainer || "-"}</span>
+          <span>${m.lessonType || "-"}</span>
+          ${m.first ? `<span>등록 ${m.first}</span>` : ""}
+          ${m.lastLog ? `<span>최근작성 ${m.lastLog}</span>` : ""}
+        </div>
+      `;
+
+      // 우측
+      const rightBox = document.createElement('div');
+      rightBox.innerHTML = right;
+
+      // 행 클릭해도 수정으로
+      row.onclick = ()=> goEdit(m.id);
+
+      row.append(btn, meta, rightBox);
+      listEl.appendChild(row);
     });
-    countEl.textContent = `${list.length}명`;
   }
 
   function goEdit(id){
-    // 쿼리스트링 + fallback(localStorage)
     localStorage.setItem("editMemberId", id);
-    location.href = `/member-registration.html?mid=${encodeURIComponent(id)}`;
+    location.href = `/edit-member.html?mid=${encodeURIComponent(id)}`;
   }
 
-  qinp.addEventListener("input", render);
-  sortSel.addEventListener("change", render);
+  // 실시간 구독
+  onSnapshot(collection(db, "members"), (snap)=>{
+    const arr = [];
+    snap.forEach(docSnap=>{
+      const d = docSnap.data();
+      const createdAt = d.createdAt?.toDate ? d.createdAt.toDate() : null;
+      const startStr  = d.startDate || (createdAt ? toISO(createdAt) : "");
+      const expireStr = d.expireAt?.toDate ? toISO(d.expireAt.toDate()) : (d.expireAt || "");
+      const lastLog   = d.lastLogAt?.toDate ? toISO(d.lastLogAt.toDate()) : (d.lastPurchaseAt?.toDate ? toISO(d.lastPurchaseAt.toDate()) : "");
 
-  // realtime fetch
-  onSnapshot(query(collection(db,"members")), (snap)=>{
-    const rows = [];
-    snap.forEach(d=>{
-      const x = d.data();
-      const toISO = v=>{ try{ return v?.toDate ? v.toDate().toISOString() : "" }catch{return ""} };
-      rows.push({
-        id: d.id,
-        name: x.name||"",
-        phone: x.phone||"",
-        phoneDisplay: x.phoneDisplay||"",
-        trainer: x.trainer||"",
-        lessonType: x.lessonType||"",
-        level: x.level||"",
-        createdAt: toISO(x.createdAt),
-        updatedAt: toISO(x.updatedAt),
+      arr.push({
+        id: docSnap.id,
+        name: d.name || "",
+        phone: d.phone || d.phoneDisplay || "",
+        trainer: d.trainer || "",
+        lessonType: d.lessonType || d.type || "",
+        level: d.level || d.grade || "",
+        first: startStr,
+        expireAt: expireStr,
+        lastLog,
+        remaining: Number(d.remainingSessions||0)
       });
     });
-    all = rows;
+    members = arr;
     render();
   });
+
+  qEl.addEventListener('input', render);
+  sortSel.addEventListener('change', render);
 </script>
 </body>
 </html>
