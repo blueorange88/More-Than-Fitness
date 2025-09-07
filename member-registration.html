@@ -10,27 +10,34 @@
       --brand:#0d1b2a; --brand2:#cfa35e; --danger:#ef4444; --danger-bg:#fee2e2;
     }
     *{box-sizing:border-box}
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,sans-serif;background:var(--bg);color:var(--ink);margin:0;padding:20px}
-    .container{max-width:860px;margin:auto;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:0 6px 20px rgba(0,0,0,.06)}
-    .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,sans-serif;background:var(--bg);color:var(--ink);margin:0;padding:16px}
+    .container{max-width:860px;margin:auto;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 6px 20px rgba(0,0,0,.06)}
+    .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
     .title{font-size:18px;font-weight:800}
-    .row{display:flex;gap:16px;margin-bottom:12px}
-    .col{flex:1}
-    label{display:block;font-size:13px;font-weight:700;margin:4px 0 6px}
-    input,select,textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:14px}
+    /* 촘촘한 그리드: 칸 길이 자동으로 '짧게' 맞춤 */
+    .row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:10px}
+    label{display:block;font-size:12px;font-weight:700;margin:2px 0 6px}
+    input,select,textarea{width:100%;padding:8px 9px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:14px}
     textarea{resize:vertical}
-    .help{font-size:12px;color:#6b7280;margin-top:4px}
-    .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
-    .btn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 14px;font-size:14px;cursor:pointer}
+    .help{font-size:11px;color:#6b7280;margin-top:4px}
+    .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+    .btn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 12px;font-size:14px;cursor:pointer}
     .btn:hover{border-color:#bfc5cc}
     .btn-primary{border-color:var(--brand);color:var(--brand);font-weight:800}
     .btn-primary:hover{background:linear-gradient(90deg,var(--brand),var(--brand2));color:#fff}
-    .banner{display:none;margin:10px 0;padding:10px 12px;border-radius:10px;font-size:14px}
+    .banner{display:none;margin:8px 0;padding:10px 12px;border-radius:10px;font-size:14px}
     .banner.error{background:var(--danger-bg);border:1px solid var(--danger);color:#991b1b}
-    .divider{height:1px;background:var(--line);margin:14px 0}
+    .divider{height:1px;background:var(--line);margin:12px 0}
     details.inbody{border:1px dashed var(--line);border-radius:12px;padding:10px 12px;background:#fff}
     details.inbody>summary{cursor:pointer;font-weight:800;color:var(--brand)}
     .muted{color:#6b7280}
+    /* 더 작은 모바일 최적화 */
+    @media (max-width:420px){
+      body{padding:12px}
+      .container{padding:12px}
+      input,select,textarea{padding:7px 8px;font-size:13px}
+      .title{font-size:17px}
+    }
   </style>
 </head>
 <body>
@@ -43,13 +50,17 @@
     <div id="banner" class="banner error" role="alert"></div>
 
     <form id="regForm" autocomplete="off">
-      <!-- 기본 정보 -->
+      <!-- 등록일을 '맨 위'로 올린 첫 줄 -->
       <div class="row">
-        <div class="col">
+        <div>
           <label>이름</label>
           <input type="text" name="name" required />
         </div>
-        <div class="col">
+        <div>
+          <label>최초 등록일</label>
+          <input type="date" name="startDate" />
+        </div>
+        <div>
           <label>성별</label>
           <select name="gender">
             <option>여성</option><option>남성</option>
@@ -57,26 +68,27 @@
         </div>
       </div>
 
+      <!-- 기본 연락/생일 -->
       <div class="row">
-        <div class="col">
+        <div>
           <label>생년월일</label>
           <input id="birth" type="text" name="birth" inputmode="numeric" maxlength="10" placeholder="YYYY-MM-DD" />
-          <div class="help">입력 중 자동 하이픈 · 유효 범위 검사(MM 1-12, DD 1-31)</div>
+          <div class="help">자동 하이픈 · 유효 범위 검사</div>
         </div>
-        <div class="col">
+        <div>
           <label>휴대폰번호 (문서ID)</label>
           <input id="phone" type="tel" name="phone" inputmode="numeric" maxlength="13" placeholder="010-0000-0000" required />
-          <div class="help">하이픈은 자동 입력 · 숫자 10~11자리</div>
+          <div class="help">숫자 10~11자리 · 자동 하이픈</div>
         </div>
       </div>
 
-      <!-- 보호자/가족 연락 -->
+      <!-- 보호자/가족 -->
       <div class="row">
-        <div class="col">
+        <div>
           <label>보호자 성명</label>
           <input type="text" name="guardianName" />
         </div>
-        <div class="col">
+        <div>
           <label>가족관계</label>
           <select name="guardianRelation">
             <option value="">선택</option>
@@ -84,7 +96,7 @@
             <option>형제자매</option><option>보호자</option><option>기타</option>
           </select>
         </div>
-        <div class="col">
+        <div>
           <label>보호자 연락처</label>
           <input id="guardianPhone" type="tel" name="guardianPhone" inputmode="numeric" maxlength="13" placeholder="010-0000-0000" />
         </div>
@@ -92,17 +104,17 @@
 
       <!-- 이용 정보 -->
       <div class="row">
-        <div class="col">
+        <div>
           <label>담당 트레이너</label>
           <input type="text" name="trainer" />
         </div>
-        <div class="col">
+        <div>
           <label>레슨 유형</label>
           <select name="lessonType">
             <option value="">선택</option><option>PT</option><option>PILATES</option><option>GOLF</option>
           </select>
         </div>
-        <div class="col">
+        <div>
           <label>회원 등급</label>
           <select name="level">
             <option>일반</option><option>VIP</option><option>프로모션</option>
@@ -111,42 +123,35 @@
       </div>
 
       <div class="row">
-        <div class="col">
+        <div>
           <label>주소</label>
           <input type="text" name="address" />
         </div>
-        <div class="col">
-          <label>최초 등록일</label>
-          <input type="date" name="startDate" />
-        </div>
-        <div class="col">
-          <label>직업</label>
-          <input type="text" name="memberMemo" placeholder="예: 사무직 등" />
+        <div>
+          <label>메모(특이사항)</label>
+          <input type="text" name="memberMemo" placeholder="예: 허리 디스크, 오전 선호 등" />
         </div>
       </div>
 
       <div class="row">
-        <div class="col">
+        <div style="grid-column:1 / -1">
           <label>건강 특이사항</label>
-          <textarea name="healthMemo" rows="3" placeholder="허리 디스크/오전선호/알레르기/복용약/주의사항 등"></textarea>
+          <textarea name="healthMemo" rows="3" placeholder="알레르기/복용약/주의사항 등"></textarea>
         </div>
       </div>
 
       <div class="divider"></div>
 
-      <!-- 인바디 입력(토글) -->
+      <!-- 인바디 입력 -->
       <details class="inbody">
         <summary>➕ 인바디 등록하기</summary>
-        <p class="muted" style="margin:8px 0 10px">키/몸무게/골격근량/체지방률/체지방량을 입력하면 최신값으로 저장되고, 최초 1건은 inbodyHistory에도 기록됩니다.</p>
+        <p class="muted" style="margin:8px 0 10px">값을 입력하면 최신 인바디로 저장되고, 최초 1건은 inbodyHistory에도 기록됩니다.</p>
         <div class="row">
-          <div class="col"><label>키(cm)</label><input type="number" step="0.1" name="heightCm" placeholder="예: 170.0" /></div>
-          <div class="col"><label>몸무게(kg)</label><input type="number" step="0.1" name="weightKg" placeholder="예: 65.5" /></div>
-          <div class="col"><label>골격근량(kg)</label><input type="number" step="0.1" name="muscleMass" placeholder="예: 29.8" /></div>
-        </div>
-        <div class="row">
-          <div class="col"><label>체지방률(%)</label><input type="number" step="0.1" name="bodyFatPercent" placeholder="예: 18.5" /></div>
-          <div class="col"><label>체지방량(kg)</label><input type="number" step="0.1" name="bodyFatMass" placeholder="예: 12.1" /></div>
-          <div class="col"></div>
+          <div><label>키(cm)</label><input type="number" step="0.1" name="heightCm" placeholder="170.0" /></div>
+          <div><label>몸무게(kg)</label><input type="number" step="0.1" name="weightKg" placeholder="65.5" /></div>
+          <div><label>골격근량(kg)</label><input type="number" step="0.1" name="muscleMass" placeholder="29.8" /></div>
+          <div><label>체지방률(%)</label><input type="number" step="0.1" name="bodyFatPercent" placeholder="18.5" /></div>
+          <div><label>체지방량(kg)</label><input type="number" step="0.1" name="bodyFatMass" placeholder="12.1" /></div>
         </div>
       </details>
 
@@ -177,13 +182,12 @@
     const db  = getFirestore(app);
     const COL = "members";
 
-    /* ===== DOM ===== */
+    /* ===== DOM/UTIL ===== */
     const $ = (s)=>document.querySelector(s);
     const form = $("#regForm");
     const banner = $("#banner");
     const loading = $("#loading");
 
-    /* ===== Utils ===== */
     const onlyDigits = (s)=> String(s||"").replace(/\D/g,"");
     const fmtPhone = (raw)=>{
       const v = onlyDigits(raw).slice(0,11);
@@ -202,7 +206,7 @@
       if (d.length !== 8) return false;
       const yyyy = +d.slice(0,4), mm = +d.slice(4,6), dd = +d.slice(6,8);
       if (mm<1 || mm>12) return false;
-      const mdays=[31,28+( (yyyy%4===0&&yyyy%100!==0)||yyyy%400===0?1:0 ),31,30,31,30,31,31,30,31,30,31];
+      const mdays=[31,28+(((yyyy%4===0&&yyyy%100!==0)||yyyy%400===0)?1:0),31,30,31,30,31,31,30,31,30,31];
       if (dd<1 || dd>mdays[mm-1]) return false;
       return true;
     };
@@ -210,18 +214,23 @@
       const n = onlyDigits(p);
       return n.length===10 || n.length===11;
     };
-
-    function showBanner(msg){
-      banner.textContent = msg;
-      banner.style.display = "block";
-      window.scrollTo({top:0,behavior:"smooth"});
-    }
+    function showBanner(msg){ banner.textContent=msg; banner.style.display="block"; window.scrollTo({top:0,behavior:"smooth"}); }
     function hideBanner(){ banner.style.display="none"; }
 
     // 입력 중 포맷팅
     $("#phone").addEventListener("input", e=> e.target.value = fmtPhone(e.target.value));
     $("#guardianPhone").addEventListener("input", e=> e.target.value = fmtPhone(e.target.value));
     $("#birth").addEventListener("input", e=> e.target.value = fmtBirth(e.target.value));
+
+    // 페이지 진입 시 등록일 기본값(오늘) 세팅
+    (function setDefaultStartDate(){
+      const el = form.startDate;
+      if (!el.value){
+        const today = new Date();
+        today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
+        el.value = today.toISOString().slice(0,10);
+      }
+    })();
 
     /* ===== Submit ===== */
     form.addEventListener("submit", async (e)=>{
@@ -236,22 +245,20 @@
         const birthDisplay = form.birth.value.trim();
         const birth = onlyDigits(birthDisplay);
 
-        if (!name) { showBanner("이름을 입력하세요."); loading.style.display="none"; return; }
-        if (!isValidPhone(phoneDisplay)) { showBanner("휴대폰 번호 형식이 올바르지 않습니다."); loading.style.display="none"; return; }
-        if (birthDisplay && !isValidBirth(birthDisplay)) { showBanner("생년월일 형식이 올바르지 않습니다."); loading.style.display="none"; return; }
-        if (form.guardianPhone.value && !isValidPhone(form.guardianPhone.value)) { showBanner("보호자 연락처 형식이 올바르지 않습니다."); loading.style.display="none"; return; }
+        if (!name){ showBanner("이름을 입력하세요."); loading.style.display="none"; return; }
+        if (!isValidPhone(phoneDisplay)){ showBanner("휴대폰 번호 형식이 올바르지 않습니다."); loading.style.display="none"; return; }
+        if (birthDisplay && !isValidBirth(birthDisplay)){ showBanner("생년월일 형식이 올바르지 않습니다."); loading.style.display="none"; return; }
+        if (form.guardianPhone.value && !isValidPhone(form.guardianPhone.value)){ showBanner("보호자 연락처 형식이 올바르지 않습니다."); loading.style.display="none"; return; }
 
-        // 문서ID = phone (규칙과 일치)
         const docId = phone;
         const ref = doc(db, COL, docId);
         const exists = await getDoc(ref);
         if (exists.exists()){
           showBanner("이미 등록된 휴대폰 번호입니다. 회원 수정 화면에서 변경하세요.");
-          loading.style.display = "none";
-          return;
+          loading.style.display="none"; return;
         }
 
-        // 인바디 값(입력 시에만 저장)
+        // 인바디 값
         const heightCm = form.heightCm.value ? Number(form.heightCm.value) : null;
         const weightKg = form.weightKg.value ? Number(form.weightKg.value) : null;
         const muscleMass = form.muscleMass.value ? Number(form.muscleMass.value) : null;
@@ -278,7 +285,6 @@
 
           startDate: form.startDate.value || null,
 
-          // 회차/상태 기본값
           totalSessionsPurchased: 0,
           remainingSessions: 0,
 
@@ -286,7 +292,6 @@
           updatedAt: serverTimestamp()
         };
 
-        // 인바디가 하나라도 입력되면 최신값 + 이력 1건 기록
         const withInbody = (heightCm||weightKg||muscleMass||bodyFatPercent||bodyFatMass)
           ? {
               heightCm, weightKg, muscleMass, bodyFatPercent, bodyFatMass,
