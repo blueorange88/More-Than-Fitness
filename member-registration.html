@@ -123,15 +123,19 @@
       </div>
 
       <div class="row">
-        <div>
-          <label>주소</label>
-          <input type="text" name="address" />
-        </div>
-        <div>
-          <label>직업</label>
-          <input type="text" name="memberMemo" placeholder="예: 학생/사무직 등" />
-        </div>
-      </div>
+  <div>
+    <label>주소</label>
+    <input type="text" name="address" />
+  </div>
+  <div>
+    <label>직업</label>
+    <input type="text" name="job" placeholder="예: 학생 / 사무직" />
+  </div>
+  <div>
+    <label>메모(특이사항)</label>
+    <input type="text" name="memberMemo" placeholder="예: 오전 선호, 허리 주의" />
+  </div>
+</div>
 
       <div class="row">
         <div style="grid-column:1 / -1">
@@ -265,32 +269,35 @@
         const bodyFatPercent = form.bodyFatPercent.value ? Number(form.bodyFatPercent.value) : null;
         const bodyFatMass = form.bodyFatMass.value ? Number(form.bodyFatMass.value) : null;
 
-        const basePayload = {
-          name, gender,
-          phone, phoneDisplay,
-          birth: birth || null,
-          birthDisplay: birthDisplay || null,
+       const basePayload = {
+  name, gender,
+  phone, phoneDisplay,
+  birth: birth || null,
+  birthDisplay: birthDisplay || null,
 
-          trainer: form.trainer.value || "",
-          lessonType: form.lessonType.value || "",
-          level: form.level.value || "일반",
-          address: form.address.value || "",
+  trainer: form.trainer.value || "",
+  lessonType: form.lessonType.value || "",
+  level: form.level.value || "일반",
+  address: form.address.value || "",
 
-          guardianName: form.guardianName.value || "",
-          guardianRelation: form.guardianRelation.value || "",
-          emergency: onlyDigits(form.guardianPhone.value) || null,
+  // ▼ 추가 / 변경
+  job: form.job.value || "",                 // 직업
+  memberMemo: form.memberMemo.value || "",   // 일반 메모
 
-          memberMemo: form.memberMemo.value || "",
-          healthMemo: form.healthMemo.value || "",
+  guardianName: form.guardianName.value || "",
+  guardianRelation: form.guardianRelation.value || "",
+  emergency: onlyDigits(form.guardianPhone.value) || null,
 
-          startDate: form.startDate.value || null,
+  healthMemo: form.healthMemo.value || "",
 
-          totalSessionsPurchased: 0,
-          remainingSessions: 0,
+  startDate: form.startDate.value || null,
 
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp()
-        };
+  totalSessionsPurchased: 0,
+  remainingSessions: 0,
+
+  createdAt: serverTimestamp(),
+  updatedAt: serverTimestamp()
+};
 
         const withInbody = (heightCm||weightKg||muscleMass||bodyFatPercent||bodyFatMass)
           ? {
