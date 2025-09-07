@@ -44,7 +44,6 @@
     <div id="formatBanner" class="banner error" role="alert">형식에 맞지 않습니다.</div>
 
     <form id="editForm">
-      <!-- 기본 -->
       <div class="row">
         <div class="col">
           <label>이름</label>
@@ -115,7 +114,6 @@
         </div>
       </div>
 
-      <!-- 집계/상태 -->
       <div class="row">
         <div class="col">
           <label>총 등록 회차</label>
@@ -157,7 +155,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
     import { getFirestore, doc, getDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
 
-    /* ===== Firebase ===== */
     const firebaseConfig = {
       apiKey: "AIzaSyCjdyveDx0qFPUzmaChnEy9Ni0VjTysYnM",
       authDomain: "more-than-fitness-f6adb.firebaseapp.com",
@@ -170,16 +167,13 @@
     const app = initializeApp(firebaseConfig);
     const db  = getFirestore(app);
 
-    /* ===== Settings ===== */
-    const COL = "members"; // 목록/등록과 동일
+    const COL = "members";
 
-    /* ===== DOM ===== */
     const $ = (s)=>document.querySelector(s);
     const form = $("#editForm");
     const banner = $("#formatBanner");
     const loading = $("#loading");
 
-    /* ===== Utils ===== */
     const onlyDigits = (s)=> String(s||"").replace(/\D/g,"");
     const fmtPhone = (raw)=>{
       const v = onlyDigits(raw).slice(0,11);
@@ -207,26 +201,22 @@
         return d ? new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0,10) : "";
       }catch{ return ""; }
     };
-    const fromDateInput = (val)=>{
-      if (!val) return null;
-      return new Date(val + "T00:00:00");
-    };
+    const fromDateInput = (val)=> val ? new Date(val + "T00:00:00") : null;
 
-    // 입력 하이픈
     $("#birth")?.addEventListener("input", e=> e.target.value = fmtBirth(e.target.value));
     $("#emergency")?.addEventListener("input", e=> e.target.value = fmtPhone(e.target.value));
 
-    // 네비
+    // 목록으로
     $("#btnBack").addEventListener("click", ()=> location.href="/member-list-edit.html");
     $("#btnCancel").addEventListener("click", ()=> location.href="/member-list-edit.html");
 
-    /* ===== mid 가져오기: 1) ?mid= 2) localStorage.editMemberId (둘 다 지원) ===== */
+    // mid: 쿼리 우선, 없으면 localStorage 백업 사용
     function getMemberId(){
       const p = new URLSearchParams(location.search);
       let id = p.get("mid");
       if (!id) {
         id = localStorage.getItem("editMemberId") || "";
-        if (id) localStorage.removeItem("editMemberId"); // 사용 후 정리
+        if (id) localStorage.removeItem("editMemberId");
       }
       return id;
     }
@@ -238,11 +228,9 @@
       load(mid);
     }
 
-    /* ===== 로드 ===== */
     async function load(id){
       try{
-        const ref = doc(db, COL, id);
-        const snap = await getDoc(ref);
+        const snap = await getDoc(doc(db, COL, id));
         if (!snap.exists()){
           alert("해당 회원을 찾을 수 없습니다.");
           location.href = "/member-list-edit.html";
@@ -250,7 +238,6 @@
         }
         const x = snap.data();
 
-        // 기본 채우기
         setVal("name", x.name);
         setVal("gender", x.gender || "여성");
         setVal("birth", x.birth ? fmtBirth(x.birth) : (x.birthDisplay || ""));
@@ -261,12 +248,10 @@
         setVal("level", x.level || "일반");
         setVal("address", x.address || "");
         setVal("startDate", x.startDate || toDateValue(x.createdAt) || "");
-
         setVal("expireAt", toDateValue(x.expireAt) || "");
         setVal("totalSessionsPurchased", Number(x.totalSessionsPurchased||0));
         setVal("remainingSessions", Number(x.remainingSessions||0));
         setVal("lastLogAt", toDateValue(x.lastLogAt) || "");
-
         setVal("healthMemo", x.healthMemo || "");
         setVal("memberMemo", x.memberMemo || "");
       }catch(e){
@@ -286,7 +271,6 @@
       return el ? el.value : "";
     }
 
-    /* ===== 저장 ===== */
     form.addEventListener("submit", async (e)=>{
       e.preventDefault();
       banner.style.display = "none";
@@ -303,26 +287,21 @@
       const payload = {
         name,
         gender: getVal("gender") || "",
-        phoneDisplay: getVal("phone"), // 문서ID는 그대로, 표시용만
+        phoneDisplay: getVal("phone"),
         emergency: onlyDigits(emer),
         birth: onlyDigits(birthStr) || null,
         birthDisplay: birthStr || null,
-
         trainer: getVal("trainer") || "",
         lessonType: getVal("lessonType") || "",
         level: getVal("level") || "",
         address: getVal("address") || "",
-
         startDate: startDate || null,
         expireAt: expireAt || null,
-
         totalSessionsPurchased: Number(getVal("totalSessionsPurchased")||0),
         remainingSessions: Number(getVal("remainingSessions")||0),
         lastLogAt: fromDateInput(getVal("lastLogAt")) || null,
-
         healthMemo: getVal("healthMemo") || "",
         memberMemo: getVal("memberMemo") || "",
-
         updatedAt: serverTimestamp()
       };
 
