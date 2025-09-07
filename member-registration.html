@@ -1,320 +1,313 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>회원 등록/수정</title>
-<style>
-  :root{ --ink:#0d1b2a; --bg:#f5f0e8; --card:#fff; --line:#e5e7eb; --brand:#0d1b2a; --brand2:#cfa35e; --danger:#ef4444; --danger-bg:#fee2e2; }
-  body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,sans-serif}
-  .container{max-width:760px;margin:18px auto;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;box-shadow:0 2px 10px rgba(0,0,0,.06)}
-  .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-  .title{font-weight:800}
-  .row{display:flex;gap:14px;margin-bottom:12px;flex-wrap:wrap}
-  .col{flex:1;min-width:220px}
-  label{display:block;font-size:13px;font-weight:700;margin:4px 0 6px}
-  input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;font-size:14px}
-  input[disabled]{background:#f3f4f6;color:#6b7280}
-  textarea{resize:vertical}
-  .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
-  .btn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 14px;cursor:pointer}
-  .btn-primary{border-color:var(--brand);color:var(--brand);font-weight:700}
-  .btn-primary:hover{background:linear-gradient(90deg,var(--brand),var(--brand2));color:#fff}
-  .banner{display:none;margin:10px 0;padding:10px 12px;border-radius:8px;font-size:14px}
-  .banner.error{background:var(--danger-bg);border:1px solid var(--danger);color:#991b1b}
-  .muted{color:#6b7280}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>회원 신규 등록</title>
+  <style>
+    :root{
+      --ink:#0d1b2a; --bg:#f5f0e8; --card:#fff; --line:#e5e7eb;
+      --brand:#0d1b2a; --brand2:#cfa35e; --danger:#ef4444; --danger-bg:#fee2e2;
+    }
+    *{box-sizing:border-box}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,sans-serif;background:var(--bg);color:var(--ink);margin:0;padding:20px}
+    .container{max-width:860px;margin:auto;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:0 6px 20px rgba(0,0,0,.06)}
+    .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+    .title{font-size:18px;font-weight:800}
+    .row{display:flex;gap:16px;margin-bottom:12px}
+    .col{flex:1}
+    label{display:block;font-size:13px;font-weight:700;margin:4px 0 6px}
+    input,select,textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:14px}
+    textarea{resize:vertical}
+    .help{font-size:12px;color:#6b7280;margin-top:4px}
+    .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+    .btn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 14px;font-size:14px;cursor:pointer}
+    .btn:hover{border-color:#bfc5cc}
+    .btn-primary{border-color:var(--brand);color:var(--brand);font-weight:800}
+    .btn-primary:hover{background:linear-gradient(90deg,var(--brand),var(--brand2));color:#fff}
+    .banner{display:none;margin:10px 0;padding:10px 12px;border-radius:10px;font-size:14px}
+    .banner.error{background:var(--danger-bg);border:1px solid var(--danger);color:#991b1b}
+    .divider{height:1px;background:var(--line);margin:14px 0}
+    details.inbody{border:1px dashed var(--line);border-radius:12px;padding:10px 12px;background:#fff}
+    details.inbody>summary{cursor:pointer;font-weight:800;color:var(--brand)}
+    .muted{color:#6b7280}
+  </style>
 </head>
 <body>
-<div class="container">
-  <div class="header">
-    <div class="title" id="title">회원 신규 등록</div>
-    <button id="btnBack" class="btn">목록으로</button>
+  <div class="container">
+    <div class="header">
+      <div class="title">회원 신규 등록</div>
+      <button class="btn" onclick="location.href='/member-list-edit.html'">목록으로</button>
+    </div>
+
+    <div id="banner" class="banner error" role="alert"></div>
+
+    <form id="regForm" autocomplete="off">
+      <!-- 기본 정보 -->
+      <div class="row">
+        <div class="col">
+          <label>이름</label>
+          <input type="text" name="name" required />
+        </div>
+        <div class="col">
+          <label>성별</label>
+          <select name="gender">
+            <option>여성</option><option>남성</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col">
+          <label>생년월일</label>
+          <input id="birth" type="text" name="birth" inputmode="numeric" maxlength="10" placeholder="YYYY-MM-DD" />
+          <div class="help">입력 중 자동 하이픈 · 유효 범위 검사(MM 1-12, DD 1-31)</div>
+        </div>
+        <div class="col">
+          <label>휴대폰번호 (문서ID)</label>
+          <input id="phone" type="tel" name="phone" inputmode="numeric" maxlength="13" placeholder="010-0000-0000" required />
+          <div class="help">하이픈은 자동 입력 · 숫자 10~11자리</div>
+        </div>
+      </div>
+
+      <!-- 보호자/가족 연락 -->
+      <div class="row">
+        <div class="col">
+          <label>보호자 성명</label>
+          <input type="text" name="guardianName" />
+        </div>
+        <div class="col">
+          <label>가족관계</label>
+          <select name="guardianRelation">
+            <option value="">선택</option>
+            <option>배우자</option><option>부모</option><option>자녀</option>
+            <option>형제자매</option><option>보호자</option><option>기타</option>
+          </select>
+        </div>
+        <div class="col">
+          <label>보호자 연락처</label>
+          <input id="guardianPhone" type="tel" name="guardianPhone" inputmode="numeric" maxlength="13" placeholder="010-0000-0000" />
+        </div>
+      </div>
+
+      <!-- 이용 정보 -->
+      <div class="row">
+        <div class="col">
+          <label>담당 트레이너</label>
+          <input type="text" name="trainer" />
+        </div>
+        <div class="col">
+          <label>레슨 유형</label>
+          <select name="lessonType">
+            <option value="">선택</option><option>PT</option><option>PILATES</option><option>GOLF</option>
+          </select>
+        </div>
+        <div class="col">
+          <label>회원 등급</label>
+          <select name="level">
+            <option>일반</option><option>VIP</option><option>프로모션</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col">
+          <label>주소</label>
+          <input type="text" name="address" />
+        </div>
+        <div class="col">
+          <label>최초 등록일</label>
+          <input type="date" name="startDate" />
+        </div>
+        <div class="col">
+          <label>메모(특이사항)</label>
+          <input type="text" name="memberMemo" placeholder="예: 허리 디스크, 오전 선호 등" />
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col">
+          <label>건강 특이사항</label>
+          <textarea name="healthMemo" rows="3" placeholder="알레르기/복용약/주의사항 등"></textarea>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- 인바디 입력(토글) -->
+      <details class="inbody">
+        <summary>➕ 인바디 등록하기</summary>
+        <p class="muted" style="margin:8px 0 10px">키/몸무게/골격근량/체지방률/체지방량을 입력하면 최신값으로 저장되고, 최초 1건은 inbodyHistory에도 기록됩니다.</p>
+        <div class="row">
+          <div class="col"><label>키(cm)</label><input type="number" step="0.1" name="heightCm" placeholder="예: 170.0" /></div>
+          <div class="col"><label>몸무게(kg)</label><input type="number" step="0.1" name="weightKg" placeholder="예: 65.5" /></div>
+          <div class="col"><label>골격근량(kg)</label><input type="number" step="0.1" name="muscleMass" placeholder="예: 29.8" /></div>
+        </div>
+        <div class="row">
+          <div class="col"><label>체지방률(%)</label><input type="number" step="0.1" name="bodyFatPercent" placeholder="예: 18.5" /></div>
+          <div class="col"><label>체지방량(kg)</label><input type="number" step="0.1" name="bodyFatMass" placeholder="예: 12.1" /></div>
+          <div class="col"></div>
+        </div>
+      </details>
+
+      <div class="actions">
+        <button type="button" class="btn" onclick="location.href='/member-list-edit.html'">취소</button>
+        <button type="submit" class="btn btn-primary">등록</button>
+      </div>
+    </form>
+
+    <div id="loading" class="muted" style="display:none;margin-top:6px">저장 중…</div>
   </div>
 
-  <div id="alert" class="banner error" role="alert"></div>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
 
-  <form id="form">
-    <div class="row">
-      <div class="col">
-        <label>이름</label>
-        <input name="name" required />
-      </div>
-      <div class="col">
-        <label>성별</label>
-        <select name="gender">
-          <option>여성</option><option>남성</option>
-        </select>
-      </div>
-    </div>
+    /* ===== Firebase ===== */
+    const firebaseConfig = {
+      apiKey: "AIzaSyCjdyveDx0qFPUzmaChnEy9Ni0VjTysYnM",
+      authDomain: "more-than-fitness-f6adb.firebaseapp.com",
+      projectId: "more-than-fitness-f6adb",
+      storageBucket: "more-than-fitness-f6adb.appspot.com",
+      messagingSenderId: "993248877411",
+      appId: "1:993248877411:web:c0e6785162cf252fbcd156",
+      measurementId: "G-MK0RVFG296"
+    };
+    const app = initializeApp(firebaseConfig);
+    const db  = getFirestore(app);
+    const COL = "members";
 
-    <div class="row">
-      <div class="col">
-        <label>생년월일</label>
-        <input id="birth" name="birth" inputmode="numeric" maxlength="10" placeholder="YYYY-MM-DD" />
-        <div class="muted" style="font-size:12px">자동 하이픈 / 범위 검사</div>
-      </div>
-      <div class="col">
-        <label>휴대폰번호 (문서ID)</label>
-        <input id="phone" name="phone" inputmode="numeric" maxlength="13" placeholder="010-0000-0000" />
-        <div class="muted" style="font-size:12px">신규 등록일 때만 수정 가능</div>
-      </div>
-      <div class="col">
-        <label>긴급 연락처</label>
-        <input id="emer" name="emergency" inputmode="numeric" maxlength="13" placeholder="010-0000-0000" />
-      </div>
-    </div>
+    /* ===== DOM ===== */
+    const $ = (s)=>document.querySelector(s);
+    const form = $("#regForm");
+    const banner = $("#banner");
+    const loading = $("#loading");
 
-    <div class="row">
-      <div class="col">
-        <label>담당 트레이너</label>
-        <input name="trainer" />
-      </div>
-      <div class="col">
-        <label>레슨 유형</label>
-        <select name="lessonType">
-          <option>PT</option><option>PILATES</option><option>GOLF</option>
-        </select>
-      </div>
-      <div class="col">
-        <label>회원 등급</label>
-        <select name="level">
-          <option>VIP</option><option>일반</option><option>프로모션</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="row">
-      <div class="col">
-        <label>주소</label>
-        <input name="address" />
-      </div>
-      <div class="col">
-        <label>최초 등록일</label>
-        <input type="date" name="startDate" />
-      </div>
-      <div class="col">
-        <label>만료일</label>
-        <input type="date" name="expireAt" />
-      </div>
-    </div>
-
-    <div class="row">
-      <div class="col">
-        <label>총 등록 회차</label>
-        <input type="number" min="0" step="1" name="totalSessionsPurchased" />
-      </div>
-      <div class="col">
-        <label>남은 회차</label>
-        <input type="number" min="0" step="1" name="remainingSessions" />
-      </div>
-      <div class="col">
-        <label>최근 로그 일자(표시용)</label>
-        <input type="date" name="lastLogAt" />
-      </div>
-    </div>
-
-    <div class="row">
-      <div class="col">
-        <label>건강 특이사항</label>
-        <textarea name="healthMemo" rows="3"></textarea>
-      </div>
-      <div class="col">
-        <label>회원 메모</label>
-        <textarea name="memberMemo" rows="3"></textarea>
-      </div>
-    </div>
-
-    <div class="actions">
-      <button type="button" id="btnCancel" class="btn">취소</button>
-      <button type="submit" class="btn btn-primary">저장</button>
-    </div>
-  </form>
-</div>
-
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
-  import { getFirestore, doc, getDoc, setDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
-  import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyCjdyveDx0qFPUzmaChnEy9Ni0VjTysYnM",
-    authDomain: "more-than-fitness-f6adb.firebaseapp.com",
-    projectId: "more-than-fitness-f6adb",
-    storageBucket: "more-than-fitness-f6adb.appspot.com",
-    messagingSenderId: "993248877411",
-    appId: "1:993248877411:web:c0e6785162cf252fbcd156",
-    measurementId: "G-MK0RVFG296"
-  };
-  const app = initializeApp(firebaseConfig);
-  const db  = getFirestore(app);
-  const auth = getAuth(app);
-  onAuthStateChanged(auth, u=>{ if(!u) signInAnonymously(auth).catch(console.error); });
-
-  const $ = s=>document.querySelector(s);
-  const form = $("#form");
-  const alertBox = $("#alert");
-  const title = $("#title");
-
-  // format helpers
-  const onlyDigits = s=> String(s||"").replace(/\D/g,"");
-  const fmtPhone = raw=>{
-    const v = onlyDigits(raw).slice(0,11);
-    if(v.length<=3) return v;
-    if(v.length<=7) return v.slice(0,3)+"-"+v.slice(3);
-    return v.slice(0,3)+"-"+v.slice(3,7)+"-"+v.slice(7);
-  };
-  const fmtBirth = raw=>{
-    const v = onlyDigits(raw).slice(0,8);
-    if(v.length<=4) return v;
-    if(v.length<=6) return v.slice(0,4)+"-"+v.slice(4);
-    return v.slice(0,4)+"-"+v.slice(4,6)+"-"+v.slice(6,8);
-  };
-  const toDateValue = (v)=>{
-    try{
-      const d = v?.toDate ? v.toDate() : (v ? new Date(v) : null);
-      return d ? new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10) : "";
-    }catch{ return ""; }
-  };
-  const fromDateInput = v => v ? new Date(v+"T00:00:00") : null;
-  const isValidBirth = s=>{
-    const d = onlyDigits(s);
-    if(d.length!==8) return false;
-    const mm = +d.slice(4,6), dd=+d.slice(6,8);
-    return (mm>=1 && mm<=12 && dd>=1 && dd<=31);
-  };
-
-  // auto hyphen
-  $("#phone").addEventListener("input", e=> e.target.value = fmtPhone(e.target.value));
-  $("#emer").addEventListener("input", e=> e.target.value = fmtPhone(e.target.value));
-  $("#birth").addEventListener("input", e=> e.target.value = fmtBirth(e.target.value));
-
-  // nav
-  $("#btnBack").onclick = ()=> location.href="/member-list-edit.html";
-  $("#btnCancel").onclick = ()=> location.href="/member-list-edit.html";
-
-  // figure out mode
-  function getMemberId(){
-    const p = new URLSearchParams(location.search);
-    let id = p.get("mid");
-    if(!id){
-      id = localStorage.getItem("editMemberId") || "";
-      if(id) localStorage.removeItem("editMemberId");
-    }
-    return id;
-  }
-  const mid = getMemberId();
-  const phoneInput = $("#phone");
-
-  if(mid){
-    title.textContent = "회원 정보 수정";
-    phoneInput.disabled = true; // 규칙상 phone(doc id) 수정 불가
-    load(mid);
-  }else{
-    title.textContent = "회원 신규 등록";
-    phoneInput.disabled = false;
-  }
-
-  async function load(id){
-    try{
-      const ref = doc(db,"members",id);
-      const snap = await getDoc(ref);
-      if(!snap.exists()){
-        showError("해당 회원을 찾을 수 없습니다."); return;
-      }
-      const x = snap.data();
-      setVal("name", x.name||"");
-      setVal("gender", x.gender||"여성");
-      setVal("birth", x.birth ? fmtBirth(x.birth) : (x.birthDisplay||""));
-      setVal("phone", x.phoneDisplay || fmtPhone(x.phone||""));
-      setVal("emergency", x.emergency ? fmtPhone(x.emergency) : "");
-      setVal("trainer", x.trainer||"");
-      setVal("lessonType", x.lessonType||"");
-      setVal("level", x.level||"일반");
-      setVal("address", x.address||"");
-
-      setVal("startDate", x.startDate || toDateValue(x.createdAt) || "");
-      setVal("expireAt", toDateValue(x.expireAt)||"");
-      setVal("totalSessionsPurchased", Number(x.totalSessionsPurchased||0));
-      setVal("remainingSessions", Number(x.remainingSessions||0));
-      setVal("lastLogAt", toDateValue(x.lastLogAt)||"");
-
-      setVal("healthMemo", x.healthMemo||"");
-      setVal("memberMemo", x.memberMemo||"");
-    }catch(e){ showError("불러오기 실패: "+e.message); }
-  }
-
-  function setVal(name,val){ const el=form.querySelector(`[name="${name}"]`); if(el) el.value = val??""; }
-  function getVal(name){ const el=form.querySelector(`[name="${name}"]`); return el?el.value:""; }
-
-  function showError(msg){
-    alertBox.textContent = msg; alertBox.style.display = "block";
-    window.scrollTo({top:0,behavior:"smooth"});
-  }
-
-  form.addEventListener("submit", async (e)=>{
-    e.preventDefault(); alertBox.style.display="none";
-
-    const name = getVal("name").trim();
-    const phoneDisplay = getVal("phone");
-    const phoneDigits = onlyDigits(phoneDisplay);
-    const birthStr = getVal("birth");
-    const emer = getVal("emergency");
-
-    if(!name) return showError("이름을 입력하세요.");
-    if(!mid){ // 신규일 때만 전화번호 필수/검증
-      if(phoneDigits.length<10 || phoneDigits.length>11) return showError("휴대폰번호를 정확히 입력하세요.");
-    }
-    if(birthStr && !isValidBirth(birthStr)) return showError("생년월일 형식이 올바르지 않습니다.");
-
-    const payload = {
-      name,
-      gender: getVal("gender")||"",
-      phone: mid ? undefined : phoneDigits, // setDoc 할 때만 사용
-      phoneDisplay: phoneDisplay,
-      emergency: onlyDigits(emer),
-      birth: onlyDigits(birthStr)||null,
-      birthDisplay: birthStr||null,
-      trainer: getVal("trainer")||"",
-      lessonType: getVal("lessonType")||"",
-      level: getVal("level")||"",
-      address: getVal("address")||"",
-      startDate: getVal("startDate")||null,
-      expireAt: fromDateInput(getVal("expireAt"))||null,
-      totalSessionsPurchased: Number(getVal("totalSessionsPurchased")||0),
-      remainingSessions: Number(getVal("remainingSessions")||0),
-      lastLogAt: fromDateInput(getVal("lastLogAt"))||null,
-      healthMemo: getVal("healthMemo")||"",
-      memberMemo: getVal("memberMemo")||""
+    /* ===== Utils ===== */
+    const onlyDigits = (s)=> String(s||"").replace(/\D/g,"");
+    const fmtPhone = (raw)=>{
+      const v = onlyDigits(raw).slice(0,11);
+      if (v.length<=3) return v;
+      if (v.length<=7) return v.slice(0,3)+"-"+v.slice(3);
+      return v.slice(0,3)+"-"+v.slice(3,7)+"-"+v.slice(7);
+    };
+    const fmtBirth = (raw)=>{
+      const v = onlyDigits(raw).slice(0,8);
+      if (v.length<=4) return v;
+      if (v.length<=6) return v.slice(0,4)+"-"+v.slice(4);
+      return v.slice(0,4)+"-"+v.slice(4,6)+"-"+v.slice(6,8);
+    };
+    const isValidBirth = (birthStr)=>{
+      const d = onlyDigits(birthStr);
+      if (d.length !== 8) return false;
+      const yyyy = +d.slice(0,4), mm = +d.slice(4,6), dd = +d.slice(6,8);
+      if (mm<1 || mm>12) return false;
+      const mdays=[31,28+( (yyyy%4===0&&yyyy%100!==0)||yyyy%400===0?1:0 ),31,30,31,30,31,31,30,31,30,31];
+      if (dd<1 || dd>mdays[mm-1]) return false;
+      return true;
+    };
+    const isValidPhone = (p)=> {
+      const n = onlyDigits(p);
+      return n.length===10 || n.length===11;
     };
 
-    try{
-      if(mid){
-        // UPDATE (문서 ID/phone 고정)
-        payload.updatedAt = serverTimestamp();
-        await updateDoc(doc(db,"members",mid), payload);
-      }else{
-        // CREATE (문서 ID = phoneDigits, 규칙 만족)
-        const id = phoneDigits;
-        const ref = doc(db,"members",id);
-        const exists = await getDoc(ref);
-        if(exists.exists()) return showError("이미 등록된 회원입니다(동일 번호).");
-        payload.phone = id;
-        payload.createdAt = serverTimestamp();
-        payload.updatedAt = serverTimestamp();
-        await setDoc(ref, payload);
-      }
-      alert("저장되었습니다.");
-      location.href = "/member-list-edit.html";
-    }catch(err){
-      if(err.code === "permission-denied"){
-        showError("권한 오류: 인증/보안 규칙을 확인하세요.");
-      }else{
-        showError("저장 실패: " + err.message);
-      }
-      console.error(err);
+    function showBanner(msg){
+      banner.textContent = msg;
+      banner.style.display = "block";
+      window.scrollTo({top:0,behavior:"smooth"});
     }
-  });
-</script>
+    function hideBanner(){ banner.style.display="none"; }
+
+    // 입력 중 포맷팅
+    $("#phone").addEventListener("input", e=> e.target.value = fmtPhone(e.target.value));
+    $("#guardianPhone").addEventListener("input", e=> e.target.value = fmtPhone(e.target.value));
+    $("#birth").addEventListener("input", e=> e.target.value = fmtBirth(e.target.value));
+
+    /* ===== Submit ===== */
+    form.addEventListener("submit", async (e)=>{
+      e.preventDefault(); hideBanner();
+      loading.style.display = "block";
+
+      try{
+        const name = form.name.value.trim();
+        const gender = form.gender.value || "여성";
+        const phoneDisplay = fmtPhone(form.phone.value);
+        const phone = onlyDigits(phoneDisplay);
+        const birthDisplay = form.birth.value.trim();
+        const birth = onlyDigits(birthDisplay);
+
+        if (!name) { showBanner("이름을 입력하세요."); loading.style.display="none"; return; }
+        if (!isValidPhone(phoneDisplay)) { showBanner("휴대폰 번호 형식이 올바르지 않습니다."); loading.style.display="none"; return; }
+        if (birthDisplay && !isValidBirth(birthDisplay)) { showBanner("생년월일 형식이 올바르지 않습니다."); loading.style.display="none"; return; }
+        if (form.guardianPhone.value && !isValidPhone(form.guardianPhone.value)) { showBanner("보호자 연락처 형식이 올바르지 않습니다."); loading.style.display="none"; return; }
+
+        // 문서ID = phone (규칙과 일치)
+        const docId = phone;
+        const ref = doc(db, COL, docId);
+        const exists = await getDoc(ref);
+        if (exists.exists()){
+          showBanner("이미 등록된 휴대폰 번호입니다. 회원 수정 화면에서 변경하세요.");
+          loading.style.display = "none";
+          return;
+        }
+
+        // 인바디 값(입력 시에만 저장)
+        const heightCm = form.heightCm.value ? Number(form.heightCm.value) : null;
+        const weightKg = form.weightKg.value ? Number(form.weightKg.value) : null;
+        const muscleMass = form.muscleMass.value ? Number(form.muscleMass.value) : null;
+        const bodyFatPercent = form.bodyFatPercent.value ? Number(form.bodyFatPercent.value) : null;
+        const bodyFatMass = form.bodyFatMass.value ? Number(form.bodyFatMass.value) : null;
+
+        const basePayload = {
+          name, gender,
+          phone, phoneDisplay,
+          birth: birth || null,
+          birthDisplay: birthDisplay || null,
+
+          trainer: form.trainer.value || "",
+          lessonType: form.lessonType.value || "",
+          level: form.level.value || "일반",
+          address: form.address.value || "",
+
+          guardianName: form.guardianName.value || "",
+          guardianRelation: form.guardianRelation.value || "",
+          emergency: onlyDigits(form.guardianPhone.value) || null,
+
+          memberMemo: form.memberMemo.value || "",
+          healthMemo: form.healthMemo.value || "",
+
+          startDate: form.startDate.value || null,
+
+          // 회차/상태 기본값
+          totalSessionsPurchased: 0,
+          remainingSessions: 0,
+
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        };
+
+        // 인바디가 하나라도 입력되면 최신값 + 이력 1건 기록
+        const withInbody = (heightCm||weightKg||muscleMass||bodyFatPercent||bodyFatMass)
+          ? {
+              heightCm, weightKg, muscleMass, bodyFatPercent, bodyFatMass,
+              inbodyHistory: [{
+                heightCm, weightKg, muscleMass, bodyFatPercent, bodyFatMass,
+                createdAt: serverTimestamp()
+              }]
+            }
+          : {};
+
+        await setDoc(ref, { ...basePayload, ...withInbody });
+
+        alert("등록이 완료되었습니다.");
+        location.href="/member-list-edit.html";
+      }catch(err){
+        console.error(err);
+        showBanner("저장 실패: " + err.message);
+      }finally{
+        loading.style.display = "none";
+      }
+    });
+  </script>
 </body>
 </html>
