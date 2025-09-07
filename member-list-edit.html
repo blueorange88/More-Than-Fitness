@@ -1,203 +1,217 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <title>회원 목록</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    :root{
-      --ink:#0d1b2a; --bg:#f5f0e8; --card:#fff; --line:#e5e7eb;
-      --brand:#0d1b2a; --brand2:#cfa35e;
-    }
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,sans-serif;
-         background:var(--bg); color:var(--ink); margin:0; padding:20px}
-    .header{display:flex;justify-content:space-between;align-items:center;gap:12px; margin-bottom:12px}
-    .title{font-size:20px;font-weight:700}
-    .close{font-size:20px;border:none;background:none;cursor:pointer}
-    .tools{display:flex;gap:10px;align-items:center;margin-bottom:10px}
-    .search{width:260px;max-width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px}
-    .table-wrap{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;
-                box-shadow:0 2px 8px rgba(0,0,0,.06)}
-    table{width:100%;border-collapse:collapse}
-    thead th{position:sticky;top:0;background:#0d1b2a;color:#fff;font-weight:600;font-size:13px}
-    th,td{padding:10px;border-bottom:1px solid var(--line);text-align:center;font-size:13px}
-    tbody tr{background:#fff}
-    tbody tr:nth-child(odd){background:#fafafa}
-    tbody tr:hover{background:#eef2ff}
-    .name{font-weight:600;text-decoration:underline; color:#0b4aa2}
-    .muted{color:#6b7280}
-    .btn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer}
-    .btn:hover{border-color:#bbb}
-    .edit-btn{background:linear-gradient(0deg,#fff,#fff),linear-gradient(90deg,var(--brand),var(--brand2));border:1px solid var(--brand);color:var(--brand);font-weight:600}
-    .edit-btn:hover{background:linear-gradient(90deg,var(--brand),var(--brand2));color:#fff}
-    .pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;border:1px solid var(--line)}
-    .pill.ok{background:#ecfdf5;border-color:#10b981;color:#065f46}
-    .pill.exp{background:#fff7ed;border-color:#f59e0b;color:#92400e}
-    .sortable{cursor:pointer;user-select:none}
-    .sortable .arrow{opacity:.6;margin-left:4px}
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>회원 목록</title>
+<style>
+  :root{ --ink:#0d1b2a; --bg:#f5f0e8; --card:#fff; --line:#e5e7eb; --brand:#0d1b2a; --brand2:#cfa35e; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,sans-serif}
+  header{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:12px 14px}
+  .title{font-size:18px;font-weight:800}
+  .tools{display:flex;gap:10px;align-items:center}
+  .search{width:220px;max-width:55vw;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:#fff}
+  .hint{font-size:12px;color:#6b7280}
+
+  .wrap{margin:10px;padding:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  thead th{position:sticky;top:0;background:#0d1b2a;color:#fff;text-align:center;font-weight:700}
+  th,td{border-bottom:1px solid var(--line);padding:8px 6px;text-align:center}
+  tbody tr:nth-child(odd){background:#fafafa}
+  tbody tr:hover{background:#eef2ff}
+  .name{font-weight:700;color:#0b4aa2;text-decoration:underline}
+  .pill{display:inline-block;padding:2px 8px;border-radius:999px;border:1px solid var(--line);font-size:12px}
+  .ok{background:#ecfdf5;border-color:#10b981;color:#065f46}
+  .exp{background:#fff7ed;border-color:#f59e0b;color:#92400e}
+  .sortable{cursor:pointer;user-select:none}
+  .sortable .arrow{opacity:.7;margin-left:4px}
+
+  /* 모바일: 왼쪽 수정 버튼 크게 */
+  .edit-btn{
+    min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;
+    border:1px solid var(--line);border-radius:10px;background:#fff;font-size:16px;cursor:pointer
+  }
+  .edit-btn:hover{border-color:#bbb}
+  .td-edit{width:56px}
+  @media (max-width: 768px){
+    .search{width:52vw}
+    .td-trainer,.td-lesson{display:none}
+  }
+</style>
 </head>
 <body>
-  <div class="header">
-    <div class="title">회원 목록</div>
-    <button id="closeMemberView" class="close" title="닫기">✕</button>
-  </div>
-
+<header>
+  <div class="title">회원 목록</div>
   <div class="tools">
-    <input id="searchInput" class="search" type="text" placeholder="이름/전화번호 검색" />
-    <span class="muted">정렬: 헤더 클릭</span>
+    <input id="searchInput" class="search" type="text" placeholder="이름/전화 검색" />
+    <span class="hint">정렬: 헤더 탭</span>
   </div>
+</header>
 
-  <div class="table-wrap">
-    <table id="memberTable">
-      <thead>
-        <tr>
-          <th class="sortable" data-key="name">이름 <span class="arrow">↕</span></th>
-          <th class="sortable" data-key="gender">성별 <span class="arrow">↕</span></th>
-          <th class="sortable" data-key="phoneDisplay">휴대폰번호 <span class="arrow">↕</span></th>
-          <th class="sortable" data-key="totalSessionsPurchased">등록 회차 <span class="arrow">↕</span></th>
-          <th class="sortable" data-key="remainingSessions">남은 회차 <span class="arrow">↕</span></th>
-          <th class="sortable" data-key="expireAt">만료기한 <span class="arrow">↕</span></th>
-          <th>수정</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
+<div class="wrap">
+  <table id="memberTable" aria-live="polite">
+    <thead>
+      <tr>
+        <th class="td-edit">수정</th>
+        <th class="sortable" data-key="name">이름 <span class="arrow">↕</span></th>
+        <th class="sortable" data-key="gender">성별 <span class="arrow">↕</span></th>
+        <th class="sortable" data-key="phoneDisplay">휴대폰 <span class="arrow">↕</span></th>
+        <th class="td-trainer sortable" data-key="trainer">담당 <span class="arrow">↕</span></th>
+        <th class="td-lesson sortable" data-key="lessonType">레슨 <span class="arrow">↕</span></th>
+        <th class="sortable" data-key="totalSessionsPurchased">등록회차 <span class="arrow">↕</span></th>
+        <th class="sortable" data-key="remainingSessions">남은회차 <span class="arrow">↕</span></th>
+        <th class="sortable" data-key="expireAt">만료 <span class="arrow">↕</span></th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
-    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
+  import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+  import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
 
-    const COL = "members";
+  const firebaseConfig = {
+    apiKey: "AIzaSyCjdyveDx0qFPUzmaChnEy9Ni0VjTysYnM",
+    authDomain: "more-than-fitness-f6adb.firebaseapp.com",
+    projectId: "more-than-fitness-f6adb",
+    storageBucket: "more-than-fitness-f6adb.appspot.com",
+    messagingSenderId: "993248877411",
+    appId: "1:993248877411:web:c0e6785162cf252fbcd156",
+    measurementId: "G-MK0RVFG296"
+  };
+  const app = initializeApp(firebaseConfig);
+  const db  = getFirestore(app);
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCjdyveDx0qFPUzmaChnEy9Ni0VjTysYnM",
-      authDomain: "more-than-fitness-f6adb.firebaseapp.com",
-      projectId: "more-than-fitness-f6adb",
-      storageBucket: "more-than-fitness-f6adb.appspot.com",
-      messagingSenderId: "993248877411",
-      appId: "1:993248877411:web:c0e6785162cf252fbcd156",
-      measurementId: "G-MK0RVFG296"
-    };
-    const app = initializeApp(firebaseConfig);
-    const db  = getFirestore(app);
+  // (권장) 규칙 통과를 위한 익명 로그인
+  const auth = getAuth(app);
+  onAuthStateChanged(auth, (user)=>{ if(!user) signInAnonymously(auth).catch(console.error); });
 
-    const $ = (s)=>document.querySelector(s);
-    const toDate = (v)=>{ try{ return v?.toDate ? v.toDate() : (v ? new Date(v) : null);}catch{return null;} };
-    const fmtDate = (d)=> d ? new Date(d).toISOString().slice(0,10) : "-";
-    const onlyDigits = (s)=> String(s||"").replace(/\D/g,"");
-    const fmtPhone = (raw)=> {
-      const v = onlyDigits(raw).slice(0,11);
-      if (v.length<=3) return v;
-      if (v.length<=7) return v.slice(0,3)+"-"+v.slice(3);
-      return v.slice(0,3)+"-"+v.slice(3,7)+"-"+v.slice(7);
-    };
+  const COL = "members";
 
-    let memberList = [];
-    let sortKey = "createdAt";
-    let sortAsc = false;
+  const $ = (s)=>document.querySelector(s);
+  const tbody = $("#memberTable tbody");
+  const searchInput = $("#searchInput");
+  let memberList = [];
+  let sortKey = "createdAt";
+  let sortAsc = false;
 
-    async function loadMembers() {
-      const snap = await getDocs(collection(db, COL));
-      memberList = [];
-      snap.forEach(doc => {
-        const x = doc.data();
-        const createdAt = toDate(x.createdAt);
-        const expireAt  = toDate(x.expireAt);
-        memberList.push({
-          id: doc.id,
-          name: x.name || "",
-          gender: x.gender || "",
-          phone: x.phone || x.phoneDisplay || "",
-          phoneDisplay: x.phoneDisplay || fmtPhone(x.phone || ""),
-          trainer: x.trainer || "",
-          lessonType: x.lessonType || "",
-          level: x.level || "",
-          totalSessionsPurchased: Number(x.totalSessionsPurchased || 0),
-          remainingSessions: Number(x.remainingSessions || 0),
-          expireAt,
-          createdAt
-        });
+  // util
+  const onlyDigits = (s)=> String(s||"").replace(/\D/g,"");
+  const fmtPhone = (raw)=>{
+    const v = onlyDigits(raw).slice(0,11);
+    if (v.length<=3) return v;
+    if (v.length<=7) return v.slice(0,3)+"-"+v.slice(3);
+    return v.slice(0,3)+"-"+v.slice(3,7)+"-"+v.slice(7);
+  };
+  const toDate = (v)=>{ try{ return v?.toDate ? v.toDate() : (v ? new Date(v) : null);}catch{return null;} };
+  const fmtDate = (d)=> d ? new Date(d).toISOString().slice(0,10) : "-";
+
+  // 실시간 목록
+  onSnapshot(collection(db, COL), (snap)=>{
+    memberList = [];
+    snap.forEach(doc=>{
+      const x = doc.data();
+      const expireAt = toDate(x.expireAt);
+      memberList.push({
+        id: doc.id,
+        name: x.name || "",
+        gender: x.gender || "",
+        phone: x.phone || x.phoneDisplay || "",
+        phoneDisplay: x.phoneDisplay || fmtPhone(x.phone || ""),
+        trainer: x.trainer || "",
+        lessonType: x.lessonType || "",
+        totalSessionsPurchased: Number(x.totalSessionsPurchased||0),
+        remainingSessions: Number(x.remainingSessions||0),
+        expireAt,
+        createdAt: toDate(x.createdAt)
       });
+    });
+    render();
+  });
+
+  // 렌더 + 정렬/검색
+  function render(list = memberList){
+    const q = (searchInput.value||"").trim().toLowerCase();
+    const filtered = list.filter(m =>
+      (m.name||"").toLowerCase().includes(q) ||
+      (m.phoneDisplay||"").toLowerCase().includes(q) ||
+      (m.phone||"").toLowerCase().includes(q) ||
+      (m.trainer||"").toLowerCase().includes(q)
+    );
+
+    const data = [...filtered].sort((a,b)=>{
+      const k = sortKey;
+      let A = a[k], B = b[k];
+      if (k === "createdAt" || k === "expireAt"){
+        A = A ? new Date(A).getTime() : 0;
+        B = B ? new Date(B).getTime() : 0;
+      } else if (k === "totalSessionsPurchased" || k === "remainingSessions") {
+        A = Number(A||0); B = Number(B||0);
+      } else {
+        A = (A||"").toString().toLowerCase();
+        B = (B||"").toString().toLowerCase();
+      }
+      return sortAsc ? (A>B?1:A<B?-1:0) : (A<B?1:A>B?-1:0);
+    });
+
+    tbody.innerHTML = "";
+    const today = new Date(); today.setHours(0,0,0,0);
+    data.forEach(m=>{
+      const isExpired = m.expireAt ? (m.expireAt < today) : false;
+      const tr = document.createElement("tr");
+
+      // 왼쪽 ‘수정’ 버튼(연필) — 오터치 방지: 독립 버튼 + 행 클릭과 이벤트 분리
+      const tdEdit = document.createElement("td");
+      tdEdit.className = "td-edit";
+      tdEdit.innerHTML = `<button class="edit-btn" aria-label="수정" data-id="${m.id}" title="수정">✎</button>`;
+      tr.appendChild(tdEdit);
+
+      tr.innerHTML += `
+        <td><span class="name">${m.name||"-"}</span></td>
+        <td>${m.gender||"-"}</td>
+        <td>${m.phoneDisplay||fmtPhone(m.phone)||"-"}</td>
+        <td class="td-trainer">${m.trainer||"-"}</td>
+        <td class="td-lesson">${m.lessonType||"-"}</td>
+        <td>${m.totalSessionsPurchased}</td>
+        <td>${m.remainingSessions}</td>
+        <td>${fmtDate(m.expireAt)} ${m.expireAt ? `<span class="pill ${isExpired?'exp':'ok'}">${isExpired?'만료':'유효'}</span>` : ""}</td>
+      `;
+
+      // 행 클릭 시: 보기(원하면 다른 상세로 연결). 여기서는 수정과 동일하게 이동
+      tr.addEventListener("click", (e)=>{
+        // 왼쪽 버튼을 눌렀을 때는 무시(이중 이동 방지)
+        if (e.target.closest(".edit-btn")) return;
+        location.href = `/member-registration.html?mid=${encodeURIComponent(m.id)}`;
+      });
+
+      tbody.appendChild(tr);
+    });
+  }
+
+  // 검색
+  searchInput.addEventListener("input", ()=> render());
+
+  // 정렬
+  document.querySelectorAll("thead th.sortable").forEach(th=>{
+    th.addEventListener("click", ()=>{
+      const key = th.dataset.key;
+      sortAsc = (sortKey === key) ? !sortAsc : true;
+      sortKey = key;
       render();
-    }
-
-    function render(list = memberList){
-      // 정렬
-      const data = [...list].sort((a,b)=>{
-        const k = sortKey;
-        let A = a[k], B = b[k];
-        if (k === "createdAt" || k === "expireAt") {
-          A = A ? new Date(A).getTime() : 0;
-          B = B ? new Date(B).getTime() : 0;
-        } else if (k === "totalSessionsPurchased" || k === "remainingSessions") {
-          A = Number(A||0); B = Number(B||0);
-        } else {
-          A = (A||"").toString().toLowerCase();
-          B = (B||"").toString().toLowerCase();
-        }
-        return sortAsc ? (A>B?1:A<B?-1:0) : (A<B?1:A>B?-1:0);
-      });
-
-      const tbody = $("#memberTable tbody");
-      tbody.innerHTML = "";
-      data.forEach(m=>{
-        const tr = document.createElement("tr");
-        const today = new Date(); today.setHours(0,0,0,0);
-        const isExpired = m.expireAt ? (m.expireAt < today) : false;
-        tr.innerHTML = `
-          <td><span class="name">${m.name||"-"}</span></td>
-          <td>${m.gender||"-"}</td>
-          <td>${m.phoneDisplay||fmtPhone(m.phone)||"-"}</td>
-          <td>${m.totalSessionsPurchased}</td>
-          <td>${m.remainingSessions}</td>
-          <td>
-            ${fmtDate(m.expireAt)}
-            ${m.expireAt ? `<span class="pill ${isExpired?'exp':'ok'}" style="margin-left:6px">${isExpired?'만료':'유효'}</span>` : ""}
-          </td>
-          <td><button class="btn edit-btn" data-id="${m.id}">수정</button></td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    // 검색
-    $("#searchInput").addEventListener("input", (e)=>{
-      const q = e.target.value.trim().toLowerCase();
-      const filtered = memberList.filter(m =>
-        (m.name||"").toLowerCase().includes(q) ||
-        (m.phoneDisplay||"").toLowerCase().includes(q) ||
-        (m.phone||"").toLowerCase().includes(q)
-      );
-      render(filtered);
     });
+  });
 
-    // 정렬(헤더 클릭)
-    document.querySelectorAll("thead th.sortable").forEach(th=>{
-      th.addEventListener("click", ()=>{
-        const key = th.dataset.key;
-        sortAsc = (sortKey === key) ? !sortAsc : true;
-        sortKey = key;
-        render();
-      });
-    });
-
-    // ★ 수정 버튼 → 편집 페이지 이동 (쿼리 + localStorage 동시 사용)
-    document.addEventListener("click",(e)=>{
-      const btn = e.target.closest(".edit-btn");
-      if (!btn) return;
-      const id = btn.dataset.id;
-      if (!id) { alert("회원 ID가 없습니다."); return; }
-      localStorage.setItem("editMemberId", id); // 백업
-      // 루트 경로에 파일이 있으면 아래 사용, 서브폴더면 ./edit-member.html 로 변경
-      location.href = `/edit-member.html?mid=${encodeURIComponent(id)}`;
-    });
-
-    // 닫기
-    $("#closeMemberView").addEventListener("click", ()=> location.href="/dashboard.html");
-
-    loadMembers();
-  </script>
+  // 수정 버튼 전용 이벤트(행 클릭과 분리)
+  tbody.addEventListener("click",(e)=>{
+    const btn = e.target.closest(".edit-btn");
+    if (!btn) return;
+    e.stopPropagation();
+    const id = btn.dataset.id;
+    location.href = `/member-registration.html?mid=${encodeURIComponent(id)}`;
+  });
+</script>
 </body>
 </html>
