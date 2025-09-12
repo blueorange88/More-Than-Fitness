@@ -1,60 +1,55 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="utf-8" />
+<meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>회원 목록 · 수정</title>
 <style>
-  :root{ --ink:#0d1b2a; --bg:#f5f0e8; --card:#fff; --line:#e5e7eb; --brand:#0d1b2a; --gold:#cfa35e; --danger:#ef4444; }
+  :root{--ink:#0d1b2a;--bg:#f5f0e8;--card:#fff;--line:#e5e7eb;--brand:#0d1b2a;--brand2:#cfa35e;--danger:#ef4444;--danger-bg:#fee2e2}
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,sans-serif}
-  header{position:sticky;top:0;z-index:10;background:linear-gradient(#fff,var(--bg));border-bottom:2px solid var(--gold);padding:12px 14px}
-  h1{margin:0 0 8px;font-size:18px}
-  .tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-  .tools input[type="search"]{flex:1;min-width:180px;border:1px solid var(--line);border-radius:10px;padding:9px 10px;background:#fff}
-  .tools select{border:1px solid var(--line);border-radius:10px;padding:9px 10px;background:#fff}
-  .btn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 12px;cursor:pointer}
-  .btn-primary{border-color:var(--brand);color:var(--brand);font-weight:700}
-  main{padding:12px}
-  /* 리스트 */
-  .list{display:flex;flex-direction:column;gap:10px}
-  .row{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px}
-  .edit{flex:0 0 auto;border:1px solid var(--line);border-radius:999px;background:#fff;padding:6px 9px;cursor:pointer}
-  .meta{flex:1 1 auto;min-width:0}
-  .name{font-weight:800;display:flex;align-items:center;gap:6px}
-  .badge{font-size:11px;border:1px solid var(--line);border-radius:999px;padding:2px 7px}
-  .badge.vip{border-color:var(--gold);color:#8a6d1d;background:#fff8e6}
-  .sub{font-size:13px;color:#64748b;display:flex;gap:10px;flex-wrap:wrap}
-  .right{flex:0 0 auto;text-align:right;font-size:12px;color:#475569}
-  .danger{color:var(--danger)}
-  .empty{padding:40px 8px;text-align:center;color:#64748b}
+  .wrap{max-width:980px;margin:14px auto;padding:0 10px}
+  .bar{display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+  .bar .title{font-weight:800;font-size:18px;margin-right:auto}
+  .bar input[type="search"]{flex:1;min-width:180px;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:#fff}
+  .bar select,.bar button{padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;cursor:pointer}
+  .bar .primary{border-color:var(--brand);color:var(--brand);font-weight:700}
+  .banner{display:none;margin:6px 0;padding:10px 12px;border-radius:10px}
+  .banner.error{display:block;background:var(--danger-bg);border:1px solid var(--danger);color:#991b1b}
+  .list{display:flex;flex-direction:column;gap:8px}
+  .item{display:flex;gap:10px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px}
+  .edit-btn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 10px;cursor:pointer}
+  .meta{display:flex;gap:10px;flex-wrap:wrap;font-size:13px;color:#374151}
+  .name{font-weight:800}
+  .empty{padding:40px 0;color:#6b7280;text-align:center}
+  @media (max-width:560px){
+    .item{padding:10px}
+    .meta{gap:6px}
+  }
 </style>
 </head>
 <body>
-<header>
-  <h1>회원 목록 · 수정</h1>
-  <div class="tools">
-    <input id="q" type="search" placeholder="이름/연락처/담당/등급 검색" />
-    <select id="sortBy" aria-label="정렬">
-      <option value="recent" selected>최근 작성순</option>
-      <option value="name">이름(가나다)</option>
-      <option value="grade">등급</option>
-      <option value="first">최초 등록일</option>
+<div class="wrap">
+  <div class="bar">
+    <div class="title">회원 목록 · 수정</div>
+    <input id="q" type="search" placeholder="이름·전화·트레이너 검색" />
+    <select id="sort">
+      <option value="recent">최근 작성순</option>
+      <option value="name">이름순</option>
+      <option value="remain">남은 회차 많은순</option>
     </select>
-    <button class="btn btn-primary" id="btnNew">+ 신규 등록</button>
+    <button id="btnNew" class="primary">+ 신규 등록</button>
   </div>
-</header>
 
-<main>
-  <div id="list" class="list" aria-live="polite"></div>
-  <div id="empty" class="empty" hidden>등록된 회원이 없습니다.</div>
-</main>
+  <div id="banner" class="banner error"></div>
+  <div id="status" class="empty">불러오는 중…</div>
+  <div id="list" class="list" hidden></div>
+</div>
 
 <script type="module">
-  /* ========== Firebase ========== */
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
+  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
   import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
-  import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyCjdyveDx0qFPUzmaChnEy9Ni0VjTysYnM",
@@ -65,150 +60,163 @@
     appId: "1:993248877411:web:c0e6785162cf252fbcd156",
     measurementId: "G-MK0RVFG296"
   };
+
   const app = initializeApp(firebaseConfig);
+  const db  = getFirestore(app);
   const auth = getAuth(app);
-  const db   = getFirestore(app);
-  onAuthStateChanged(auth, u => { if(!u) signInAnonymously(auth).catch(console.error); });
 
-  /* ========== DOM refs ========== */
-  const listEl  = document.getElementById('list');
-  const emptyEl = document.getElementById('empty');
-  const qEl     = document.getElementById('q');
-  const sortSel = document.getElementById('sortBy');
-  document.getElementById('btnNew').onclick = ()=> location.href = "/member-registration.html";
+  const $ = s=>document.querySelector(s);
+  const banner = $("#banner");
+  const statusEl = $("#status");
+  const listEl = $("#list");
+  const qEl = $("#q");
+  const sortEl = $("#sort");
+  $("#btnNew").onclick = ()=> location.href = "/member-registration.html";
 
-  /* ========== Utils ========== */
-  const onlyDigits = s => String(s||"").replace(/\D/g,"");
-  const fmtPhone = raw => {
-    const v = onlyDigits(raw).slice(0,11);
-    if (v.length<=3) return v;
-    if (v.length<=7) return v.slice(0,3)+'-'+v.slice(3);
-    return v.slice(0,3)+'-'+v.slice(3,7)+'-'+v.slice(7);
+  const onlyDigits = s=> String(s||"").replace(/\D/g,"");
+  const fmtPhone = raw=>{
+    const v=onlyDigits(raw).slice(0,11);
+    if(v.length<=3) return v;
+    if(v.length<=7) return v.slice(0,3)+"-"+v.slice(3);
+    return v.slice(0,3)+"-"+v.slice(3,7)+"-"+v.slice(7);
   };
-  const toISO = d => d instanceof Date
-    ? new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10)
-    : "";
-  const toDateStr = v => {
-    try { const d = v?.toDate ? v.toDate() : (v ? new Date(v) : null); return d ? toISO(d) : ""; }
-    catch { return ""; }
-  };
-  const daysUntil = (dateStr) => {
-    if(!dateStr) return null;
-    const d = new Date(dateStr+'T00:00:00');
-    const today = new Date(); today.setHours(0,0,0,0);
-    return Math.ceil((d - today)/86400000);
+  const toDateValue = (v)=>{
+    try{
+      const d = v?.toDate ? v.toDate() : (v ? new Date(v) : null);
+      return d ? new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10) : "";
+    }catch{ return ""; }
   };
 
-  /* ========== State ========== */
-  let members = [];
+  let ALL = [];  // 전체 캐시
 
-  function render(){
-    listEl.innerHTML = "";
-    // 검색 & 정렬
-    const keyword = (qEl.value||"").trim().toLowerCase();
-    const norm = s => String(s||"").toLowerCase();
+  // ✅ 익명 로그인 '완료'를 기다렸다가 로드
+  await ensureAuthed();
+  await loadMembers();
+  render();
 
-    let rows = members.filter(m=>{
-      if(!keyword) return true;
-      const phoneMatch = onlyDigits(m.phone||m.phoneDisplay||"").includes(onlyDigits(keyword));
-      return norm(m.name).includes(keyword)
-          || norm(m.trainer).includes(keyword)
-          || norm(m.level).includes(keyword)
-          || phoneMatch;
-    });
-
-    const by = sortSel.value;
-    rows.sort((a,b)=>{
-      if(by==='recent') return (b.lastLog || '').localeCompare(a.lastLog || '');
-      if(by==='name')   return a.name.localeCompare(b.name, 'ko');
-      if(by==='grade')  return (a.level||'').localeCompare(b.level||'', 'ko');
-      if(by==='first')  return (b.first || '').localeCompare(a.first || '');
-      return 0;
-    });
-
-    if (!rows.length){ emptyEl.hidden = false; return; }
-    emptyEl.hidden = true;
-
-    rows.forEach(m=>{
-      const dLeft = daysUntil(m.expireAt);
-      const badgeCls = (m.level||"").toLowerCase()==='vip' ? 'badge vip' : 'badge';
-      const right = dLeft!==null && dLeft<=7
-        ? `<div class="right"><div class="danger">만료 D-${Math.max(0,dLeft)}</div><div>${m.expireAt||""}</div></div>`
-        : `<div class="right"><div>남은 회차 ${m.remaining||0}</div><div>${m.expireAt||""}</div></div>`;
-
-      const row = document.createElement('div');
-      row.className = 'row';
-
-      // ✏️ 수정 버튼 (이름 앞)
-      const btn = document.createElement('button');
-      btn.className = 'edit';
-      btn.setAttribute('aria-label', `${m.name} 수정`);
-      btn.textContent = '✏️';
-      btn.onclick = (e)=>{ e.stopPropagation(); goEdit(m.id); };
-
-      // 중앙 메타
-      const meta = document.createElement('div');
-      meta.className = 'meta';
-      meta.innerHTML = `
-        <div class="name">
-          <span>${m.name}</span>
-          ${m.level ? `<span class="${badgeCls}">${m.level}</span>` : ""}
-        </div>
-        <div class="sub">
-          <span>${fmtPhone(m.phone || m.phoneDisplay || "")}</span>
-          <span>${m.trainer || "-"}</span>
-          <span>${m.lessonType || "-"}</span>
-          ${m.first ? `<span>등록 ${m.first}</span>` : ""}
-          ${m.lastLog ? `<span>최근작성 ${m.lastLog}</span>` : ""}
-        </div>
-      `;
-
-      // 우측
-      const rightBox = document.createElement('div');
-      rightBox.innerHTML = right;
-
-      // 행 클릭해도 수정으로
-      row.onclick = ()=> goEdit(m.id);
-
-      row.append(btn, meta, rightBox);
-      listEl.appendChild(row);
-    });
-  }
-
-  function goEdit(id){
-    localStorage.setItem("editMemberId", id);
-    location.href = `/edit-member.html?mid=${encodeURIComponent(id)}`;
-  }
-
-  // 실시간 구독
-  onSnapshot(collection(db, "members"), (snap)=>{
-    const arr = [];
-    snap.forEach(docSnap=>{
-      const d = docSnap.data();
-      const createdAt = d.createdAt?.toDate ? d.createdAt.toDate() : null;
-      const startStr  = d.startDate || (createdAt ? toISO(createdAt) : "");
-      const expireStr = d.expireAt?.toDate ? toISO(d.expireAt.toDate()) : (d.expireAt || "");
-      const lastLog   = d.lastLogAt?.toDate ? toISO(d.lastLogAt.toDate()) : (d.lastPurchaseAt?.toDate ? toISO(d.lastPurchaseAt.toDate()) : "");
-
-      arr.push({
-        id: docSnap.id,
-        name: d.name || "",
-        phone: d.phone || d.phoneDisplay || "",
-        trainer: d.trainer || "",
-        lessonType: d.lessonType || d.type || "",
-        level: d.level || d.grade || "",
-        first: startStr,
-        expireAt: expireStr,
-        lastLog,
-        remaining: Number(d.remainingSessions||0)
+  async function ensureAuthed(){
+    const ready = new Promise(resolve=>{
+      onAuthStateChanged(auth, async (u)=>{
+        if (u) return resolve(u);
+        try{
+          const cred = await signInAnonymously(auth);
+          resolve(cred.user);
+        }catch(e){
+          console.error(e);
+          resolve(null);
+        }
       });
     });
-    members = arr;
-    render();
-  });
+    return ready;
+  }
 
-  qEl.addEventListener('input', render);
-  sortSel.addEventListener('change', render);
+  async function loadMembers(){
+    banner.style.display = "none";
+    statusEl.textContent = "불러오는 중…";
+    listEl.hidden = true;
+
+    try{
+      const snap = await getDocs(collection(db, "members")); // 서버 정렬 대신 전부 읽고 클라에서 정렬
+      ALL = [];
+      snap.forEach(docSnap=>{
+        const x = docSnap.data();
+        ALL.push({
+          id: docSnap.id,
+          name: x.name || "(이름없음)",
+          phone: x.phoneDisplay || fmtPhone(x.phone||docSnap.id),
+          gender: x.gender || "",
+          trainer: x.trainer || "",
+          lessonType: x.lessonType || "",
+          level: x.level || "",
+          remaining: Number(x.remainingSessions||0),
+          total: Number(x.totalSessionsPurchased||0),
+          createdAt: x.createdAt || null,
+          lastPurchaseAt: x.lastPurchaseAt || null,
+        });
+      });
+      if (ALL.length===0){
+        statusEl.textContent = "등록된 회원이 없습니다.";
+        return;
+      }
+      statusEl.textContent = "";
+      listEl.hidden = false;
+    }catch(e){
+      console.error(e);
+      banner.textContent = (e.code==="permission-denied")
+        ? "읽기 권한 오류: Firebase Authentication(익명 로그인)과 보안 규칙을 확인하세요."
+        : ("로드 실패: " + e.message);
+      banner.style.display = "block";
+      statusEl.textContent = "불러오기 실패";
+    }
+  }
+
+  function render(){
+    const q = (qEl.value || "").trim().toLowerCase();
+    const sortBy = sortEl.value;
+
+    let rows = ALL.filter(m=>{
+      if (!q) return true;
+      return (
+        (m.name||"").toLowerCase().includes(q) ||
+        (m.phone||"").replaceAll("-","").includes(q.replaceAll("-","")) ||
+        (m.trainer||"").toLowerCase().includes(q) ||
+        (m.lessonType||"").toLowerCase().includes(q)
+      );
+    });
+
+    // 정렬 (클라이언트)
+    if (sortBy==="name"){
+      rows.sort((a,b)=>a.name.localeCompare(b.name));
+    } else if (sortBy==="remain"){
+      rows.sort((a,b)=> (b.remaining||0) - (a.remaining||0));
+    } else { // recent
+      rows.sort((a,b)=>{
+        const ad = a.createdAt?.toMillis ? a.createdAt.toMillis() : (a.createdAt ? new Date(a.createdAt).getTime() : 0);
+        const bd = b.createdAt?.toMillis ? b.createdAt.toMillis() : (b.createdAt ? new Date(b.createdAt).getTime() : 0);
+        return bd - ad;
+      });
+    }
+
+    listEl.innerHTML = "";
+    if (rows.length===0){
+      statusEl.textContent = "검색 결과가 없습니다.";
+      listEl.hidden = true;
+      return;
+    }
+    statusEl.textContent = "";
+    listEl.hidden = false;
+
+    for (const m of rows){
+      const div = document.createElement("div");
+      div.className = "item";
+      div.innerHTML = `
+        <button class="edit-btn" data-id="${m.id}" aria-label="수정">✏️</button>
+        <div>
+          <div class="name">${escape(m.name)} <small style="color:#6b7280">(${escape(m.level||"")})</small></div>
+          <div class="meta">
+            <span>${escape(m.phone)}</span>
+            ${m.trainer?`<span>담당: ${escape(m.trainer)}</span>`:""}
+            ${m.lessonType?`<span>유형: ${escape(m.lessonType)}</span>`:""}
+            <span>남은회차 ${m.remaining}/${m.total}</span>
+            ${m.createdAt?`<span>등록 ${escape(toDateValue(m.createdAt))}</span>`:""}
+          </div>
+        </div>
+      `;
+      div.querySelector(".edit-btn").onclick = ()=>{
+        // edit-member.html 로 이동
+        const id = m.id;
+        // URL 파라미터 + 로컬 스토리지(백업) 둘 다 지원
+        localStorage.setItem("editMemberId", id);
+        location.href = `/edit-member.html?mid=${encodeURIComponent(id)}`;
+      };
+      listEl.appendChild(div);
+    }
+  }
+
+  qEl.addEventListener("input", ()=>render());
+  sortEl.addEventListener("change", ()=>render());
+
+  function escape(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
 </script>
 </body>
 </html>
