@@ -49,7 +49,6 @@
     tr[data-row="10"] td{border-bottom:2px solid var(--hl)}
     tr[data-row="20"] td{border-bottom:2px solid var(--hl)}
 
-    /* 푸터 초기화 버튼 */
     .footer-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
 
     /* 모달 */
@@ -71,9 +70,10 @@
 
     .typed-pane input{width:100%;border:1px solid var(--line);border-radius:8px;padding:10px;font-size:16px}
     .drawn-pane .canvas-wrap{border:1px dashed var(--line);border-radius:10px;overflow:hidden;background:#fff}
-    .drawn-pane canvas{display:block;width:100%;height:180px;touch-action:none}
+    .drawn-pane canvas{display:block;width:100%;height:180px;touch-action:none} /* 스크롤 방지 */
+
     .sig-tools{display:flex;gap:8px;justify-content:space-between;margin:8px 0}
-    .sig-tools .hint{font-size:12px;color:var(--muted);align-self:center}
+    .sig-tools .hint{font-size:12px;color:#6b7280;align-self:center}
     .modal-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}
 
     /* 토스트 */
@@ -93,18 +93,24 @@
     <h1>개인 / 트레이닝 일지</h1>
 
     <div class="meta" aria-label="상단 정보">
+      <!-- ✅ Firestore 회원 검색(자동완성) -->
+      <label class="span3">회원 찾기
+        <input id="m-search" list="memberOptions" placeholder="이름/전화번호 입력 후 선택">
+        <datalist id="memberOptions"></datalist>
+      </label>
+
       <label class="span2">이름 <input id="m-name" placeholder="회원명"></label>
       <label>생년월일
-        <!-- 숫자 → 자동 하이픈 -->
         <input id="m-birth" inputmode="numeric" pattern="[0-9\-]*" maxlength="10" placeholder="YYYY-MM-DD">
       </label>
-     <label>연락처
-      <input id="m-phone" inputmode="numeric" pattern="[0-9\-]*" maxlength="13" placeholder="010-0000-0000">
+      <label>연락처
+        <input id="m-phone" inputmode="numeric" pattern="[0-9\-]*" maxlength="13" placeholder="010-0000-0000">
       </label>
       <label>레슨종류 <input id="m-lesson" placeholder="예: PT 50분"></label>
       <label>담당자 <input id="m-trainer" placeholder="트레이너명"></label>
       <label>시작일 <input id="m-start" type="date"></label>
       <label>페이지 <input id="m-page" placeholder="1"></label>
+
       <span class="sign-note">* 서명 후 수정 불가</span>
     </div>
 
@@ -171,19 +177,20 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
+  <!-- ===== 앱 로직 ===== -->
   <script>
     "use strict";
 
     /* ===== 라우팅 / PIN ===== */
-    const DASHBOARD_URL = "dashboard.html"; // 필요시 절대경로로 교체
+    const DASHBOARD_URL = "dashboard.html";
     const RESET_PIN = "0000";
 
     /* ===== 전역 ===== */
-    const STORE_KEY = "mtf_pt_log_v4"; // v4: DOMContentLoaded, button type, error toast
+    const STORE_KEY = "mtf_pt_log_v4";
     let tbody, currentSign = null, lastTrainerTyped = "", lastCustomerTyped = "";
-    let cvs, ctx, dpr=1, drawing=false, lastX=0, lastY=0;
+    let cvs, ctx, dpr=1, drawing=false, lastX=0, lastY=0, usingPointer=false;
 
-    /* 초기화: DOM 준비된 뒤 실행 */
+    /* 초기화 */
     window.addEventListener('DOMContentLoaded', () => {
       try {
         tbody = document.getElementById('tbody');
@@ -194,7 +201,7 @@
         initBirthAutoHyphen();
         initPhoneAutoHyphen();
 
-        // 안전망: 델리게이션으로도 서명 버튼 제어 (인라인이 막혀도 동작)
+        // 서명 버튼 델리게이션
         document.addEventListener('click', (e)=>{
           const btn = e.target.closest('.sign-btn');
           if (!btn) return;
@@ -209,7 +216,7 @@
       }
     });
 
-    /* 전역 에러 → 토스트로 표시 (디버깅 도움) */
+    // 전역 에러 토스트
     window.addEventListener('error', (e)=>{
       showToast('오류: ' + (e.error?.message || e.message));
     });
@@ -222,41 +229,34 @@
         <td><input type="date" aria-label="날짜"></td>
         <td><input type="time" aria-label="시간" value="08:00"></td>
         <td class="note"><textarea placeholder="운동내용 / Teaching points"></textarea></td>
-        <td class="sign-cell">
-          <button type="button" class="sign-btn" data-role="trainer" onclick="handleSignClick(this)">서명</button>
-        </td>
-        <td class="sign-cell">
-          <button type="button" class="sign-btn" data-role="customer" onclick="handleSignClick(this)">서명</button>
-        </td>
+        <td class="sign-cell"><button type="button" class="sign-btn" data-role="trainer">서명</button></td>
+        <td class="sign-cell"><button type="button" class="sign-btn" data-role="customer">서명</button></td>
       `;
       return tr;
     }
-/* ===== 전화번호 자동 하이픈 ===== */
-function initPhoneAutoHyphen(){
-  const el = document.getElementById('m-phone');
-  if (!el) return;
-  const handler = (e)=>{
-    e.target.value = formatPhone(e.target.value);
-  };
-  el.addEventListener('input', handler);
-  el.addEventListener('blur', handler);
-}
 
-function formatPhone(raw){
-  const v = String(raw).replace(/\D/g,'').slice(0,11); // 숫자만 최대 11자리
-  if (v.length <= 3) return v;
-  if (v.length <= 7) return v.slice(0,3) + '-' + v.slice(3);
-  return v.slice(0,3) + '-' + v.slice(3,7) + '-' + v.slice(7); // 010-0000-0000
-}
-    /* ===== 서명 버튼 (인라인 진입점) ===== */
+    /* ===== 전화 자동 하이픈 ===== */
+    function initPhoneAutoHyphen(){
+      const el = document.getElementById('m-phone');
+      if (!el) return;
+      const handler = (e)=>{ e.target.value = formatPhone(e.target.value); };
+      el.addEventListener('input', handler);
+      el.addEventListener('blur', handler);
+    }
+    function formatPhone(raw){
+      const v = String(raw).replace(/\D/g,'').slice(0,11);
+      if (v.length <= 3) return v;
+      if (v.length <= 7) return v.slice(0,3) + '-' + v.slice(3);
+      return v.slice(0,3) + '-' + v.slice(3,7) + '-' + v.slice(7);
+    }
+
+    /* ===== 서명 모달 ===== */
     function handleSignClick(btn){
       const td = btn.closest('td');
       if (!td || td.classList.contains('signed')) return;
       const role = btn.dataset.role || (td.cellIndex === 4 ? 'trainer' : 'customer');
       openSignModal(btn, role);
     }
-
-    /* ===== 서명 모달 ===== */
     function openSignModal(btn, role){
       const cell = btn.closest('td');
       if (cell.classList.contains('signed')) return;
@@ -283,15 +283,13 @@ function formatPhone(raw){
     function applySignature(){
       if (!currentSign) return;
       const { cell, role } = currentSign;
-      const usingTyped = document.getElementById('paneTyped').classList.contains('active');
+      const usingTypedTab = document.getElementById('paneTyped').classList.contains('active');
 
-      if (usingTyped){
+      if (usingTypedTab){
         const name = (document.getElementById('typedName').value || "").trim();
         if (!name) return showToast('이름을 입력하세요');
-
         const prev = role==='trainer' ? lastTrainerTyped : lastCustomerTyped;
         if (prev && prev !== name) showToast('이 전 서명과 다릅니다');
-
         if (role==='trainer') lastTrainerTyped = name; else lastCustomerTyped = name;
 
         cell.innerHTML = `<div class="signature"><span class="pen">✍</span>${escapeHtml(name)}</div>`;
@@ -300,7 +298,6 @@ function formatPhone(raw){
       } else {
         const dataURL = exportCanvas();
         if (!dataURL) return showToast('서명을 먼저 입력하세요');
-
         cell.innerHTML = `<div class="signature" style="flex-direction:column;gap:4px">
           <img src="${dataURL}" alt="서명 이미지" style="height:48px;max-width:120px;object-fit:contain"/>
           <small class="muted">손서명</small>
@@ -326,7 +323,7 @@ function formatPhone(raw){
       });
     }
 
-    /* ===== 저장/복원 ===== */
+    /* ===== 저장/복원 (localStorage) ===== */
     function bindAutoSave(){
       document.querySelectorAll('input, textarea').forEach(el=>{
         el.addEventListener('input', debounce(saveToStorage, 200));
@@ -456,35 +453,64 @@ function formatPhone(raw){
     }
     function goDashboard(){ location.href = DASHBOARD_URL; }
 
-    /* ===== Canvas 서명 ===== */
+    /* ===== Canvas 서명 (터치/마우스 완전 지원) ===== */
     function initCanvas(){
       cvs = document.getElementById('sigCanvas');
       ctx = cvs.getContext('2d');
       resizeCanvas();
       window.addEventListener('resize', resizeCanvas);
-      cvs.addEventListener('pointerdown', startDraw);
-      cvs.addEventListener('pointermove', moveDraw);
-      window.addEventListener('pointerup', endDraw);
-      cvs.addEventListener('pointerleave', endDraw);
+
+      usingPointer = ('PointerEvent' in window);
+
+      if (usingPointer){
+        cvs.addEventListener('pointerdown', startDrawPointer);
+        cvs.addEventListener('pointermove', moveDrawPointer);
+        cvs.addEventListener('pointerup', endDrawPointer);
+        cvs.addEventListener('pointerleave', endDrawPointer);
+      } else {
+        // 터치/마우스 폴백 (구형 브라우저)
+        cvs.addEventListener('touchstart', startDrawTouch, {passive:false});
+        cvs.addEventListener('touchmove', moveDrawTouch, {passive:false});
+        cvs.addEventListener('touchend', endDrawTouch);
+        cvs.addEventListener('mousedown', startDrawMouse);
+        window.addEventListener('mousemove', moveDrawMouse);
+        window.addEventListener('mouseup', endDrawMouse);
+      }
     }
     function resizeCanvas(){
-      const rect = cvs.getBoundingClientRect();
+      const rect = (cvs||{}).getBoundingClientRect?.() || {width:600};
       dpr = Math.max(1, window.devicePixelRatio || 1);
       cvs.width  = Math.floor(rect.width * dpr);
       cvs.height = Math.floor(180 * dpr);
       ctx.setTransform(dpr,0,0,dpr,0,0);
       clearCanvas();
     }
-    function startDraw(e){ drawing = true; const p = getPos(e); lastX=p.x; lastY=p.y; }
-    function moveDraw(e){
+    // Pointer
+    function startDrawPointer(e){ e.preventDefault(); cvs.setPointerCapture?.(e.pointerId); drawing=true; const p=getPos(e); lastX=p.x; lastY=p.y; }
+    function moveDrawPointer(e){
       if (!drawing) return;
       const p = getPos(e);
       ctx.lineWidth = 2.5; ctx.lineCap='round'; ctx.lineJoin='round'; ctx.strokeStyle='#111';
       ctx.beginPath(); ctx.moveTo(lastX,lastY); ctx.lineTo(p.x,p.y); ctx.stroke();
       lastX=p.x; lastY=p.y;
     }
-    function endDraw(){ drawing = false; }
-    function getPos(e){ const r = cvs.getBoundingClientRect(); return {x:e.clientX-r.left, y:e.clientY-r.top}; }
+    function endDrawPointer(e){ drawing=false; cvs.releasePointerCapture?.(e.pointerId); }
+    // Mouse fallback
+    function startDrawMouse(e){ drawing=true; const p=getPos(e); lastX=p.x; lastY=p.y; }
+    function moveDrawMouse(e){ if(!drawing) return; drawTo(e); }
+    function endDrawMouse(){ drawing=false; }
+    // Touch fallback
+    function startDrawTouch(e){ e.preventDefault(); drawing=true; const p=getPos(e.touches[0]); lastX=p.x; lastY=p.y; }
+    function moveDrawTouch(e){ if(!drawing) return; e.preventDefault(); drawTo(e.touches[0]); }
+    function endDrawTouch(){ drawing=false; }
+
+    function drawTo(ev){
+      const p = getPos(ev);
+      ctx.lineWidth = 2.5; ctx.lineCap='round'; ctx.lineJoin='round'; ctx.strokeStyle='#111';
+      ctx.beginPath(); ctx.moveTo(lastX,lastY); ctx.lineTo(p.x,p.y); ctx.stroke();
+      lastX=p.x; lastY=p.y;
+    }
+    function getPos(e){ const r = cvs.getBoundingClientRect(); const x=(e.clientX ?? 0)-r.left; const y=(e.clientY ?? 0)-r.top; return {x,y}; }
     function clearCanvas(){
       ctx.save(); ctx.setTransform(1,0,0,1,0,0); ctx.clearRect(0,0,cvs.width,cvs.height); ctx.restore();
       ctx.fillStyle='#fff'; ctx.fillRect(0,0,cvs.width,cvs.height);
@@ -501,6 +527,147 @@ function formatPhone(raw){
       el.textContent = msg;
       el.classList.add('show');
       setTimeout(()=>el.classList.remove('show'), 2000);
+    }
+  </script>
+
+  <!-- ===== Firebase: 회원 연동 (읽기) ===== -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
+    import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCjdyveDx0qFPUzmaChnEy9Ni0VjTysYnM",
+      authDomain: "more-than-fitness-f6adb.firebaseapp.com",
+      projectId: "more-than-fitness-f6adb",
+      storageBucket: "more-than-fitness-f6adb.appspot.com",
+      messagingSenderId: "993248877411",
+      appId: "1:993248877411:web:c0e6785162cf252fbcd156",
+      measurementId: "G-MK0RVFG296"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db  = getFirestore(app);
+
+    // 익명 로그인(규칙이 authed일 때 필요)
+    const auth = getAuth(app);
+    onAuthStateChanged(auth, (user)=>{ if(!user) signInAnonymously(auth).catch(console.error); });
+
+    const membersCol = collection(db, "members");
+    const searchInput = document.getElementById("m-search");
+    const datalist    = document.getElementById("memberOptions");
+
+    // 표시 문자열 ↔ 문서ID 매핑
+    const indexMap = new Map();
+
+    // URL ?id=문서ID로 진입하면 해당 회원으로 바로 채움
+    (async function initByQuery(){
+      const params = new URLSearchParams(location.search);
+      const id = params.get("id");
+      if (id) {
+        try{
+          const snap = await getDoc(doc(db, "members", id));
+          if (snap.exists()) {
+            prefillFromMember(snap.data());
+            // 검색창에도 표시값을 넣어 주기(편의)
+            const label = makeLabelFromDoc(snap.id, snap.data());
+            searchInput.value = label;
+            indexMap.set(label, snap.id);
+          }
+        }catch(e){ console.warn(e); }
+      }
+    })();
+
+    // 전체 멤버 간단 인덱스 로드(이름/전화 표시)
+    (async function loadMemberOptions(){
+      try{
+        const snap = await getDocs(membersCol);
+        snap.forEach(docSnap=>{
+          const x = docSnap.data();
+          const label = makeLabelFromDoc(docSnap.id, x);
+          const opt = document.createElement("option");
+          opt.value = label;           // 사용자가 선택할 값
+          datalist.appendChild(opt);
+          indexMap.set(label, docSnap.id);
+        });
+      }catch(e){
+        console.error(e);
+      }
+    })();
+
+    function makeLabelFromDoc(id, x){
+      const name = x.name || "(무명)";
+      const phone = x.phoneDisplay || formatPhone(x.phone||"");
+      const type = x.lessonType || "";
+      const grade= x.level || "";
+      return `${name} · ${phone}${type?` · ${type}`:""}${grade?` · ${grade}`:""} [${id}]`;
+    }
+
+    // 선택 시 해당 문서로 채움
+    searchInput.addEventListener("change", async ()=>{
+      const label = searchInput.value;
+      const id = indexMap.get(label);
+      if (!id) return;
+      try{
+        const snap = await getDoc(doc(db, "members", id));
+        if (snap.exists()) prefillFromMember(snap.data());
+      }catch(e){ console.error(e); }
+    });
+
+    /* ====== 멤버 데이터를 상단 입력에 채우기 ====== */
+    function prefillFromMember(x){
+      const $ = (s)=>document.querySelector(s);
+      const onlyDigits = (s)=> String(s||"").replace(/\D/g,"");
+      const fmtBirth = (raw)=>{
+        const v = onlyDigits(raw).slice(0,8);
+        if (v.length<=4) return v;
+        if (v.length<=6) return v.slice(0,4)+'-'+v.slice(4);
+        return v.slice(0,4)+'-'+v.slice(4,6)+'-'+v.slice(6,8);
+      };
+      const fmtPhone = (raw)=>{
+        const v = onlyDigits(raw).slice(0,11);
+        if (v.length<=3) return v;
+        if (v.length<=7) return v.slice(0,3)+'-'+v.slice(3);
+        return v.slice(0,3)+'-'+v.slice(3,7)+'-'+v.slice(7);
+      };
+      const toDateValue = (v)=>{
+        try{
+          const d = v?.toDate ? v.toDate() : (v ? new Date(v) : null);
+          return d ? new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0,10) : "";
+        }catch{ return ""; }
+      };
+
+      $('#m-name').value    = x.name || '';
+      $('#m-birth').value   = x.birthDisplay || fmtBirth(x.birth||'');
+      $('#m-phone').value   = x.phoneDisplay || fmtPhone(x.phone||'');
+      $('#m-lesson').value  = x.lessonType || '';
+      $('#m-trainer').value = x.trainer || '';
+      $('#m-start').value   = x.startDate || toDateValue(x.createdAt) || '';
+
+      // 로컬스토리지에도 반영(자동 저장)
+      try{
+        const raw = localStorage.getItem("mtf_pt_log_v4");
+        const data = raw ? JSON.parse(raw) : {meta:{}, rows:[]};
+        data.meta = {
+          ...data.meta,
+          name: $('#m-name').value,
+          birth: $('#m-birth').value,
+          phone: $('#m-phone').value,
+          lesson: $('#m-lesson').value,
+          trainer: $('#m-trainer').value,
+          start: $('#m-start').value,
+          page: document.querySelector('#m-page').value || ""
+        };
+        localStorage.setItem("mtf_pt_log_v4", JSON.stringify(data));
+      }catch(e){ /* ignore */ }
+    }
+
+    // 재사용: 등록 화면과 동일 포맷 함수
+    function formatPhone(raw){
+      const v = String(raw||"").replace(/\D/g,'').slice(0,11);
+      if (v.length<=3) return v;
+      if (v.length<=7) return v.slice(0,3)+'-'+v.slice(3);
+      return v.slice(0,3)+'-'+v.slice(3,7)+'-'+v.slice(7);
     }
   </script>
 </body>
