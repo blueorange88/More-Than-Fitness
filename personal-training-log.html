@@ -33,6 +33,15 @@
     .signature{display:inline-flex;align-items:center;gap:6px;font-weight:600}
     .signature .pen{font-size:14px}
 
+    /* 노쇼 버튼, 배지 */
+    .ns-actions{ margin-top:6px; display:flex; gap:6px; justify-content:center; flex-wrap:wrap }
+    .ns-actions .ns-btn{ border:1px solid var(--line); background:#fff; border-radius:8px; padding:4px 8px; font-size:12px; cursor:pointer }
+    .ns-badge{
+      position:absolute; left:6px; bottom:4px; font-size:12px; font-weight:700;
+      color:#991b1b; background:#ffe4e6; border:1px solid #fda4af; border-radius:999px; padding:2px 8px
+    }
+
+    /* 서명된 칸: 반투명 블럭 + '수정불가' 뱃지 */
     .signed{position:relative;pointer-events:none}
     .signed::before{content:"";position:absolute;inset:0;background:rgba(0,0,0,.06);border-radius:2px}
     .signed::after{
@@ -40,15 +49,19 @@
       color:var(--danger);background:rgba(255,255,255,.9);padding:2px 8px;border-radius:999px;border:1px solid var(--danger)
     }
 
+    /* 행 잠금 & 노쇼 표시 */
     tr.row-locked{background:var(--accent)}
+    tr.row-noshow{background:#fff2f2}
     tr.row-locked input, tr.row-locked textarea{background:transparent;color:#111}
     tr.row-locked .note textarea{pointer-events:none}
 
+    /* 10번 20번 행 하이라이트 */
     tr[data-row="10"] td{border-bottom:2px solid var(--hl)}
     tr[data-row="20"] td{border-bottom:2px solid var(--hl)}
 
     .footer-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
 
+    /* 모달 */
     .hidden{display:none}
     .modal{position:fixed;inset:0;z-index:9999}
     .modal-dim{position:absolute;inset:0;background:rgba(0,0,0,.35)}
@@ -78,9 +91,7 @@
     .toast.show{opacity:1}
 
     /* 모바일 최적화 */
-    @media (max-width: 900px){
-      .meta{grid-template-columns:repeat(4,1fr)}
-    }
+    @media (max-width: 900px){ .meta{grid-template-columns:repeat(4,1fr)} }
     @media (max-width: 640px){
       body{margin:12px}
       .sheet{padding:12px}
@@ -88,10 +99,7 @@
       .meta label{padding:6px}
       .table-wrap{border-radius:8px}
     }
-    @media (max-width: 420px){
-      .meta{grid-template-columns:1fr}
-      h1{font-size:18px}
-    }
+    @media (max-width: 420px){ .meta{grid-template-columns:1fr} h1{font-size:18px} }
 
     @media print{
       body{margin:0}
@@ -170,14 +178,10 @@
       </div>
 
       <div id="paneDrawn" class="tab drawn-pane">
-        <div class="canvas-wrap">
-          <canvas id="sigCanvas"></canvas>
-        </div>
+        <div class="canvas-wrap"><canvas id="sigCanvas"></canvas></div>
         <div class="sig-tools">
           <span class="hint">서명하세요. (두께: 2.5)</span>
-          <div>
-            <button type="button" id="sigClear" onclick="clearCanvas()">지우기</button>
-          </div>
+          <div><button type="button" id="sigClear" onclick="clearCanvas()">지우기</button></div>
         </div>
       </div>
 
@@ -190,7 +194,7 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <!-- ===== 앱 로직 (서명/로컬저장) ===== -->
+  <!-- ===== 앱 로직 (서명/로컬저장/노쇼 UI) ===== -->
   <script>
     "use strict";
 
@@ -211,6 +215,7 @@
         initBirthAutoHyphen();
         initPhoneAutoHyphen();
 
+        // 서명 버튼
         document.addEventListener('click', (e)=>{
           const btn = e.target.closest('.sign-btn');
           if (!btn) return;
@@ -219,6 +224,46 @@
           const role = btn.dataset.role || (td.cellIndex === 4 ? 'trainer' : 'customer');
           openSignModal(btn, role);
         });
+
+        // 노쇼 버튼 (차감/미차감/취소)
+        document.addEventListener('click', async (e)=>{
+          const btn = e.target.closest('.ns-btn');
+          if (!btn) return;
+          const tr = btn.closest('tr');
+          const mode = btn.dataset.mode; // 'deduct' | 'undeduct' | 'cancel'
+
+          if (mode === 'cancel'){
+            const prevType = tr?.dataset?.nsType;
+            if (!prevType){ showToast('노쇼 처리된 행이 아닙니다'); return; }
+            if (!verifyPin()) return;
+            if (!confirm('이 행의 노쇼 처리를 취소할까요?')) return;
+
+            removeNoshowUI(tr);
+            saveToStorage();
+
+            try{
+              const ok = await cancelNoShowOnFirestore(prevType);
+              if (ok === true) showToast('노쇼 취소 완료');
+              else if (ok === 'no-member') showToast('회원 선택 시 집계 취소 반영');
+            }catch{ showToast('집계 취소 실패'); }
+            return;
+          }
+
+          const msg = mode==='deduct'
+            ? '노쇼(차감) 처리할까요? (남은 회차 -1)'
+            : '노쇼(미차감)으로 기록할까요?';
+          if (!confirm(msg)) return;
+
+          applyNoshowUI(tr, mode);
+          saveToStorage();
+
+          try{
+            const ok = await applyNoShowOnFirestore(mode, tr);
+            if (ok === true) showToast('노쇼 집계 반영 완료');
+            else if (ok === 'no-member') showToast('회원 선택 시 집계가 반영됩니다');
+          }catch{ showToast('집계 반영 실패'); }
+        });
+
       } catch(err){
         showToast('초기화 오류: ' + (err?.message || err));
         console.error(err);
@@ -238,12 +283,19 @@
         <td><input type="time" aria-label="시간" value="08:00"></td>
         <td class="note"><textarea placeholder="운동내용 / Teaching points"></textarea></td>
         <td class="sign-cell"><button type="button" class="sign-btn" data-role="trainer">서명</button></td>
-        <td class="sign-cell"><button type="button" class="sign-btn" data-role="customer">서명</button></td>
+        <td class="sign-cell">
+          <button type="button" class="sign-btn" data-role="customer">서명</button>
+          <div class="ns-actions">
+            <button type="button" class="ns-btn" data-mode="deduct">노쇼(차감)</button>
+            <button type="button" class="ns-btn" data-mode="undeduct">노쇼(미차감)</button>
+            <button type="button" class="ns-btn" data-mode="cancel">노쇼 취소</button>
+          </div>
+        </td>
       `;
       return tr;
     }
 
-    /* 전화번호 자동 하이픈 */
+    /* ===== 전화번호 자동 하이픈 ===== */
     function initPhoneAutoHyphen(){
       const el = document.getElementById('m-phone');
       if (!el) return;
@@ -258,7 +310,7 @@
       return v.slice(0,3) + '-' + v.slice(3,7) + '-' + v.slice(7);
     }
 
-    /* 서명 모달 */
+    /* ===== 서명 모달 ===== */
     function openSignModal(btn, role){
       const cell = btn.closest('td');
       if (cell.classList.contains('signed')) return;
@@ -271,7 +323,6 @@
 
       switchTab('typed');
 
-      // 모달 열기 → 레이아웃이 잡힌 다음 캔버스 리사이즈
       const modal = document.getElementById('signModal');
       modal.classList.remove('hidden');
       requestAnimationFrame(()=>resizeCanvas());
@@ -285,8 +336,6 @@
       document.getElementById('tabDrawn').classList.toggle('active', which==='drawn');
       document.getElementById('paneTyped').classList.toggle('active', which==='typed');
       document.getElementById('paneDrawn').classList.toggle('active', which==='drawn');
-
-      // 손글씨 탭으로 전환할 때도 캔버스 리사이즈
       if (which==='drawn') requestAnimationFrame(()=>resizeCanvas());
     }
     function applySignature(){
@@ -331,7 +380,47 @@
       });
     }
 
-    /* 저장/복원 */
+    /* ===== 노쇼 UI/검증 ===== */
+    function verifyPin(){
+      const pin = prompt('노쇼 취소 PIN을 입력하세요 (기본 0000)');
+      if (pin !== RESET_PIN){ showToast('PIN이 올바르지 않습니다'); return false; }
+      return true;
+    }
+    function applyNoshowUI(tr, mode){
+      tr.classList.add('row-locked','row-noshow');
+      tr.dataset.nsType = mode; // 'deduct' | 'undeduct'
+      tr.querySelectorAll('input, textarea, button.sign-btn').forEach(el=>{
+        if (el.tagName === 'BUTTON') el.disabled = true;
+        else { el.readOnly = true; el.disabled = true; }
+      });
+      const lastCell = tr.querySelectorAll('td')[5];
+      if (lastCell && !lastCell.querySelector('.ns-badge')){
+        lastCell.insertAdjacentHTML('beforeend',
+          `<div class="ns-badge">노쇼-${mode==='deduct'?'차감':'미차감'}</div>`);
+      }
+    }
+    function removeNoshowUI(tr){
+      const badge = tr.querySelector('.ns-badge'); if (badge) badge.remove();
+      tr.classList.remove('row-noshow');
+      delete tr.dataset.nsType;
+
+      const signedBoth = [...tr.querySelectorAll('.sign-cell')]
+        .every(td=>td.classList.contains('signed'));
+
+      if (!signedBoth){
+        tr.classList.remove('row-locked');
+        tr.querySelectorAll('input, textarea, button').forEach(el=>{
+          if (el.classList.contains('sign-btn')){
+            if (!el.closest('td').classList.contains('signed')) el.disabled = false;
+          } else {
+            el.disabled = false;
+            if (el.tagName !== 'BUTTON') el.readOnly = false;
+          }
+        });
+      }
+    }
+
+    /* ===== 저장/복원 ===== */
     function bindAutoSave(){
       document.querySelectorAll('input, textarea').forEach(el=>{
         el.addEventListener('input', debounce(saveToStorage, 200));
@@ -360,7 +449,8 @@
           customerSigValue: customerVal,
           trainerSig: trainerType==='typed' ? trainerVal : "",
           customerSig: customerType==='typed' ? customerVal : "",
-          locked: tr.classList.contains('row-locked')
+          locked: tr.classList.contains('row-locked'),
+          nsType: tr.dataset.nsType || ""   // ★ 노쇼 타입 저장
         };
       });
       return {meta, rows};
@@ -395,6 +485,7 @@
         restoreCell(tds[5], r.customerSigType, r.customerSigValue, r.customerSig);
 
         if (r.locked){ lockRow(tr); }
+        if (r.nsType){ applyNoshowUI(tr, r.nsType); } // ★ 노쇼 복원
       });
 
       lastTrainerTyped = findLastTyped('trainer');
@@ -431,7 +522,7 @@
       return last;
     }
 
-    /* 생년월일 자동 하이픈 */
+    /* ===== 생년월일 자동 하이픈 ===== */
     function initBirthAutoHyphen(){
       const el = document.getElementById('m-birth');
       el.addEventListener('input', (e)=>{
@@ -459,11 +550,10 @@
     }
     function goDashboard(){ location.href = DASHBOARD_URL; }
 
-    /* Canvas 서명 */
+    /* ===== Canvas 서명 ===== */
     function initCanvas(){
       cvs = document.getElementById('sigCanvas');
       ctx = cvs.getContext('2d', { willReadFrequently: true });
-
       resizeCanvas();
 
       const supportsPointer = 'PointerEvent' in window;
@@ -486,7 +576,6 @@
     function resizeCanvas(){
       const rect = cvs.getBoundingClientRect();
       dpr = Math.max(1, window.devicePixelRatio || 1);
-      // 모달이 닫혀 있어 width=0이면, 임시 폭(예: 600px)로 잡고 다시 그리드 후 실제 폭으로 재조정
       const w = rect.width > 0 ? rect.width : 600;
       cvs.width  = Math.floor(w * dpr);
       cvs.height = Math.floor(180 * dpr);
@@ -501,61 +590,37 @@
       lastX=x; lastY=y;
     }
     function endStroke(){ drawing = false; }
-
-    function startDraw(e){
-      e.preventDefault();
-      if (e.pointerId && cvs.setPointerCapture) { try{ cvs.setPointerCapture(e.pointerId); }catch{} }
-      const p=getPos(e); beginStroke(p.x,p.y);
-    }
-    function moveDraw(e){
-      if(!drawing) return;
-      e.preventDefault();
-      const p=getPos(e); drawTo(p.x,p.y);
-    }
+    function startDraw(e){ e.preventDefault(); if (e.pointerId && cvs.setPointerCapture) { try{ cvs.setPointerCapture(e.pointerId); }catch{} } const p=getPos(e); beginStroke(p.x,p.y); }
+    function moveDraw(e){ if(!drawing) return; e.preventDefault(); const p=getPos(e); drawTo(p.x,p.y); }
     function endDraw(){ endStroke(); }
-
     function mouseDown(e){ const p=getMousePos(e); beginStroke(p.x,p.y); }
     function mouseMove(e){ const p=getMousePos(e); drawTo(p.x,p.y); }
     function mouseUp(){ endStroke(); }
-
     function touchStart(e){ if(!e.touches[0]) return; const p=getTouchPos(e.touches[0]); beginStroke(p.x,p.y); e.preventDefault(); }
-    function touchMove(e){  if(!drawing || !e.touches[0]) return; const p=getTouchPos(e.touches[0]); drawTo(p.x,p.y); e.preventDefault(); }
+    function touchMove(e){ if(!drawing || !e.touches[0]) return; const p=getTouchPos(e.touches[0]); drawTo(p.x,p.y); e.preventDefault(); }
     function touchEnd(){ endStroke(); }
-
     function getPos(e){ const r = cvs.getBoundingClientRect(); return { x:(e.clientX||0)-r.left, y:(e.clientY||0)-r.top }; }
     function getMousePos(e){ const r=cvs.getBoundingClientRect(); return { x:e.clientX-r.left, y:e.clientY-r.top }; }
     function getTouchPos(t){ const r=cvs.getBoundingClientRect(); return { x:t.clientX-r.left, y:t.clientY-r.top }; }
-
-    function clearCanvas(){
-      ctx.save(); ctx.setTransform(1,0,0,1,0,0); ctx.clearRect(0,0,cvs.width,cvs.height); ctx.restore();
-      ctx.fillStyle='#fff'; ctx.fillRect(0,0,cvs.width,cvs.height);
-    }
-    function isCanvasBlank(){
-      const { data } = ctx.getImageData(0,0,cvs.width,cvs.height);
-      for (let i=0;i<data.length;i+=4){
-        const r=data[i], g=data[i+1], b=data[i+2], a=data[i+3];
-        if (!(r===255 && g===255 && b===255 && a===255)) return false;
-      }
-      return true;
-    }
+    function clearCanvas(){ ctx.save(); ctx.setTransform(1,0,0,1,0,0); ctx.clearRect(0,0,cvs.width,cvs.height); ctx.restore(); ctx.fillStyle='#fff'; ctx.fillRect(0,0,cvs.width,cvs.height); }
+    function isCanvasBlank(){ const { data } = ctx.getImageData(0,0,cvs.width,cvs.height); for (let i=0;i<data.length;i+=4){ const r=data[i], g=data[i+1], b=data[i+2], a=data[i+3]; if (!(r===255 && g===255 && b===255 && a===255)) return false; } return true; }
     function exportCanvas(){ return isCanvasBlank() ? null : cvs.toDataURL('image/png'); }
 
+    /* ===== 유틸 ===== */
     function val(sel){const el=document.querySelector(sel);return el?el.value:"";}
     function setVal(sel,v){const el=document.querySelector(sel); if(el) el.value=v||"";}
     function escapeHtml(str){return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");}
     function debounce(fn,ms){let t;return (...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms)}}
-    function showToast(msg){
-      const el = document.getElementById('toast');
-      el.textContent = msg;
-      el.classList.add('show');
-      setTimeout(()=>el.classList.remove('show'), 2000);
-    }
+    function showToast(msg){ const el = document.getElementById('toast'); el.textContent = msg; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'), 2000); }
   </script>
 
-  <!-- ===== Firebase: 회원 불러와서 상단 자동 채우기 ===== -->
+  <!-- ===== Firebase: 회원 선택/집계 반영/취소 ===== -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
-    import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+    import {
+      getFirestore, collection, getDocs, doc, getDoc,
+      updateDoc, increment, serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
     import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
 
     const firebaseConfig = {
@@ -571,13 +636,24 @@
     const db  = getFirestore(app);
 
     const auth = getAuth(app);
-    onAuthStateChanged(auth, (user)=>{ if(!user) signInAnonymously(auth).catch(console.error); });
+    async function ensureAuthed(){
+      return new Promise(resolve=>{
+        onAuthStateChanged(auth, async (u)=>{
+          if (u) return resolve(u);
+          try{ const cred = await signInAnonymously(auth); resolve(cred.user); }
+          catch(e){ console.warn(e); resolve(null); }
+        });
+      });
+    }
 
-    const membersCol = collection(db, "members");
     const searchInput = document.getElementById("m-search");
     const datalist    = document.getElementById("memberOptions");
     const indexMap = new Map();
+    window.currentMemberId = null;
 
+    await ensureAuthed();
+
+    // ?id= 로 진입 시 자동 채움
     (async function initByQuery(){
       const id = new URLSearchParams(location.search).get("id");
       if (!id) return;
@@ -588,13 +664,15 @@
           const label = makeLabelFromDoc(snap.id, snap.data());
           searchInput.value = label;
           indexMap.set(label, snap.id);
+          window.currentMemberId = id;
         }
       }catch(e){ console.warn(e); }
     })();
 
+    // 멤버 목록 → datalist
     (async function loadMemberOptions(){
       try{
-        const snap = await getDocs(membersCol);
+        const snap = await getDocs(collection(db, "members"));
         snap.forEach(docSnap=>{
           const x = docSnap.data();
           const label = makeLabelFromDoc(docSnap.id, x);
@@ -621,6 +699,7 @@
       try{
         const snap = await getDoc(doc(db, "members", id));
         if (snap.exists()) prefillFromMember(snap.data());
+        window.currentMemberId = id;
       }catch(e){ console.error(e); }
     });
 
@@ -675,6 +754,40 @@
       if (v.length<=7) return v.slice(0,3)+'-'+v.slice(3);
       return v.slice(0,3)+'-'+v.slice(3,7)+'-'+v.slice(7);
     }
+
+    /* ===== 노쇼 집계: 메인 스크립트가 호출 ===== */
+    window.applyNoShowToMember = async (mode, meta)=>{
+      const id = window.currentMemberId;
+      if (!id) return { ok:false, reason:'no-member' };
+
+      const payload = {
+        updatedAt: serverTimestamp(),
+        lastLogAt: meta?.jsDate || new Date()
+      };
+      if (mode==='deduct'){
+        payload.noShowDeducted    = increment(1);
+        payload.remainingSessions = increment(-1);
+      } else {
+        payload.noShowUndeducted  = increment(1);
+      }
+      await updateDoc(doc(db,"members",id), payload);
+      return { ok:true };
+    };
+
+    window.cancelNoShowOnMember = async (prevType)=>{
+      const id = window.currentMemberId;
+      if (!id) return { ok:false, reason:'no-member' };
+
+      const payload = { updatedAt: serverTimestamp() };
+      if (prevType==='deduct'){
+        payload.noShowDeducted    = increment(-1);
+        payload.remainingSessions = increment(1);
+      } else if (prevType==='undeduct'){
+        payload.noShowUndeducted  = increment(-1);
+      }
+      await updateDoc(doc(db,"members",id), payload);
+      return { ok:true };
+    };
   </script>
 </body>
 </html>
