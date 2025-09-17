@@ -33,22 +33,33 @@
   th{background:#0d1b2a;color:#fff}
   th:first-child{background:#0d3b5a;cursor:pointer}
   .time-cell{background:#f1f1f1;cursor:pointer}
+  .status-chip{display:inline-block;margin-top:2px;padding:2px 6px;border-radius:999px;font-size:11px}
+  .status-scheduled{background:#eef2ff;color:#374151;border:1px solid #c7d2fe}
+  .status-attended{background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0}
+  .status-noshow{background:#fff7ed;color:#9a3412;border:1px solid #fed7aa}
+  .status-canceled{background:#fee2e2;color:#991b1b;border:1px solid #fecaca}
   .current-time-line{position:absolute;left:0;right:0;height:2px;background:#FF3B30;animation:pulse 5s ease-in-out infinite}
   @keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
   .overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:1000}
-  .popup{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:16px;border-radius:8px;z-index:1001;width:280px;max-width:90%;max-height:80vh;overflow:auto}
-  .button-group{display:flex;gap:8px;margin-top:8px}
+  .popup{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:16px;border-radius:8px;z-index:1001;width:320px;max-width:92%;max-height:80vh;overflow:auto}
+  .popup h3{font-size:15px;margin-bottom:8px}
+  .popup label{display:block;font-size:12px;color:#334155;margin:6px 0 2px}
+  .popup input,.popup select{width:100%;padding:8px;border:1px solid #ddd;border-radius:6px}
+  .button-group{display:flex;gap:8px;margin-top:10px}
   .button-group button{flex:1;padding:8px;background:#f5f0e8;border:1px solid #ddd;border-radius:6px;cursor:pointer}
-  .bottom-right{position:fixed;bottom:12px;right:12px;z-index:999}
+  .bottom-right{position:fixed;bottom:12px;right:12px;z-index:999;display:flex;gap:6px}
   .btn-primary{background:#0d1b2a;color:#fff;border:none;border-radius:6px;padding:8px 12px;cursor:pointer}
-  .gold{background:#d4af37;color:#0d1b2a}
+  .gold{background:#d4af37;color:#0d1b2a;border:none;border-radius:6px;padding:8px 12px;cursor:pointer}
 
   /* 빠른등록 카드 */
   #quickRegisterCard{position:fixed;top:70px;right:20px;width:300px;background:#fff;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,.15);padding:16px;z-index:1000;display:none}
   #quickRegisterCard h3{font-size:16px;color:#0d1b2a;margin-bottom:12px}
   #quickRegisterCard label{font-size:12px;color:#334155}
   #quickRegisterCard input,#quickRegisterCard select{width:100%;margin:6px 0 10px;padding:8px;border:1px solid #ccc;border-radius:6px}
-  #toast{position:fixed;top:56px;left:50%;transform:translateX(-50%);background:#0d1b2a;color:#fff;padding:8px 12px;border-radius:14px;opacity:0;transition:opacity .2s;z-index:1100;font-size:12px}
+
+  /* 토스트(+Undo 버튼) */
+  #toast{position:fixed;top:56px;left:50%;transform:translateX(-50%);background:#0d1b2a;color:#fff;padding:8px 12px;border-radius:14px;opacity:0;transition:opacity .2s;z-index:1100;font-size:12px;display:flex;align-items:center;gap:8px}
+  #toast button{background:#fff;color:#0d1b2a;border:none;border-radius:10px;padding:4px 8px;cursor:pointer;font-size:11px}
 </style>
 </head>
 <body>
@@ -124,6 +135,7 @@
   <div class="overlay" id="popupOverlay" tabindex="-1" aria-hidden="true"></div>
   <div class="overlay" id="sidebarOverlay"></div>
 
+  <!-- 시간 범위 -->
   <div class="popup" id="popupRange" role="dialog" aria-modal="true" aria-labelledby="popupRangeTitle">
     <h3 id="popupRangeTitle">시간 범위 설정</h3>
     <label>시작: <input type="time" id="rangeStart" value="06:00"></label><br/>
@@ -134,6 +146,7 @@
     </div>
   </div>
 
+  <!-- 분 설정 -->
   <div class="popup" id="popupMinute" role="dialog" aria-modal="true" aria-labelledby="popupMinuteTitle">
     <h3 id="popupMinuteTitle">분 단위 설정</h3>
     <select id="minuteSelect">
@@ -146,13 +159,27 @@
     </div>
   </div>
 
+  <!-- 레슨 입력/상태 -->
   <div class="popup" id="popupLesson" role="dialog" aria-modal="true" aria-labelledby="popupLessonTitle">
     <h3 id="popupLessonTitle">레슨 정보</h3>
+    <label>이름</label>
     <input id="nameInput" placeholder="이름" />
     <div style="display:flex;gap:8px">
-      <input id="enrolledInput" type="number" placeholder="회차" />
-      <input id="capacityInput" type="number" placeholder="총" />
+      <input id="enrolledInput" type="number" placeholder="회차(표시용)" />
+      <input id="capacityInput" type="number" placeholder="총(표시용)" />
     </div>
+    <label>담당 트레이너</label>
+    <input id="trainerInput" placeholder="예: 남명구Master" />
+    <label>상태</label>
+    <select id="statusInput">
+      <option value="scheduled">예약됨</option>
+      <option value="attended">출석</option>
+      <option value="no-show">노쇼</option>
+      <option value="canceled">취소</option>
+    </select>
+    <label style="display:flex;align-items:center;gap:6px">
+      <input type="checkbox" id="consumedInput" /> 소진 처리(출석/노쇼 시)
+    </label>
     <div class="button-group">
       <button class="btn-primary" onclick="saveLesson()">저장</button>
       <button onclick="deleteLesson()">삭제</button>
@@ -200,7 +227,7 @@
   <!-- 고정 버튼들 -->
   <div class="bottom-right">
     <button id="toggleQuickBtn" class="gold" onclick="toggleQuickCard()">+ 빠른 등록</button>
-    <button id="saveScheduleBtn" class="btn-primary" style="margin-left:6px">이번 주 스케줄 저장</button>
+    <button id="saveScheduleBtn" class="btn-primary" style="display:none">이번 주 스케줄 저장</button>
   </div>
 
   <div id="toast" role="status" aria-live="polite"></div>
@@ -250,23 +277,28 @@ function hidePopup(){
   document.body.style.overflow='';
   document.querySelectorAll('.popup').forEach(p=>p.style.display='none');
 }
-function toast(msg){
+function toast(msg, withUndo=false, undoHandler=null){
   const t=document.getElementById('toast');
-  t.textContent=msg; t.style.opacity=1;
-  setTimeout(()=>t.style.opacity=0,1800);
+  t.innerHTML='';
+  const span=document.createElement('span'); span.textContent=msg; t.appendChild(span);
+  if(withUndo){
+    const b=document.createElement('button'); b.textContent='실행 취소'; b.onclick=()=>{ undoHandler?.(); t.style.opacity=0; };
+    t.appendChild(b);
+  }
+  t.style.opacity=1;
+  if(!withUndo) setTimeout(()=>t.style.opacity=0,1800);
 }
-
 function toggleQuickCard(){
   const card=document.getElementById('quickRegisterCard');
   card.style.display=(card.style.display==='none'||!card.style.display)?'block':'none';
 }
 
 /* ====== 스케줄 표 ====== */
-window.addEventListener('DOMContentLoaded', init);
-function init(){
+window.addEventListener('DOMContentLoaded', initTables);
+function initTables(){
   const saved=JSON.parse(localStorage.getItem('scheduleRange')||'{}');
   if(saved.start && saved.end){ scheduleStart=saved.start; scheduleEnd=saved.end; }
-  buildCurr(); buildNext(); buildLast(); loadCurr(); highlightToday(); updateToday(); initTimeLine(); setInterval(updateTimeLine,60000);
+  buildCurr(); buildNext(); buildLast(); highlightToday(); initTimeLine(); setInterval(updateTimeLine,60000);
 }
 
 function buildCurr(){
@@ -279,7 +311,7 @@ function buildCurr(){
     for(let i=0;i<7;i++){ const c=document.createElement('td'); c.onclick=()=>openLesson(c); r.append(c); }
     tb.append(r);
   }
-  highlightToday();
+  updateTimeLine();
 }
 function buildNext(){
   const tb=document.querySelector('#scheduleTableNext tbody'); tb.innerHTML='';
@@ -288,7 +320,7 @@ function buildNext(){
     for(let i=0;i<7;i++) r.append(document.createElement('td')); tb.append(r);
   }
 }
-function buildLast(){ buildNext(); } // 단순 동일한 구조
+function buildLast(){ buildNext(); }
 
 function openMinute(cell){ currentCell=cell; showPopup(document.getElementById('popupMinute')); }
 function saveMinute(){
@@ -300,76 +332,30 @@ function saveMinute(){
 }
 function openLesson(cell){
   currentCell=cell;
-  const d=cell.dataset.info?JSON.parse(cell.dataset.info):{};
-  document.getElementById('nameInput').value=d.name||'';
-  document.getElementById('enrolledInput').value=d.enrolled||'';
-  document.getElementById('capacityInput').value=d.cap||'';
+  const meta = readCellMeta(cell); // {date, di, time}
+  const info = cell.dataset.info ? JSON.parse(cell.dataset.info) : {};
+  document.getElementById('nameInput').value = info.name||'';
+  document.getElementById('enrolledInput').value = info.enrolled||'';
+  document.getElementById('capacityInput').value = info.cap||'';
+  document.getElementById('trainerInput').value = info.trainer|| (localStorage.getItem('qr_defaults_trainer')||'');
+  document.getElementById('statusInput').value = info.status || 'scheduled';
+  document.getElementById('consumedInput').checked = !!info.consumed;
   showPopup(document.getElementById('popupLesson'));
 }
-function saveLesson(){
-  const name=document.getElementById('nameInput').value.trim();
-  const enrolled=+document.getElementById('enrolledInput').value||0;
-  const cap=+document.getElementById('capacityInput').value||0;
-  const time=currentCell.parentElement.firstChild.textContent;
-  const di=currentCell.cellIndex;
-  const i={name,enrolled,cap,time,di};
-  currentCell.textContent=`${time}\n${name} (${enrolled}/${cap})`;
-  currentCell.dataset.info=JSON.stringify(i);
-  let arr=JSON.parse(localStorage.getItem('scheduleData')||'[]');
-  arr=arr.filter(x=>!(x.time===i.time && x.di===i.di)); arr.push(i);
-  localStorage.setItem('scheduleData',JSON.stringify(arr));
-  updateToday(); updateTimeLine(); hidePopup();
-}
-function deleteLesson(){
-  if(!currentCell) return;
-  const info=currentCell.dataset.info?JSON.parse(currentCell.dataset.info):null;
-  if(info){
-    let data=JSON.parse(localStorage.getItem('scheduleData')||'[]');
-    data=data.filter(x=>!(x.time===info.time && x.di===info.di));
-    localStorage.setItem('scheduleData',JSON.stringify(data));
-  }
-  currentCell.innerHTML=''; delete currentCell.dataset.info;
-  updateToday(); updateTimeLine(); hidePopup();
+
+function cellStatusChip(status){
+  const map = {
+    'scheduled': 'status-scheduled',
+    'attended' : 'status-attended',
+    'no-show'  : 'status-noshow',
+    'canceled' : 'status-canceled'
+  };
+  const cls = map[status] || map['scheduled'];
+  const label = status==='scheduled'?'예약됨':status==='attended'?'출석':status==='no-show'?'노쇼':'취소';
+  return `<span class="status-chip ${cls}">${label}</span>`;
 }
 
-function applyRangeCurr(){
-  const rawS=document.getElementById('rangeStart').value;
-  const rawE=document.getElementById('rangeEnd').value;
-  let sH=parseInt(rawS.split(':')[0],10);
-  let eH=parseInt(rawE.split(':')[0],10);
-  if(rawE.startsWith('00')) eH=24;   // 자정 표시 허용
-  if(eH<=sH) eH+=24;                 // 다음날 넘어감
-  if(eH-sH<3){ alert('최소 3시간 이상 설정해야 합니다.'); hidePopup(); return; }
-  scheduleStart=sH; scheduleEnd=eH;
-  localStorage.setItem('scheduleRange',JSON.stringify({start:scheduleStart,end:scheduleEnd}));
-  buildCurr(); buildNext(); buildLast(); loadCurr(); highlightToday(); updateToday(); initTimeLine(); hidePopup();
-}
-function loadCurr(){
-  const data=JSON.parse(localStorage.getItem('scheduleData')||'[]');
-  const rows=Array.from(document.querySelectorAll('#scheduleTableCurr tbody tr'));
-  data.forEach(i=>{
-    const [hour]=i.time.split(':');
-    const row=rows.find(r=>{
-      const [rowHour,rowMin]=r.firstChild.textContent.split(':');
-      return rowHour===hour && rowMin===(localStorage.getItem(`minute-${rowHour}`)||'00');
-    });
-    if(row){ const c=row.children[i.di]; if(c){ c.textContent=`${i.time}\n${i.name} (${i.enrolled}/${i.cap})`; c.dataset.info=JSON.stringify(i);} }
-  });
-}
-function updateToday(){
-  const now=new Date(); const todayIndex=now.getDay(); const columnIndex=todayIndex===0?7:todayIndex; const nowMin=now.getHours()*60+now.getMinutes(); const list=[];
-  document.querySelectorAll('#scheduleTableCurr tbody tr').forEach(r=>{
-    const [h,m]=r.firstChild.textContent.split(':').map(Number);
-    const total=h*60+(m||0); const cell=r.children[columnIndex];
-    if(cell && cell.dataset.info && total>=nowMin){
-      const v=JSON.parse(cell.dataset.info);
-      list.push({t:total,text:`${v.time} ${v.name} (${v.enrolled}/${v.cap})`});
-    }
-  });
-  list.sort((a,b)=>a.t-b.t);
-  const ul=document.getElementById('todayLessonList'); ul.innerHTML='';
-  list.slice(0,2).forEach(i=>{ const li=document.createElement('li'); li.textContent=i.text; ul.appendChild(li); });
-}
+/* 시간선 & 오늘 표기 */
 function initTimeLine(){ updateTimeLine(); }
 function updateTimeLine(){
   document.querySelectorAll('.current-time-line').forEach(e=>e.remove());
@@ -388,16 +374,31 @@ function highlightToday(){
   const di=new Date().getDay(); const ths=document.querySelectorAll('#scheduleTableCurr th');
   const idx=di===0?7:di; if(ths[idx]){ ths[idx].style.backgroundColor='#d4af37'; ths[idx].style.color='#0d1b2a'; }
 }
+
+/* 오늘 다음 레슨 두 개 */
+function updateTodayFromCells(){
+  const now=new Date(); const todayIndex=now.getDay(); const columnIndex=todayIndex===0?7:todayIndex; const nowMin=now.getHours()*60+now.getMinutes(); const list=[];
+  document.querySelectorAll('#scheduleTableCurr tbody tr').forEach(r=>{
+    const [h,m]=r.firstChild.textContent.split(':').map(Number);
+    const total=h*60+(m||0); const cell=r.children[columnIndex];
+    if(cell && cell.dataset.info && total>=nowMin){
+      const v=JSON.parse(cell.dataset.info);
+      list.push({t:total,text:`${v.start} ${v.name} (${v.enrolled||0}/${v.cap||0})`});
+    }
+  });
+  list.sort((a,b)=>a.t-b.t);
+  const ul=document.getElementById('todayLessonList'); ul.innerHTML='';
+  list.slice(0,2).forEach(i=>{ const li=document.createElement('li'); li.textContent=i.text; ul.appendChild(li); });
+}
 </script>
 
 <script type="module">
   /* ===== Firebase ===== */
   import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
   import { 
-    getFirestore, collection, addDoc, serverTimestamp 
+    getFirestore, collection, addDoc, setDoc, doc, getDoc, updateDoc, deleteDoc,
+    serverTimestamp, query, where, onSnapshot
   } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
-
-  // (선택) 익명 로그인 - 규칙에서 authed()를 쓰는 경우 편함
   import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
 
   const firebaseConfig = {
@@ -410,60 +411,288 @@ function highlightToday(){
     measurementId: "G-MK0RVFG296"
   };
 
-  // 이미 초기화되어 있으면 재사용
   const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
   const db  = getFirestore(app);
 
-  // (선택) 익명 로그인
+  /* ===== 인증(익명 로그인) ===== */
   const auth = getAuth(app);
   onAuthStateChanged(auth, (user) => { 
     if (!user) signInAnonymously(auth).catch(console.error);
   });
 
   /* ===== 유틸 ===== */
-  // 로컬 날짜(YYYY-MM-DD)
-  const todayLocalISO = () => {
-    const d = new Date();
-    const p = n => String(n).padStart(2,"0");
-    return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;
+  const p2 = n => String(n).padStart(2,'0');
+  const todayLocalISO = () => { const d=new Date(); return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`; };
+  const fmtPhoneDisplay = (raw)=>{
+    const v = String(raw||"").replace(/\D/g,'').slice(0,11);
+    if(v.length<=3) return v;
+    if(v.length<=7) return v.slice(0,3)+'-'+v.slice(3);
+    return v.slice(0,3)+'-'+v.slice(3,7)+'-'+v.slice(7);
+  };
+  const onlyDigits = (s)=> String(s||"").replace(/\D/g,'');
+
+  /* ===== 빠른등록: 기본값 기억/복원 ===== */
+  const quickDefaults = {
+    load(){
+      const g = localStorage.getItem('qr_defaults_gender') || '선택';
+      const t = localStorage.getItem('qr_defaults_trainer') || '선택';
+      const l = localStorage.getItem('qr_defaults_lesson')  || 'PT';
+      document.getElementById('quickGender').value = g;
+      document.getElementById('quickTrainer').value = t;
+      document.getElementById('quickLessonType').value = l;
+    },
+    save(){
+      const g = document.getElementById('quickGender').value;
+      const t = document.getElementById('quickTrainer').value;
+      const l = document.getElementById('quickLessonType').value;
+      if(g && g!=='선택') localStorage.setItem('qr_defaults_gender', g);
+      if(t && t!=='선택') localStorage.setItem('qr_defaults_trainer', t);
+      if(l) localStorage.setItem('qr_defaults_lesson', l);
+    }
+  };
+  window.toggleQuickCard = window.toggleQuickCard || (()=>{});
+  window.goToRegister = ()=> location.href='/member-registration.html';
+  window.submitQuickMember = submitQuickMember;
+  window.addEventListener('DOMContentLoaded', ()=> quickDefaults.load());
+
+  async function submitQuickMember(){
+    const name = document.getElementById('quickName').value.trim();
+    const phoneDigits = onlyDigits(document.getElementById('quickPhone').value);
+    const gender = document.getElementById('quickGender').value;
+    const trainer= document.getElementById('quickTrainer').value;
+    const lesson = document.getElementById('quickLessonType').value;
+
+    if(!name) return showToast('이름을 입력하세요.');
+    if(phoneDigits.length < 10) return showToast('휴대폰번호(숫자 10~11자리)를 입력하세요.');
+
+    const id = phoneDigits; // 문서ID를 전화번호 숫자만으로
+    const ref = doc(db,'members', id);
+    let existed = false;
+    try{
+      const snap = await getDoc(ref);
+      existed = snap.exists();
+
+      await setDoc(ref, {
+        name,
+        phone: phoneDigits,
+        phoneDisplay: fmtPhoneDisplay(phoneDigits),
+        gender: (gender && gender!=='선택') ? gender : null,
+        trainer: (trainer && trainer!=='선택') ? trainer : null,
+        lessonType: lesson || 'PT',
+        lastQuickTimePref: (document.getElementById('quickTime').value||'') || null,
+        updatedAt: serverTimestamp(),
+        ...(existed ? {} : { createdAt: serverTimestamp() })
+      }, { merge:true });
+
+      quickDefaults.save();
+      showToast(existed ? '회원 정보가 업데이트되었습니다.' : '회원이 등록되었습니다.');
+      document.getElementById('quickRegisterCard').style.display='none';
+    }catch(e){
+      console.error(e);
+      showToast('등록 실패: ' + (e.message||e.code||e));
+    }
+  }
+
+  /* ===== 토스트 (로드 피드백 포함) ===== */
+  function showToast(msg, withUndo=false, undoHandler=null){
+    const t=document.getElementById('toast');
+    t.innerHTML='';
+    const span=document.createElement('span'); span.textContent=msg; t.appendChild(span);
+    if(withUndo){
+      const b=document.createElement('button'); b.textContent='실행 취소'; b.onclick=()=>{ undoHandler?.(); t.style.opacity=0; };
+      t.appendChild(b);
+    }
+    t.style.opacity=1;
+    if(!withUndo) setTimeout(()=>t.style.opacity=0,1800);
+  }
+  window.toast = showToast; // 재사용
+
+  /* ====== 주(week) 계산 ====== */
+  function getWeekDates(offset=0){ // 월~일
+    const d=new Date(); // 오늘
+    const day=d.getDay(); // 일(0)~토(6)
+    const diffToMon = (day===0? -6 : 1 - day); // 월요일로
+    const mon = new Date(d.getFullYear(), d.getMonth(), d.getDate() + diffToMon + offset*7);
+    const arr=[];
+    for(let i=0;i<7;i++){
+      const x = new Date(mon.getFullYear(), mon.getMonth(), mon.getDate()+i);
+      arr.push(`${x.getFullYear()}-${p2(x.getMonth()+1)}-${p2(x.getDate())}`);
+    }
+    return arr; // [월,화,수,목,금,토,일]
+  }
+
+  /* ====== 이번 주 스케줄 실시간 구독 ====== */
+  let unsub = null;
+  let firstLoadShown = false;
+  const scheduleIndex = new Map(); // key: date|start|di -> {id,data}
+  const weekDates = getWeekDates(0); // 이번주
+
+  subscribeWeek();
+
+  function subscribeWeek(){
+    // Firestore: where('date','in',[월~일]) 로 이번 주만 구독
+    if(unsub) { try{unsub();}catch{} }
+    firstLoadShown = false;
+    showToast('동기화 중…');
+    const q = query(collection(db,'schedules'), where('date','in', weekDates));
+    unsub = onSnapshot(q, (snap)=>{
+      // 반영
+      scheduleIndex.clear();
+      snap.forEach(docSnap=>{
+        const d = docSnap.data();
+        const key = `${d.date}|${d.start}|${d.di}`;
+        scheduleIndex.set(key, { id: docSnap.id, data: d });
+      });
+      paintCurrFromIndex();
+      updateTodayFromCells();
+      if(!firstLoadShown){ firstLoadShown=true; showToast('동기화 완료'); }
+    }, (err)=>{
+      console.error(err);
+      showToast('동기화 실패: ' + (err.message||err.code||err));
+    });
+  }
+
+  function paintCurrFromIndex(){
+    // 테이블 리셋 후 Index로 채움
+    const rows = Array.from(document.querySelectorAll('#scheduleTableCurr tbody tr'));
+    rows.forEach(r=>{
+      // 시간셀 제외한 7칸 초기화
+      for(let i=1;i<=7;i++){ const td=r.children[i]; td.innerHTML=''; td.removeAttribute('data-info'); }
+    });
+    // index → dom
+    for(const {data} of scheduleIndex.values()){
+      // 시간 행 찾기
+      const rows = Array.from(document.querySelectorAll('#scheduleTableCurr tbody tr'));
+      const row = rows.find(r=> r.firstChild.textContent === `${data.start}`);
+      if(!row) continue;
+      const col = data.di; // 1~7 (월~일)
+      const cell = row.children[col];
+      if(!cell) continue;
+      cell.innerHTML = `${data.start}<br>${escapeHtml(data.name||'')} ${data.enrolled?`(${data.enrolled}/${data.cap||data.enrolled})`:''}<br>${statusChip(data.status)}`;
+      cell.dataset.info = JSON.stringify(data);
+    }
+  }
+
+  function statusChip(st){ 
+    const cls = st==='attended'?'status-attended':st==='no-show'?'status-noshow':st==='canceled'?'status-canceled':'status-scheduled';
+    const label = st==='attended'?'출석':st==='no-show'?'노쇼':st==='canceled'?'취소':'예약됨';
+    return `<span class="status-chip ${cls}">${label}</span>`;
+  }
+  function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') }
+
+  /* ===== 셀 메타 계산 (date/di/time) ===== */
+  function readCellMeta(cell){
+    const di = cell.cellIndex; // 1~7 (월~일) / 0은 시간
+    const rows = cell.parentElement.parentElement.children;
+    const time = cell.parentElement.firstChild.textContent; // "HH:mm"
+    const date = weekDates[di-1]; // 월~일 배열
+    return { date, di, time, start: time };
+  }
+  window.readCellMeta = readCellMeta;
+
+  /* ===== 저장/충돌 감지/Undo ===== */
+  let lastAction = null; // {type:'create'|'update'|'delete', id, prevData}
+
+  async function saveLesson(){
+    if(!window.currentCell) return;
+    const meta = readCellMeta(window.currentCell); // {date,di,time,start}
+    const name = document.getElementById('nameInput').value.trim();
+    const enrolled = +document.getElementById('enrolledInput').value || 0;
+    const cap = +document.getElementById('capacityInput').value || 0;
+    const trainer = (document.getElementById('trainerInput').value || '').trim();
+    const status = document.getElementById('statusInput').value || 'scheduled';
+    const consumed = !!document.getElementById('consumedInput').checked;
+
+    if(!name){ showToast('이름을 입력하세요.'); return; }
+    if(!trainer){ showToast('담당 트레이너를 입력하세요.'); return; }
+
+    // 충돌 감지: 같은 date+start+trainer 가 이미 있는지
+    const key = `${meta.date}|${meta.start}|${meta.di}`;
+    const existed = scheduleIndex.get(key);
+    const willOverwrite = existed && existed.data.trainer === trainer;
+
+    if(willOverwrite){
+      const ok = confirm('같은 시간/트레이너 예약이 있습니다. 덮어쓸까요?');
+      if(!ok) return;
+    }
+
+    const payload = {
+      date: meta.date,
+      start: meta.start,
+      di: meta.di,              // 월=1 ... 일=7
+      name,
+      enrolled,
+      cap,
+      trainer,
+      status,                   // scheduled | attended | no-show | canceled
+      consumed: !!consumed,     // true면 소진 처리됨(표시/연동용)
+      updatedAt: serverTimestamp(),
+      createdAt: serverTimestamp()
+    };
+
+    try{
+      if(willOverwrite){
+        const id = existed.id;
+        const prev = existed.data;
+        await updateDoc(doc(db,'schedules', id), payload);
+        lastAction = { type:'update', id, prevData: prev };
+        showToast('스케줄이 저장되었습니다.', true, async ()=>{
+          try{ await setDoc(doc(db,'schedules',id), prev); }catch(e){ console.error(e); }
+        });
+      }else{
+        const res = await addDoc(collection(db,'schedules'), payload);
+        lastAction = { type:'create', id: res.id, prevData: null };
+        showToast('스케줄이 저장되었습니다.', true, async ()=>{
+          try{ await deleteDoc(doc(db,'schedules',res.id)); }catch(e){ console.error(e); }
+        });
+      }
+      window.hidePopup();
+    }catch(e){
+      console.error(e);
+      showToast('저장 실패: ' + (e.message||e.code||e));
+    }
+  }
+  async function deleteLesson(){
+    if(!window.currentCell) return;
+    const meta = readCellMeta(window.currentCell);
+    const key = `${meta.date}|${meta.start}|${meta.di}`;
+    const existed = scheduleIndex.get(key);
+    if(!existed){ showToast('삭제할 항목이 없습니다.'); window.hidePopup(); return; }
+    const prev = existed.data;
+    try{
+      await deleteDoc(doc(db,'schedules', existed.id));
+      lastAction = { type:'delete', id: existed.id, prevData: prev };
+      showToast('삭제되었습니다.', true, async ()=>{
+        try{ await setDoc(doc(db,'schedules',existed.id), prev); }catch(e){ console.error(e); }
+      });
+      window.hidePopup();
+    }catch(e){
+      console.error(e);
+      showToast('삭제 실패: ' + (e.message||e.code||e));
+    }
+  }
+  window.saveLesson = saveLesson;
+  window.deleteLesson = deleteLesson;
+
+  /* ===== 분설정/범위 설정 바인딩 ===== */
+  window.applyRangeCurr = ()=>{
+    const rawS=document.getElementById('rangeStart').value;
+    const rawE=document.getElementById('rangeEnd').value;
+    let sH=parseInt(rawS.split(':')[0],10);
+    let eH=parseInt(rawE.split(':')[0],10);
+    if(rawE.startsWith('00')) eH=24;
+    if(eH<=sH) eH+=24;
+    if(eH-sH<3){ alert('최소 3시간 이상 설정해야 합니다.'); hidePopup(); return; }
+    scheduleStart=sH; scheduleEnd=eH;
+    localStorage.setItem('scheduleRange',JSON.stringify({start:scheduleStart,end:scheduleEnd}));
+    // 표 재구성 후 index 재도색
+    buildCurr(); buildNext(); buildLast(); paintCurrFromIndex();
+    updateTimeLine(); hidePopup();
   };
 
-  /* ===== 스케줄 단건 저장 ===== */
-  async function saveScheduleToFirestore({ date, trainer, member, start, end, type }) {
-    await addDoc(collection(db, "schedules"), {
-      date, trainer, member, start, end, type,
-      createdAt: serverTimestamp()
-    });
-  }
+  /* ===== 오늘 다음 레슨 업데이트 트리거 ===== */
+  window.updateTodayFromCells = window.updateTodayFromCells || (()=>{});
 
-  /* ===== 버튼 핸들러(중복 방지) ===== */
-  const btn = document.getElementById("saveScheduleBtn");
-  if (btn && !btn.dataset.bound) {
-    btn.dataset.bound = "1";
-    btn.addEventListener("click", async () => {
-      // TODO: 실제 UI 값으로 교체
-      const payload = {
-        date: todayLocalISO(),
-        trainer: "남명구Master",
-        member:  "홍길동",
-        start:   "10:00",
-        end:     "11:00",
-        type:    "PT"
-      };
-
-      try {
-        await saveScheduleToFirestore(payload);
-        alert("스케줄이 저장되었습니다!");
-      } catch (e) {
-        console.error(e);
-        if (e.code === "permission-denied") {
-          alert("권한 오류: Firestore 규칙/로그인(익명 로그인)을 확인해주세요.");
-        } else {
-          alert("저장 실패: " + e.message);
-        }
-      }
-    });
-  }
 </script>
 </body>
 </html>
