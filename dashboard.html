@@ -31,8 +31,8 @@
   .popup input,.popup select{width:100%;padding:9px;border:1px solid #e5e7eb;border-radius:8px;margin:6px 0}
   .button-group{display:flex;gap:8px;margin-top:8px}
   .button-group button{flex:1;padding:8px;background:#f5f0e8;border:1px solid #ddd;border-radius:8px;cursor:pointer}
-  ./* 버튼 스타일 고정 */
-.btn-primary{ background:#0d1b2a !important;color:#fff !important;border:none !important;}
+  /* 버튼 스타일 고정 */
+  .btn-primary{ background:#0d1b2a !important;color:#fff !important;border:none !important;}
   .gold{background:#d4af37;color:#0d1b2a;border:none}
   .bottom-right{position:fixed;right:12px;bottom:12px;display:flex;gap:8px;z-index:1003}
   #quickRegisterCard{position:fixed;top:66px;right:12px;width:300px;background:#fff;border-radius:12px;box-shadow:0 8px 22px rgba(0,0,0,.18);padding:14px;z-index:1001;display:none}
@@ -209,6 +209,14 @@ function hidePopup(){ popupOverlay.style.display='none'; document.querySelectorA
 function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.style.opacity=1; setTimeout(()=>t.style.opacity=0,1700); }
 function toggleQuickCard(){ const card=document.getElementById('quickRegisterCard'); card.style.display=(card.style.display==='block')?'none':'block'; }
 function goToRegister(){ location.href='/member-registration.html'; }
+
+/* 바깥 클릭/ESC로 팝업 닫기 + 액션시트 닫기 */
+popupOverlay.addEventListener('click', hidePopup);
+document.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ hidePopup(); hideCellSheet(); }});
+document.addEventListener('click', (e)=>{
+  const sheet=document.getElementById('cellSheet');
+  if(sheet.style.display==='block' && !sheet.contains(e.target)) hideCellSheet();
+});
 </script>
 
 <script>
@@ -256,40 +264,53 @@ function saveMinute(){
 function openLesson(cell){
   currentCell=cell;
   const d=cell.dataset.info?JSON.parse(cell.dataset.info):{};
-  nameInput.value=d.name||''; enrolledInput.value=d.enrolled||''; capacityInput.value=d.cap||''; memberIdInput.value=d.memberId||'';
+  const $=id=>document.getElementById(id);
+  $('#nameInput').value      = d.name || '';
+  $('#enrolledInput').value  = d.enrolled || '';
+  $('#capacityInput').value  = d.cap || '';
+  $('#memberIdInput').value  = d.memberId || '';
   showPopup(document.getElementById('popupLesson'));
 }
 function rowHour(cell){ return cell.parentElement.firstChild.textContent; }
 
+/* 저장 시 내용 없으면 경고 + 저장 후 닫기 */
 function saveLesson(){
-  const name=nameInput.value.trim();
-  const enrolled=+enrolledInput.value||0;
-  const cap=+capacityInput.value||0;
-  const memberId=(memberIdInput.value||'').replace(/\D/g,'');
   if(!currentCell) return;
-  const time=rowHour(currentCell);
-  const di=+currentCell.dataset.weekcol;
 
-  const info={name,enrolled,cap,time,di,memberId: memberId||null};
-  currentCell.textContent = name ? `${time}\n${name} (${enrolled}/${cap})` : '';
+  const name     = (document.getElementById('nameInput').value || '').trim();
+  const enrolled = +(document.getElementById('enrolledInput').value || 0);
+  const cap      = +(document.getElementById('capacityInput').value || 0);
+  const memberId = (document.getElementById('memberIdInput').value || '').replace(/\D/g,'');
+
+  const nothingTyped = !name && !memberId && !enrolled && !cap;
+  if (nothingTyped){ toast('내용을 입력해주세요'); return; }
+
+  const time = currentCell.parentElement.firstChild.textContent;
+  const di   = +currentCell.dataset.weekcol;
+  const displayName = name || (memberId ? `[${memberId}]` : '—');
+
+  currentCell.textContent = `${time}\n${displayName} (${enrolled}/${cap})`;
+  const info = { name, enrolled, cap, time, di, memberId: memberId || null };
   currentCell.dataset.info = JSON.stringify(info);
 
-  // 로컬 백업
-  let arr=JSON.parse(localStorage.getItem('scheduleData')||'[]');
-  arr=arr.filter(x=>!(x.time===info.time && x.di===info.di)); if(name) arr.push(info);
-  localStorage.setItem('scheduleData',JSON.stringify(arr));
+  let arr = JSON.parse(localStorage.getItem('scheduleData') || '[]');
+  arr = arr.filter(x => !(x.time === info.time && x.di === info.di));
+  arr.push(info);
+  localStorage.setItem('scheduleData', JSON.stringify(arr));
 
-  // 파이어스토어 업서트(별도 모듈에서 처리)
-  upsertScheduleFromCell(currentCell).then(()=> toast("스케줄 저장 완료")).catch(e=>toast("저장 실패: "+(e.message||e.code)));
+  // Firestore 업서트 → docId 세팅
+  upsertScheduleFromCell(currentCell)
+    .then(()=> toast('스케줄 저장 완료'))
+    .catch(e => toast('저장 실패: ' + (e.message || e.code)));
 
-  updateTodayList(); updateTimeLine(); hidePopup();
+  updateTodayList();
+  updateTimeLine();
+  hidePopup();
 }
 function deleteLesson(){
   if(!currentCell) return;
   const info=currentCell.dataset.info ? JSON.parse(currentCell.dataset.info) : null;
-  // Firestore 삭제
   deleteScheduleByCell(currentCell).catch(e=>toast("삭제 실패: "+(e.message||e.code)));
-  // UI/로컬
   currentCell.innerHTML=''; delete currentCell.dataset.info; delete currentCell.dataset.docId;
   if(info){
     let data=JSON.parse(localStorage.getItem('scheduleData')||'[]');
@@ -304,13 +325,17 @@ function loadCurrFromLocal(){
   const rows=Array.from(document.querySelectorAll('#scheduleTableCurr tbody tr'));
   data.forEach(i=>{
     const [hour]=i.time.split(':');
-    const row=rows.find(r=> {
-      const [rowHour,rowMin] = r.firstChild.textContent.split(':');
+    const row=rows.find(r=>{
+      const [rowHour,rowMin]=r.firstChild.textContent.split(':');
       return rowHour===hour && rowMin===(localStorage.getItem(`minute-${rowHour}`)||'00');
     });
     if(row){
-      const c=row.children[i.di]; // 0:시간, 1~7 요일
-      if(c){ c.textContent=`${i.time}\n${i.name} (${i.enrolled}/${i.cap})`; c.dataset.info=JSON.stringify(i); }
+      const c=row.children[i.di];
+      if(c){
+        const displayName = i.name || (i.memberId ? `[${i.memberId}]` : '—');
+        c.textContent=`${i.time}\n${displayName} (${i.enrolled||0}/${i.cap||0})`;
+        c.dataset.info=JSON.stringify(i);
+      }
     }
   });
 }
@@ -325,7 +350,7 @@ function updateTodayList(){
     const total=h*60+(m||0); const cell=r.children[columnIndex];
     if(cell && cell.dataset.info){
       const v=JSON.parse(cell.dataset.info);
-      if(total>=nowMin){ list.push({t:total,text:`${v.time} ${v.name} (${v.enrolled}/${v.cap})`}); }
+      if(total>=nowMin){ list.push({t:total,text:`${v.time} ${v.name || (v.memberId?`[${v.memberId}]`:'—')} (${v.enrolled||0}/${v.cap||0})`}); }
     }
   });
   list.sort((a,b)=>a.t-b.t);
@@ -358,20 +383,13 @@ function initLongPress(){
   tb.addEventListener('pointerleave', onUp, {passive:true});
   tb.addEventListener('contextmenu', (e)=>e.preventDefault());
 }
-  // ...기존 스크립트들 위/아래 아무 곳에 추가해도 됩니다(중복만 피하기)
-  const overlayEl = document.getElementById('popupOverlay');
-  if (overlayEl) overlayEl.addEventListener('click', hidePopup);
-  document.addEventListener('keydown', (e)=>{
-    if(e.key === 'Escape') hidePopup();
-  });
- 
 function onDown(e){
   const td=e.target.closest('td'); if(!td || td.cellIndex===0) return;
   lpTarget=td;
   lpTimer=setTimeout(()=>openCellSheet(td,e), 600);
 }
 function onUp(){ clearTimeout(lpTimer); lpTimer=null; }
-function openCellSheet(td, ev){
+function openCellSheet(td){
   if(!td.dataset.info){ toast('먼저 레슨을 저장하세요'); return; }
   const sheet=document.getElementById('cellSheet');
   const r=td.getBoundingClientRect();
@@ -412,9 +430,17 @@ const firebaseConfig = {
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const db  = getFirestore(app);
 
-// auth
+// auth 보장
 const auth = getAuth(app);
-onAuthStateChanged(auth, (u)=>{ if(!u) signInAnonymously(auth).catch(console.error); });
+function ensureAuthed(){
+  return new Promise(resolve=>{
+    onAuthStateChanged(auth, async (u)=>{
+      if (u) return resolve(u);
+      try{ const cred = await signInAnonymously(auth); resolve(cred.user); }
+      catch(e){ console.error(e); resolve(null); }
+    });
+  });
+}
 
 /* ===== 유틸 ===== */
 const p2 = n=>String(n).padStart(2,'0');
@@ -477,14 +503,12 @@ function formatPhone(v){ v=String(v).replace(/\D/g,'').slice(0,11); if(v.length<
 window.consumeAdjust = async (memberId, deltaRemain, flagUpdate, td)=>{
   hideCellSheet();
   try{
-    // 회원 남은회차 증감
     if(memberId){
       await updateDoc(doc(db,"members",memberId), {
         remainingSessions: increment(deltaRemain),
         ...(flagUpdate.flag==='noShowDeducted' ? { noShowDeducted: increment(flagUpdate.value?+1:-1) } : {})
       });
     }
-    // 스케줄 문서 플래그 기록
     if(td?.dataset.docId){
       await updateDoc(doc(db,"schedules",td.dataset.docId), {
         [flagUpdate.flag]: flagUpdate.value,
@@ -510,7 +534,6 @@ function maybeAskAuto(){
   if(!asked && !enabled){
     const el=document.getElementById('autoAsk'); el.style.display='block';
   }
-  // 매 진입 때 전날 처리 필요하면 실행
   runAutoConsumeIfNeeded(false);
 }
 window.enableAutoConsume = ()=>{ localStorage.setItem('autoAsked','1'); localStorage.setItem('autoConsume','1'); document.getElementById('autoAsk').style.display='none'; document.getElementById('autoConsumeToggle').checked=true; runAutoConsumeIfNeeded(true); };
@@ -529,7 +552,6 @@ async function runAutoConsumeIfNeeded(forceNow){
     const tasks = [];
     snap.forEach(docSnap=>{
       const s = docSnap.data();
-      // 이미 처리된 건 스킵, 노쇼 차감은 별도 플래그이므로 소진은 noShow가 아닌 것만
       if(s.consumed || s.noShowDeducted) return;
       if(s.memberId){
         tasks.push(
@@ -537,7 +559,6 @@ async function runAutoConsumeIfNeeded(forceNow){
             .then(()=> updateDoc(doc(db,"schedules",docSnap.id), { consumed:true, consumedAt: serverTimestamp() }))
         );
       }else{
-        // memberId 없으면 스케줄만 표시
         tasks.push(updateDoc(doc(db,"schedules",docSnap.id), { consumed:true, consumedAt: serverTimestamp() }).catch(()=>{}));
       }
     });
@@ -549,17 +570,76 @@ async function runAutoConsumeIfNeeded(forceNow){
   }
 }
 
-/* ===== 스케줄 일괄 저장 버튼(데모) ===== */
+/* ===== “오늘 스케줄 Firestore 동기화” 루틴 =====
+   - 오늘 날짜의 schedules를 읽어와서
+   - time(row 첫칸) + di(요일 열)로 해당 셀을 찾아
+   - dataset.docId 부여 + UI를 최신화
+   - 로컬 scheduleData에도 병합(없으면 추가) */
+async function syncTodayFromFirestore({replaceLocal=false}={}){
+  const date = todayLocalISO();
+  const qy = query(collection(db,"schedules"), where("date","==",date));
+  const snap = await getDocs(qy);
+
+  // 시간 -> 행 찾기 헬퍼
+  const rows=Array.from(document.querySelectorAll('#scheduleTableCurr tbody tr'));
+  const findRowByTime=(time)=>{
+    const [hour,minute] = time.split(':');
+    return rows.find(r=>{
+      const [rowHour,rowMin] = r.firstChild.textContent.split(':');
+      return rowHour===hour && rowMin===minute;
+    });
+  };
+
+  // 기존 로컬 로드
+  let local = JSON.parse(localStorage.getItem('scheduleData')||'[]');
+  if(replaceLocal) local = local.filter(x=>x); // 유지(필요 시 날짜키로 분리 가능)
+
+  snap.forEach(docSnap=>{
+    const s = docSnap.data();
+    const row = findRowByTime(s.start);
+    if(!row) return;
+    const cell = row.children[s.di]; // 0:시간, 1~7 요일
+    if(!cell) return;
+
+    // 화면 표시용 이름
+    const displayName = s.name || (s.memberId ? `[${s.memberId}]` : '—');
+    // 상태 태그(선택): 소비/노쇼 표시 작게
+    const tags = [
+      s.noShowDeducted ? '🚫' : '',
+      s.consumed ? '✅' : ''
+    ].filter(Boolean).join(' ');
+    const tagLine = tags ? ` ${tags}` : '';
+
+    cell.textContent = `${s.start}\n${displayName} (${s.enrolled||0}/${s.cap||0})${tagLine}`;
+    const info = { name:s.name||'', enrolled:s.enrolled||0, cap:s.cap||0, time:s.start, di:s.di, memberId:s.memberId||null };
+    cell.dataset.info = JSON.stringify(info);
+    cell.dataset.docId = docSnap.id;
+
+    // 로컬 병합(중복 제거 후 추가)
+    local = local.filter(x => !(x.time===info.time && x.di===info.di));
+    local.push(info);
+  });
+
+  localStorage.setItem('scheduleData', JSON.stringify(local));
+  updateTodayList();
+  updateTimeLine();
+}
+
+/* ===== 스케줄 일괄 저장 버튼(현재 표 → Firestore) ===== */
 document.getElementById('saveScheduleBtn').addEventListener('click', async ()=>{
-  // 현재 표의 모든 셀 중 데이터가 있는 것 업서트
   const cells=[...document.querySelectorAll('#scheduleTableCurr tbody td')].filter(td=>td.cellIndex>0 && td.dataset.info);
   try{
     await Promise.all(cells.map(c=>window.upsertScheduleFromCell(c)));
     toast("스케줄 저장 완료");
+    await syncTodayFromFirestore({replaceLocal:false}); // 저장 후 docId 재확인
   }catch(e){
     console.error(e); toast("저장 실패: "+(e.message||e.code));
   }
 });
+
+/* ===== 초기 동기화 실행(로그인 보장 후) ===== */
+await ensureAuthed();
+await syncTodayFromFirestore({replaceLocal:false});
 </script>
 </body>
 </html>
