@@ -169,7 +169,7 @@
       <input id="capacityInput" type="number" placeholder="총(표시용)" />
     </div>
     <label>담당 트레이너</label>
-    <input id="trainerInput" placeholder="예: 남명구Master" />
+    <input id="trainerInput" placeholder="예: 트레이너A" />
     <label>상태</label>
     <select id="statusInput">
       <option value="scheduled">예약됨</option>
@@ -210,7 +210,7 @@
     <label>담당 트레이너</label>
     <select id="quickTrainer">
       <option>선택</option>
-      <option>남명구Master</option>
+      <option>트레이너 A</option>
       <option>트레이너 B</option>
     </select>
 
@@ -395,10 +395,9 @@ function updateTodayFromCells(){
 <script type="module">
   /* ===== Firebase ===== */
   import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
-  import { 
-    getFirestore, collection, addDoc, setDoc, doc, getDoc, updateDoc, deleteDoc,
-    serverTimestamp, query, where, onSnapshot
-  } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+  import {
+  getFirestore, collection, addDoc, setDoc, deleteDoc, doc, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
   import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
 
   const firebaseConfig = {
