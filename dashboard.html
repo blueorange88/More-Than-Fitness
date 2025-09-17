@@ -358,6 +358,13 @@ function initLongPress(){
   tb.addEventListener('pointerleave', onUp, {passive:true});
   tb.addEventListener('contextmenu', (e)=>e.preventDefault());
 }
+  // ...기존 스크립트들 위/아래 아무 곳에 추가해도 됩니다(중복만 피하기)
+  const overlayEl = document.getElementById('popupOverlay');
+  if (overlayEl) overlayEl.addEventListener('click', hidePopup);
+  document.addEventListener('keydown', (e)=>{
+    if(e.key === 'Escape') hidePopup();
+  });
+ 
 function onDown(e){
   const td=e.target.closest('td'); if(!td || td.cellIndex===0) return;
   lpTarget=td;
