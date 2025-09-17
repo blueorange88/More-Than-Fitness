@@ -10,43 +10,57 @@
   .topbar{position:fixed;top:0;left:0;right:0;height:52px;background:#f5f0e8;display:flex;align-items:center;justify-content:space-between;padding:0 12px;box-shadow:0 2px 4px rgba(0,0,0,.1);z-index:1001}
   .topbar h1{font-size:17px;color:#0d1b2a}
   .hamburger,.logout-btn{background:none;border:1px solid #ddd;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:13px;color:#0d1b2a}
+
   .sidebar{position:fixed;top:52px;left:0;bottom:0;width:200px;background:#0d1b2a;color:#fff;padding:14px;transform:translateX(-100%);transition:transform .25s;z-index:1002}
   .sidebar.active{transform:translateX(0)}
   .sidebar button{display:block;background:none;border:none;color:#fff;width:100%;text-align:left;margin:8px 0;cursor:pointer;font-size:14px}
   .submenu button{color:#cbd5e1;padding-left:14px}
+
   .main{margin-top:52px;flex:1;overflow-y:auto;padding:10px 10px 80px}
+
   .card{background:#fff;padding:10px;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,.08);margin-bottom:10px}
   .section-title{font-weight:800;color:#0d1b2a;margin:8px 0 6px}
+
   .schedule-wrapper{background:#fff;padding:8px;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,.08);margin-bottom:14px;overflow-x:auto}
   table{width:100%;border-collapse:collapse;font-size:12px;min-width:700px}
   th,td{border:1px solid #e5e7eb;padding:4px;text-align:center;vertical-align:top;position:relative}
   th{background:#0d1b2a;color:#fff}
   th:first-child{background:#0d3b5a;cursor:pointer}
   .time-cell{background:#f8fafc;cursor:pointer}
+
   .current-time-line{position:absolute;left:0;right:0;height:2px;background:#FF3B30;animation:pulse 5s ease-in-out infinite}
   @keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
+
   .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000}
+
   .popup{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:16px;border-radius:10px;z-index:1001;width:310px;max-width:92%;max-height:84vh;overflow:auto}
   .popup h3{font-size:16px;margin-bottom:8px}
   .popup input,.popup select{width:100%;padding:9px;border:1px solid #e5e7eb;border-radius:8px;margin:6px 0}
+
   .button-group{display:flex;gap:8px;margin-top:8px}
   .button-group button{flex:1;padding:8px;background:#f5f0e8;border:1px solid #ddd;border-radius:8px;cursor:pointer}
   /* 버튼 스타일 고정 */
-  .btn-primary{ background:#0d1b2a !important;color:#fff !important;border:none !important;}
+  .btn-primary{background:#0d1b2a !important;color:#fff !important;border:none !important}
+
   .gold{background:#d4af37;color:#0d1b2a;border:none}
   .bottom-right{position:fixed;right:12px;bottom:12px;display:flex;gap:8px;z-index:1003}
+
   #quickRegisterCard{position:fixed;top:66px;right:12px;width:300px;background:#fff;border-radius:12px;box-shadow:0 8px 22px rgba(0,0,0,.18);padding:14px;z-index:1001;display:none}
   #quickRegisterCard h3{font-size:15px;margin-bottom:8px;color:#0d1b2a}
   #quickRegisterCard label{font-size:12px;color:#334155}
   #quickRegisterCard input,#quickRegisterCard select{width:100%;margin:5px 0 10px;padding:8px;border:1px solid #e5e7eb;border-radius:8px}
+
   #toast{position:fixed;top:58px;left:50%;transform:translateX(-50%);background:#0d1b2a;color:#fff;padding:8px 12px;border-radius:14px;opacity:0;transition:opacity .2s;z-index:1100;font-size:12px}
+
   .banner{position:fixed;top:52px;left:50%;transform:translateX(-50%);background:#fff8e1;border:1px solid #f59e0b;color:#7c5200;padding:8px 12px;border-radius:10px;z-index:1005;display:none}
   .banner button{margin-left:8px;border:1px solid #f59e0b;background:#fff;border-radius:8px;padding:4px 8px;cursor:pointer}
+
   /* 셀 액션시트(롱프레스) */
   #cellSheet{position:fixed;background:#111;color:#fff;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.35);padding:8px;z-index:1101;display:none;min-width:200px}
   #cellSheet button{display:block;width:100%;text-align:left;background:transparent;border:none;color:#fff;padding:10px;border-bottom:1px solid rgba(255,255,255,.1);cursor:pointer;font-size:13px}
   #cellSheet button:last-child{border-bottom:none}
   #cellSheet .danger{color:#ffb4b4}
+
   @media (max-width:768px){
     #quickRegisterCard{width:92%;right:4%;top:66px}
     table{min-width:620px}
@@ -61,15 +75,15 @@
       <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#0d1b2a">
         <input type="checkbox" id="autoConsumeToggle"> 자동 소진
       </label>
-      <button class="gold" onclick="toggleQuickCard()">+ 빠른 등록</button>
+      <button class="gold" id="quickOpenBtn">+ 빠른 등록</button>
       <button class="logout-btn" id="btnLogout">로그아웃</button>
     </div>
   </div>
 
   <div id="autoAsk" class="banner">
     자동 소진 기능을 켤까요?
-    <button onclick="enableAutoConsume()">지금 켜기</button>
-    <button onclick="dismissAutoAsk()">나중에</button>
+    <button id="btnEnableAuto">지금 켜기</button>
+    <button id="btnLaterAuto">나중에</button>
   </div>
 
   <div class="sidebar" id="sidebar">
@@ -119,19 +133,21 @@
     </div>
   </div>
 
-  <!-- 오버레이/팝업 -->
+  <!-- 오버레이(팝업/빠른등록 공용) -->
   <div class="overlay" id="popupOverlay"></div>
 
+  <!-- 시간 범위 설정 -->
   <div class="popup" id="popupRange" role="dialog" aria-modal="true" aria-labelledby="popupRangeTitle">
     <h3 id="popupRangeTitle">시간 범위 설정</h3>
     <label>시작: <input type="time" id="rangeStart" value="06:00"></label>
     <label>종료: <input type="time" id="rangeEnd" value="15:00"></label>
     <div class="button-group">
-      <button class="btn-primary" onclick="applyRangeCurr()">적용</button>
-      <button onclick="hidePopup()">취소</button>
+      <button class="btn-primary" id="btnApplyRange">적용</button>
+      <button id="btnCancelRange">취소</button>
     </div>
   </div>
 
+  <!-- 분 설정 -->
   <div class="popup" id="popupMinute" role="dialog" aria-modal="true" aria-labelledby="popupMinuteTitle">
     <h3 id="popupMinuteTitle">분 단위 설정</h3>
     <select id="minuteSelect">
@@ -139,11 +155,12 @@
       <option>30</option><option>40</option><option>50</option>
     </select>
     <div class="button-group">
-      <button class="btn-primary" onclick="saveMinute()">저장</button>
-      <button onclick="hidePopup()">취소</button>
+      <button class="btn-primary" id="btnSaveMinute">저장</button>
+      <button id="btnCancelMinute">취소</button>
     </div>
   </div>
 
+  <!-- 레슨 정보 -->
   <div class="popup" id="popupLesson" role="dialog" aria-modal="true" aria-labelledby="popupLessonTitle">
     <h3 id="popupLessonTitle">레슨 정보</h3>
     <input id="nameInput" placeholder="회원 이름" />
@@ -153,8 +170,8 @@
     </div>
     <input id="memberIdInput" placeholder="회원ID(전화, 선택)" />
     <div class="button-group">
-      <button class="btn-primary" onclick="saveLesson()">저장</button>
-      <button onclick="deleteLesson()">삭제</button>
+      <button class="btn-primary" id="btnSaveLesson">저장</button>
+      <button id="btnDeleteLesson">삭제</button>
     </div>
   </div>
 
@@ -164,13 +181,13 @@
     <button id="sheetUndoConsume">↩️ 소진 취소(+1)</button>
     <button id="sheetNoShow" class="danger">🚫 노쇼 차감(–1)</button>
     <button id="sheetUndoNoShow">🧺 노쇼 취소(+1)</button>
-    <button onclick="hideCellSheet()">닫기</button>
+    <button id="sheetClose">닫기</button>
   </div>
 
   <!-- 빠른 등록 -->
   <div id="quickRegisterCard" role="dialog" aria-modal="true" aria-labelledby="qrTitle">
     <div style="position:absolute;top:8px;right:8px">
-      <button onclick="goToRegister()" style="font-size:11px;background:#f5f0e8;border:1px solid #ccc;border-radius:6px;padding:4px 8px;color:#0d1b2a;cursor:pointer">자세히 등록</button>
+      <button onclick="location.href='/member-registration.html'" style="font-size:11px;background:#f5f0e8;border:1px solid #ccc;border-radius:6px;padding:4px 8px;color:#0d1b2a;cursor:pointer">자세히 등록</button>
     </div>
     <h3 id="qrTitle">빠른 회원 등록</h3>
     <label>이름</label>
@@ -178,57 +195,105 @@
     <label>휴대폰번호(문서ID)</label>
     <input type="text" id="quickPhone" inputmode="numeric" placeholder="010-0000-0000" autocomplete="tel">
     <label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="quickAgree"> 개인정보 이용 동의</label>
-    <button id="btnQuickSubmit" class="btn-primary" style="width:100%;margin-top:10px" onclick="submitQuickMember()">등록</button>
+    <button id="btnQuickSubmit" class="btn-primary" style="width:100%;margin-top:10px">등록</button>
   </div>
 
   <!-- 고정 버튼 -->
   <div class="bottom-right">
-    <button id="toggleQuickBtn" class="gold" onclick="toggleQuickCard()">+ 빠른 등록</button>
+    <button id="toggleQuickBtn" class="gold">+ 빠른 등록</button>
     <button id="saveScheduleBtn" class="btn-primary">이번 주 스케줄 저장</button>
   </div>
 
   <div id="toast" role="status" aria-live="polite"></div>
 
 <script>
-/* ====== 가벼운 UI 공통 ====== */
+/* ====== 경량 UI ====== */
 let currentCell=null, scheduleStart=6, scheduleEnd=15;
-const popupOverlay=document.getElementById('popupOverlay');
+const overlayEl=document.getElementById('popupOverlay');
+
 const DAY_KO=['일','월','화','수','목','금','토'];
 document.getElementById('btnLogout').onclick=()=>{ alert('로그아웃되었습니다'); location.href='/login.html'; };
-
-document.getElementById('hamburger').onclick=()=>{
-  const sb=document.getElementById('sidebar'); sb.classList.toggle('active');
-};
+document.getElementById('hamburger').onclick=()=>{ document.getElementById('sidebar').classList.toggle('active'); };
 
 function toggleSubmenu(id){
   document.querySelectorAll('.submenu').forEach(el=> el.style.display='none');
   const t=document.getElementById('submenu-'+id); if(t) t.style.display='block';
 }
-function showPopup(el){ popupOverlay.style.display='block'; el.style.display='block'; }
-function hidePopup(){ popupOverlay.style.display='none'; document.querySelectorAll('.popup').forEach(p=>p.style.display='none'); }
-function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.style.opacity=1; setTimeout(()=>t.style.opacity=0,1700); }
-function toggleQuickCard(){ const card=document.getElementById('quickRegisterCard'); card.style.display=(card.style.display==='block')?'none':'block'; }
-function goToRegister(){ location.href='/member-registration.html'; }
+function showOverlay(){ overlayEl.style.display='block'; }
+function hideOverlay(){ overlayEl.style.display='none'; }
 
-/* 바깥 클릭/ESC로 팝업 닫기 + 액션시트 닫기 */
-popupOverlay.addEventListener('click', hidePopup);
-document.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ hidePopup(); hideCellSheet(); }});
-document.addEventListener('click', (e)=>{
-  const sheet=document.getElementById('cellSheet');
-  if(sheet.style.display==='block' && !sheet.contains(e.target)) hideCellSheet();
-});
+function showPopup(el){
+  showOverlay(); el.style.display='block';
+}
+function hidePopups(){
+  document.querySelectorAll('.popup').forEach(p=>p.style.display='none');
+}
+function hideAllLayers(){
+  hidePopups();
+  document.getElementById('cellSheet').style.display='none';
+  document.getElementById('quickRegisterCard').style.display='none';
+  hideOverlay();
+}
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.style.opacity=1; setTimeout(()=>t.style.opacity=0,1700); }
+
+/* 빠른등록 토글은 오버레이와 연동 */
+function openQuickCard(){
+  document.getElementById('quickRegisterCard').style.display='block';
+  showOverlay();
+}
+function closeQuickCard(){
+  document.getElementById('quickRegisterCard').style.display='none';
+  // 다른 팝업이 없으면 오버레이 끄기
+  if (![...document.querySelectorAll('.popup')].some(p=>p.style.display==='block')) hideOverlay();
+}
 </script>
 
 <script>
-/* ====== 스케줄 표(로컬 + UI) ====== */
+/* ====== 일정 표 (로컬 + UI) ====== */
 window.addEventListener('DOMContentLoaded', init);
+
 function init(){
+  // 오버레이 외부 클릭/ESC → 모두 닫기
+  overlayEl.addEventListener('click', hideAllLayers);
+  document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') hideAllLayers(); });
+
+  // 시간 범위 팝업 버튼
+  document.getElementById('btnApplyRange').onclick=applyRangeCurr;
+  document.getElementById('btnCancelRange').onclick=hideAllLayers;
+  document.getElementById('btnSaveMinute').onclick=saveMinute;
+  document.getElementById('btnCancelMinute').onclick=hideAllLayers;
+
+  // 레슨 팝업 버튼
+  document.getElementById('btnSaveLesson').onclick=saveLesson;
+  document.getElementById('btnDeleteLesson').onclick=deleteLesson;
+
+  // 액션시트 닫기
+  document.getElementById('sheetClose').onclick=()=>{ document.getElementById('cellSheet').style.display='none'; };
+
+  // 빠른등록 버튼/토글
+  document.getElementById('toggleQuickBtn').onclick=openQuickCard;
+  document.getElementById('quickOpenBtn').onclick=openQuickCard;
+
   const saved=JSON.parse(localStorage.getItem('scheduleRange')||'{}');
   if(saved.start && saved.end){ scheduleStart=saved.start; scheduleEnd=saved.end; }
-  buildTables(); loadCurrFromLocal(); highlightToday(); updateTodayList(); initTimeLine(); setInterval(updateTimeLine,60000);
-  initLongPress();
+  buildTables();
+  attachScheduleDelegation();   // ✅ 클릭/롱프레스 이벤트 위임
+  loadCurrFromLocal();
+  highlightToday();
+  updateTodayList();
+  initTimeLine(); setInterval(updateTimeLine,60000);
+
+  // 시간 헤더 클릭 → 범위 설정
   document.getElementById('headerCurr').onclick=()=> showPopup(document.getElementById('popupRange'));
+
+  // 자동소진 토글/배너
   document.getElementById('autoConsumeToggle').checked = localStorage.getItem('autoConsume')==='1';
+  document.getElementById('btnEnableAuto').onclick = enableAutoConsume;
+  document.getElementById('btnLaterAuto').onclick  = dismissAutoAsk;
+  document.getElementById('autoConsumeToggle').addEventListener('change',(e)=>{
+    localStorage.setItem('autoConsume', e.target.checked?'1':'0');
+    if(e.target.checked) runAutoConsumeIfNeeded(true);
+  });
   maybeAskAuto();
 }
 
@@ -237,87 +302,146 @@ function buildTables(){
   buildOne('#scheduleTableNext tbody', false);
   buildOne('#scheduleTableLast tbody', false);
 }
+
 function buildOne(sel, isMain){
   const tb=document.querySelector(sel); tb.innerHTML='';
   for(let h=scheduleStart; h<scheduleEnd; h++){
     const hh=(h%24).toString().padStart(2,'0');
     const r=document.createElement('tr');
     const minute=localStorage.getItem(`minute-${hh}`)||'00';
-    const c0=document.createElement('td'); c0.textContent=`${hh}:${minute}`; c0.className='time-cell'; if(isMain) c0.onclick=()=>openMinute(c0);
+    const c0=document.createElement('td'); c0.textContent=`${hh}:${minute}`; c0.className='time-cell';
+    if(isMain) c0.addEventListener('click', ()=>openMinute(c0));
     r.append(c0);
+
     for(let i=0;i<7;i++){
       const c=document.createElement('td');
-      if(isMain) c.onclick=()=>openLesson(c);
       c.dataset.weekcol = String(i+1); // 월=1 … 일=7
       r.append(c);
     }
     tb.append(r);
   }
 }
+
+function attachScheduleDelegation(){
+  // 클릭으로 레슨 팝업 열기
+  const tb=document.querySelector('#scheduleTableCurr tbody');
+  tb.addEventListener('click', (e)=>{
+    const td=e.target.closest('td');
+    if(!td || td.cellIndex===0) return;
+    document.getElementById('cellSheet').style.display='none'; // 액션시트 닫기
+    openLesson(td);
+  }, {passive:true});
+
+  // 롱프레스(액션시트)
+  let lpTimer=null, lpTarget=null;
+  tb.addEventListener('pointerdown', (e)=>{
+    const td=e.target.closest('td'); if(!td || td.cellIndex===0) return;
+    lpTarget=td;
+    lpTimer=setTimeout(()=>openCellSheet(td), 600);
+  }, {passive:true});
+  ['pointerup','pointerleave','pointercancel'].forEach(evt=>{
+    tb.addEventListener(evt, ()=>{ clearTimeout(lpTimer); lpTimer=null; }, {passive:true});
+  });
+  tb.addEventListener('contextmenu', (e)=>e.preventDefault());
+}
+
+function openCellSheet(td){
+  if(!td.dataset.info){ toast('먼저 레슨을 저장하세요'); return; }
+  const sheet=document.getElementById('cellSheet');
+  const r=td.getBoundingClientRect();
+  sheet.style.left = Math.min(window.innerWidth-220, Math.max(8, r.left)) + 'px';
+  sheet.style.top  = Math.min(window.innerHeight-10, r.bottom+6) + 'px';
+  sheet.style.display='block';
+  bindSheetHandlers(td);
+}
+
+function bindSheetHandlers(td){
+  const info=JSON.parse(td.dataset.info||'{}');
+  const memberId=info.memberId||null;
+  document.getElementById('sheetConsume').onclick     = async()=>{ await consumeAdjust(memberId,-1, {flag:'consumed', value:true}, td); };
+  document.getElementById('sheetUndoConsume').onclick = async()=>{ await consumeAdjust(memberId,+1, {flag:'consumed', value:false}, td); };
+  document.getElementById('sheetNoShow').onclick      = async()=>{ await consumeAdjust(memberId,-1, {flag:'noShowDeducted', value:true}, td); };
+  document.getElementById('sheetUndoNoShow').onclick  = async()=>{ await consumeAdjust(memberId,+1, {flag:'noShowDeducted', value:false}, td); };
+  document.getElementById('cellSheet').onclick = (e)=>{
+    if(e.target.id==='sheetClose') document.getElementById('cellSheet').style.display='none';
+  }
+}
+
 function openMinute(cell){ currentCell=cell; showPopup(document.getElementById('popupMinute')); }
 function saveMinute(){
   const m=document.getElementById('minuteSelect').value;
   const h=currentCell.textContent.split(':')[0];
-  currentCell.textContent=`${h}:${m}`; localStorage.setItem(`minute-${h}`,m);
-  updateTimeLine(); hidePopup();
+  currentCell.textContent=`${h}:${m}`;
+  localStorage.setItem(`minute-${h}`,m);
+  updateTimeLine(); hideAllLayers();
 }
+
 function openLesson(cell){
   currentCell=cell;
   const d=cell.dataset.info?JSON.parse(cell.dataset.info):{};
-  const $=id=>document.getElementById(id);
-  $('#nameInput').value      = d.name || '';
-  $('#enrolledInput').value  = d.enrolled || '';
-  $('#capacityInput').value  = d.cap || '';
-  $('#memberIdInput').value  = d.memberId || '';
+  document.getElementById('nameInput').value     = d.name||'';
+  document.getElementById('enrolledInput').value = d.enrolled||'';
+  document.getElementById('capacityInput').value = d.cap||'';
+  document.getElementById('memberIdInput').value = d.memberId||'';
   showPopup(document.getElementById('popupLesson'));
 }
 function rowHour(cell){ return cell.parentElement.firstChild.textContent; }
 
-/* 저장 시 내용 없으면 경고 + 저장 후 닫기 */
 function saveLesson(){
   if(!currentCell) return;
-
   const name     = (document.getElementById('nameInput').value || '').trim();
   const enrolled = +(document.getElementById('enrolledInput').value || 0);
   const cap      = +(document.getElementById('capacityInput').value || 0);
   const memberId = (document.getElementById('memberIdInput').value || '').replace(/\D/g,'');
 
-  const nothingTyped = !name && !memberId && !enrolled && !cap;
-  if (nothingTyped){ toast('내용을 입력해주세요'); return; }
+  // 아무 내용도 없으면 경고
+  const nothing = !name && !memberId && !enrolled && !cap;
+  if(nothing){ toast('내용을 입력해주세요'); return; }
 
-  const time = currentCell.parentElement.firstChild.textContent;
+  const time = rowHour(currentCell);
   const di   = +currentCell.dataset.weekcol;
+
+  // 표시용 이름: 이름 없으면 [회원ID]로 대체
   const displayName = name || (memberId ? `[${memberId}]` : '—');
 
+  // UI
   currentCell.textContent = `${time}\n${displayName} (${enrolled}/${cap})`;
   const info = { name, enrolled, cap, time, di, memberId: memberId || null };
   currentCell.dataset.info = JSON.stringify(info);
 
+  // 로컬 저장(백업)
   let arr = JSON.parse(localStorage.getItem('scheduleData') || '[]');
   arr = arr.filter(x => !(x.time === info.time && x.di === info.di));
   arr.push(info);
   localStorage.setItem('scheduleData', JSON.stringify(arr));
 
-  // Firestore 업서트 → docId 세팅
-  upsertScheduleFromCell(currentCell)
-    .then(()=> toast('스케줄 저장 완료'))
-    .catch(e => toast('저장 실패: ' + (e.message || e.code)));
+  // 파이어스토어 업서트
+  if (window.upsertScheduleFromCell) {
+    window.upsertScheduleFromCell(currentCell)
+      .then(()=> toast('스케줄 저장 완료'))
+      .catch(e => toast('저장 실패: ' + (e.message || e.code)));
+  }
 
   updateTodayList();
   updateTimeLine();
-  hidePopup();
+  hideAllLayers();
 }
+
 function deleteLesson(){
   if(!currentCell) return;
   const info=currentCell.dataset.info ? JSON.parse(currentCell.dataset.info) : null;
-  deleteScheduleByCell(currentCell).catch(e=>toast("삭제 실패: "+(e.message||e.code)));
+  if (window.deleteScheduleByCell) {
+    window.deleteScheduleByCell(currentCell).catch(e=>toast("삭제 실패: "+(e.message||e.code)));
+  }
   currentCell.innerHTML=''; delete currentCell.dataset.info; delete currentCell.dataset.docId;
+
   if(info){
     let data=JSON.parse(localStorage.getItem('scheduleData')||'[]');
     data=data.filter(x=>!(x.time===info.time && x.di===info.di));
     localStorage.setItem('scheduleData',JSON.stringify(data));
   }
-  toast("삭제 완료"); updateTodayList(); updateTimeLine(); hidePopup();
+  toast("삭제 완료");
+  updateTodayList(); updateTimeLine(); hideAllLayers();
 }
 
 function loadCurrFromLocal(){
@@ -325,24 +449,26 @@ function loadCurrFromLocal(){
   const rows=Array.from(document.querySelectorAll('#scheduleTableCurr tbody tr'));
   data.forEach(i=>{
     const [hour]=i.time.split(':');
-    const row=rows.find(r=>{
-      const [rowHour,rowMin]=r.firstChild.textContent.split(':');
+    const row=rows.find(r=> {
+      const [rowHour,rowMin] = r.firstChild.textContent.split(':');
       return rowHour===hour && rowMin===(localStorage.getItem(`minute-${rowHour}`)||'00');
     });
     if(row){
       const c=row.children[i.di];
       if(c){
         const displayName = i.name || (i.memberId ? `[${i.memberId}]` : '—');
-        c.textContent=`${i.time}\n${displayName} (${i.enrolled||0}/${i.cap||0})`;
+        c.textContent=`${i.time}\n${displayName} (${i.enrolled}/${i.cap})`;
         c.dataset.info=JSON.stringify(i);
       }
     }
   });
 }
+
 function highlightToday(){
   const di=new Date().getDay(); const ths=document.querySelectorAll('#scheduleTableCurr th');
   const idx=di===0?7:di; if(ths[idx]){ ths[idx].style.backgroundColor='#d4af37'; ths[idx].style.color='#0d1b2a'; }
 }
+
 function updateTodayList(){
   const now=new Date(); const todayIndex=now.getDay(); const columnIndex=todayIndex===0?7:todayIndex; const nowMin=now.getHours()*60+now.getMinutes(); const list=[];
   document.querySelectorAll('#scheduleTableCurr tbody tr').forEach(r=>{
@@ -350,13 +476,15 @@ function updateTodayList(){
     const total=h*60+(m||0); const cell=r.children[columnIndex];
     if(cell && cell.dataset.info){
       const v=JSON.parse(cell.dataset.info);
-      if(total>=nowMin){ list.push({t:total,text:`${v.time} ${v.name || (v.memberId?`[${v.memberId}]`:'—')} (${v.enrolled||0}/${v.cap||0})`}); }
+      const displayName = v.name || (v.memberId ? `[${v.memberId}]` : '—');
+      if(total>=nowMin){ list.push({t:total,text:`${v.time} ${displayName} (${v.enrolled}/${v.cap})`}); }
     }
   });
   list.sort((a,b)=>a.t-b.t);
   const ul=document.getElementById('todayLessonList'); ul.innerHTML='';
   list.slice(0,2).forEach(i=>{ const li=document.createElement('li'); li.textContent=i.text; ul.appendChild(li); });
 }
+
 function initTimeLine(){ updateTimeLine(); }
 function updateTimeLine(){
   document.querySelectorAll('.current-time-line').forEach(e=>e.remove());
@@ -373,44 +501,8 @@ function updateTimeLine(){
 }
 </script>
 
-<script>
-/* ====== 롱프레스 액션시트 ====== */
-let lpTimer=null, lpTarget=null;
-function initLongPress(){
-  const tb=document.querySelector('#scheduleTableCurr tbody');
-  tb.addEventListener('pointerdown', onDown, {passive:true});
-  tb.addEventListener('pointerup', onUp, {passive:true});
-  tb.addEventListener('pointerleave', onUp, {passive:true});
-  tb.addEventListener('contextmenu', (e)=>e.preventDefault());
-}
-function onDown(e){
-  const td=e.target.closest('td'); if(!td || td.cellIndex===0) return;
-  lpTarget=td;
-  lpTimer=setTimeout(()=>openCellSheet(td,e), 600);
-}
-function onUp(){ clearTimeout(lpTimer); lpTimer=null; }
-function openCellSheet(td){
-  if(!td.dataset.info){ toast('먼저 레슨을 저장하세요'); return; }
-  const sheet=document.getElementById('cellSheet');
-  const r=td.getBoundingClientRect();
-  sheet.style.left = Math.min(window.innerWidth-220, Math.max(8, r.left)) + 'px';
-  sheet.style.top  = Math.min(window.innerHeight-10, r.bottom+6) + 'px';
-  sheet.style.display='block';
-  bindSheetHandlers(td);
-}
-function hideCellSheet(){ document.getElementById('cellSheet').style.display='none'; }
-function bindSheetHandlers(td){
-  const info=JSON.parse(td.dataset.info||'{}');
-  const memberId=info.memberId||null;
-  document.getElementById('sheetConsume').onclick = async()=>{ await consumeAdjust(memberId,-1, {flag:'consumed', value:true}, td); };
-  document.getElementById('sheetUndoConsume').onclick = async()=>{ await consumeAdjust(memberId,+1, {flag:'consumed', value:false}, td); };
-  document.getElementById('sheetNoShow').onclick = async()=>{ await consumeAdjust(memberId,-1, {flag:'noShowDeducted', value:true}, td); };
-  document.getElementById('sheetUndoNoShow').onclick = async()=>{ await consumeAdjust(memberId,+1, {flag:'noShowDeducted', value:false}, td); };
-}
-</script>
-
 <script type="module">
-/* ====== Firebase (익명 로그인) + 일정/회원 연동 ====== */
+/* ====== Firebase + 일정/회원 연동 ====== */
 import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
 import {
   getFirestore, collection, addDoc, setDoc, deleteDoc, doc,
@@ -430,17 +522,9 @@ const firebaseConfig = {
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const db  = getFirestore(app);
 
-// auth 보장
+// auth(익명 로그인)
 const auth = getAuth(app);
-function ensureAuthed(){
-  return new Promise(resolve=>{
-    onAuthStateChanged(auth, async (u)=>{
-      if (u) return resolve(u);
-      try{ const cred = await signInAnonymously(auth); resolve(cred.user); }
-      catch(e){ console.error(e); resolve(null); }
-    });
-  });
-}
+onAuthStateChanged(auth, (u)=>{ if(!u) signInAnonymously(auth).catch(console.error); });
 
 /* ===== 유틸 ===== */
 const p2 = n=>String(n).padStart(2,'0');
@@ -448,11 +532,9 @@ const todayLocalISO = ()=>{ const d=new Date(); return `${d.getFullYear()}-${p2(
 const yesterLocalISO = ()=>{ const d=new Date(); d.setDate(d.getDate()-1); return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`; };
 const add60 = (t)=>{ const [hh,mm]=t.split(':').map(Number); const m=hh*60+(mm||0)+60; return `${p2(Math.floor(m/60)%24)}:${p2(m%60)}`; };
 
-/* ===== 스케줄 저장/삭제 ===== */
 window.upsertScheduleFromCell = async (cell)=>{
   if(!cell?.dataset.info) return null;
   const i = JSON.parse(cell.dataset.info);
-
   const payload = {
     date: todayLocalISO(),
     di: i.di, start: i.time, end: add60(i.time),
@@ -478,8 +560,9 @@ window.deleteScheduleByCell = async (cell)=>{
   }
 };
 
-/* ===== 빠른 등록(이름+전화만) ===== */
-window.submitQuickMember = async ()=>{
+/* 빠른 등록(이름+전화만) */
+function formatPhone(v){ v=String(v).replace(/\D/g,'').slice(0,11); if(v.length<=3) return v; if(v.length<=7) return v.slice(0,3)+'-'+v.slice(3); return v.slice(0,3)+'-'+v.slice(3,7)+'-'+v.slice(7); }
+document.getElementById('btnQuickSubmit').addEventListener('click', async ()=>{
   const name = (document.getElementById('quickName').value||"").trim();
   const phoneRaw = (document.getElementById('quickPhone').value||"").replace(/\D/g,'');
   const agree = document.getElementById('quickAgree').checked;
@@ -495,13 +578,15 @@ window.submitQuickMember = async ()=>{
     toast("빠른 등록 완료");
     document.getElementById('quickName').value = "";
     document.getElementById('quickPhone').value = "";
+    // 닫아줌
+    document.getElementById('quickRegisterCard').style.display='none';
+    if (![...document.querySelectorAll('.popup')].some(p=>p.style.display==='block')) document.getElementById('popupOverlay').style.display='none';
   }catch(e){ console.error(e); toast("등록 실패: "+(e.message||e.code)); }
-};
-function formatPhone(v){ v=String(v).replace(/\D/g,'').slice(0,11); if(v.length<=3) return v; if(v.length<=7) return v.slice(0,3)+'-'+v.slice(3); return v.slice(0,3)+'-'+v.slice(3,7)+'-'+v.slice(7); }
+});
 
-/* ===== 롱프레스 액션: 소진/노쇼 ===== */
+/* 롱프레스 액션: 소진/노쇼 */
 window.consumeAdjust = async (memberId, deltaRemain, flagUpdate, td)=>{
-  hideCellSheet();
+  document.getElementById('cellSheet').style.display='none';
   try{
     if(memberId){
       await updateDoc(doc(db,"members",memberId), {
@@ -523,17 +608,11 @@ window.consumeAdjust = async (memberId, deltaRemain, flagUpdate, td)=>{
   }
 };
 
-/* ===== 자동 소진 ===== */
+/* 자동 소진 */
 function maybeAskAuto(){
   const asked = localStorage.getItem('autoAsked')==='1';
   const enabled = localStorage.getItem('autoConsume')==='1';
-  document.getElementById('autoConsumeToggle').addEventListener('change', (e)=>{
-    localStorage.setItem('autoConsume', e.target.checked ? '1':'0');
-    if(e.target.checked) runAutoConsumeIfNeeded(true);
-  });
-  if(!asked && !enabled){
-    const el=document.getElementById('autoAsk'); el.style.display='block';
-  }
+  if(!asked && !enabled) document.getElementById('autoAsk').style.display='block';
   runAutoConsumeIfNeeded(false);
 }
 window.enableAutoConsume = ()=>{ localStorage.setItem('autoAsked','1'); localStorage.setItem('autoConsume','1'); document.getElementById('autoAsk').style.display='none'; document.getElementById('autoConsumeToggle').checked=true; runAutoConsumeIfNeeded(true); };
@@ -570,76 +649,34 @@ async function runAutoConsumeIfNeeded(forceNow){
   }
 }
 
-/* ===== “오늘 스케줄 Firestore 동기화” 루틴 =====
-   - 오늘 날짜의 schedules를 읽어와서
-   - time(row 첫칸) + di(요일 열)로 해당 셀을 찾아
-   - dataset.docId 부여 + UI를 최신화
-   - 로컬 scheduleData에도 병합(없으면 추가) */
-async function syncTodayFromFirestore({replaceLocal=false}={}){
-  const date = todayLocalISO();
-  const qy = query(collection(db,"schedules"), where("date","==",date));
-  const snap = await getDocs(qy);
-
-  // 시간 -> 행 찾기 헬퍼
-  const rows=Array.from(document.querySelectorAll('#scheduleTableCurr tbody tr'));
-  const findRowByTime=(time)=>{
-    const [hour,minute] = time.split(':');
-    return rows.find(r=>{
-      const [rowHour,rowMin] = r.firstChild.textContent.split(':');
-      return rowHour===hour && rowMin===minute;
-    });
-  };
-
-  // 기존 로컬 로드
-  let local = JSON.parse(localStorage.getItem('scheduleData')||'[]');
-  if(replaceLocal) local = local.filter(x=>x); // 유지(필요 시 날짜키로 분리 가능)
-
-  snap.forEach(docSnap=>{
-    const s = docSnap.data();
-    const row = findRowByTime(s.start);
-    if(!row) return;
-    const cell = row.children[s.di]; // 0:시간, 1~7 요일
-    if(!cell) return;
-
-    // 화면 표시용 이름
-    const displayName = s.name || (s.memberId ? `[${s.memberId}]` : '—');
-    // 상태 태그(선택): 소비/노쇼 표시 작게
-    const tags = [
-      s.noShowDeducted ? '🚫' : '',
-      s.consumed ? '✅' : ''
-    ].filter(Boolean).join(' ');
-    const tagLine = tags ? ` ${tags}` : '';
-
-    cell.textContent = `${s.start}\n${displayName} (${s.enrolled||0}/${s.cap||0})${tagLine}`;
-    const info = { name:s.name||'', enrolled:s.enrolled||0, cap:s.cap||0, time:s.start, di:s.di, memberId:s.memberId||null };
-    cell.dataset.info = JSON.stringify(info);
-    cell.dataset.docId = docSnap.id;
-
-    // 로컬 병합(중복 제거 후 추가)
-    local = local.filter(x => !(x.time===info.time && x.di===info.di));
-    local.push(info);
-  });
-
-  localStorage.setItem('scheduleData', JSON.stringify(local));
-  updateTodayList();
-  updateTimeLine();
-}
-
-/* ===== 스케줄 일괄 저장 버튼(현재 표 → Firestore) ===== */
+/* 일괄 저장(데모) */
 document.getElementById('saveScheduleBtn').addEventListener('click', async ()=>{
   const cells=[...document.querySelectorAll('#scheduleTableCurr tbody td')].filter(td=>td.cellIndex>0 && td.dataset.info);
   try{
     await Promise.all(cells.map(c=>window.upsertScheduleFromCell(c)));
     toast("스케줄 저장 완료");
-    await syncTodayFromFirestore({replaceLocal:false}); // 저장 후 docId 재확인
   }catch(e){
     console.error(e); toast("저장 실패: "+(e.message||e.code));
   }
 });
 
-/* ===== 초기 동기화 실행(로그인 보장 후) ===== */
-await ensureAuthed();
-await syncTodayFromFirestore({replaceLocal:false});
+/* 오버레이 밖 클릭 닫기(빠른등록 포함) */
+document.getElementById('popupOverlay').addEventListener('click', ()=>{
+  document.getElementById('cellSheet').style.display='none';
+  document.getElementById('quickRegisterCard').style.display='none';
+  document.querySelectorAll('.popup').forEach(p=>p.style.display='none');
+  document.getElementById('popupOverlay').style.display='none';
+});
+
+/* 빠른등록 버튼(탑/우측) 오버레이 연동 */
+document.getElementById('toggleQuickBtn').addEventListener('click', ()=>{
+  document.getElementById('quickRegisterCard').style.display='block';
+  document.getElementById('popupOverlay').style.display='block';
+});
+document.getElementById('quickOpenBtn').addEventListener('click', ()=>{
+  document.getElementById('quickRegisterCard').style.display='block';
+  document.getElementById('popupOverlay').style.display='block';
+});
 </script>
 </body>
 </html>
