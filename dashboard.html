@@ -352,13 +352,21 @@ function renderCell(td, info){
   }
 
   function loadCurrFromLocal(){
-    const data=JSON.parse(localStorage.getItem('scheduleData')||'[]');
-    const rows=[...document.querySelectorAll('#scheduleTableCurr tbody tr')];
-    data.forEach(i=>{
-      const [hour]=i.time.split(':');
-      const row=rows.find(r=>{ const [h,m]=r.firstChild.textContent.split(':'); return h===hour && m===(localStorage.getItem(`minute-${h}`)||'00'); });
-      if(row){ const c=row.children[i.di]; if(c){ renderCell(c, i); }
-  }
+  const data = JSON.parse(localStorage.getItem('scheduleData') || '[]');
+  const rows = [...document.querySelectorAll('#scheduleTableCurr tbody tr')];
+
+  data.forEach(i => {
+    const [hour] = i.time.split(':');
+    const row = rows.find(r => {
+      const [h, m] = r.firstChild.textContent.split(':');
+      return h === hour && m === (localStorage.getItem(`minute-${h}`) || '00');
+    });
+    if (row) {
+      const c = row.children[i.di]; // 0: 시간, 1~7: 요일
+      if (c) { renderCell(c, i); }
+    }
+  });
+}
   function highlightToday(){ const di=new Date().getDay(); const ths=document.querySelectorAll('#scheduleTableCurr th'); const idx=di===0?7:di; if(ths[idx]){ ths[idx].style.backgroundColor='#d4af37'; ths[idx].style.color='#0d1b2a'; } }
   function updateTodayList(){
     const now=new Date(); const today=now.getDay(); const col=today===0?7:today; const nowMin=now.getHours()*60+now.getMinutes(); const arr=[];
