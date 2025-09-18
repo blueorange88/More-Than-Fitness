@@ -193,6 +193,8 @@
   <!-- ===== 비모듈: UI/표 생성 ===== -->
   <script>
   let currentCell=null, scheduleStart=6, scheduleEnd=15;
+   let lpTimer = null;
+let lpFired = false;   // 롱프레스가 실제로 발동했는지 여부
   const $=(id)=>document.getElementById(id);
 
   function toast(msg){ const t=$('toast'); t.textContent=msg; t.style.opacity=1; setTimeout(()=>t.style.opacity=0,1700); }
