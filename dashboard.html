@@ -20,6 +20,7 @@
 
   .card{background:#fff;padding:10px;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,.08);margin-bottom:10px}
   .section-title{font-weight:800;color:#0d1b2a;margin:8px 0 6px;cursor:pointer;user-select:none}
+  .section-title.static{cursor:default}
   .section-title .hint{font-weight:400;font-size:11px;color:#475569;margin-left:6px}
 
   .schedule-wrapper{background:#fff;padding:8px;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,.08);margin-bottom:14px;overflow-x:auto}
@@ -101,11 +102,11 @@
 
   <div class="main" id="main">
     <div class="card">
-      <div class="section-title" style="cursor:default">오늘 다음 레슨</div>
+      <div class="section-title static">오늘 다음 레슨</div>
       <ul id="todayLessonList" style="padding-left:16px"></ul>
     </div>
 
-    <div class="section-title" id="titleCurr">이번 주 스케줄 <span class="hint">(표에서 클릭: 레슨 입력 · 길게: 소진/노쇼)</span></div>
+    <div class="section-title static" id="titleCurr">이번 주 스케줄 <span class="hint">(표 클릭: 레슨 입력 · 길게: 소진/노쇼)</span></div>
     <div class="schedule-wrapper" id="wrapCurr">
       <table id="scheduleTableCurr" aria-label="이번 주 스케줄">
         <thead>
@@ -135,10 +136,10 @@
     </div>
   </div>
 
-  <!-- 오버레이(팝업/빠른등록 공용) -->
+  <!-- 공용 오버레이 -->
   <div class="overlay" id="popupOverlay"></div>
 
-  <!-- 시간 범위 설정 -->
+  <!-- 시간 범위 -->
   <div class="popup" id="popupRange" role="dialog" aria-modal="true" aria-labelledby="popupRangeTitle">
     <h3 id="popupRangeTitle">시간 범위 설정</h3>
     <label>시작: <input type="time" id="rangeStart" value="06:00"></label>
@@ -162,7 +163,7 @@
     </div>
   </div>
 
-  <!-- 레슨 정보 -->
+  <!-- 레슨 입력 -->
   <div class="popup" id="popupLesson" role="dialog" aria-modal="true" aria-labelledby="popupLessonTitle">
     <h3 id="popupLessonTitle">레슨 정보</h3>
     <input id="nameInput" placeholder="회원 이름" />
@@ -177,7 +178,7 @@
     </div>
   </div>
 
-  <!-- 셀 액션시트(롱프레스) -->
+  <!-- 롱프레스 액션시트 -->
   <div id="cellSheet" role="menu">
     <button id="sheetConsume">✅ 소진 처리(–1)</button>
     <button id="sheetUndoConsume">↩️ 소진 취소(+1)</button>
@@ -209,86 +210,70 @@
   <div id="toast" role="status" aria-live="polite"></div>
 
 <script>
-/* ====== 경량 UI 공통 ====== */
+/* ===== 공용 유틸/토스트/레이어 ===== */
 let currentCell=null, scheduleStart=6, scheduleEnd=15;
 const overlayEl=document.getElementById('popupOverlay');
 
-const DAY_KO=['일','월','화','수','목','금','토'];
-document.getElementById('btnLogout').onclick=()=>{ alert('로그아웃되었습니다'); location.href='/login.html'; };
-document.getElementById('hamburger').onclick=()=>{ document.getElementById('sidebar').classList.toggle('active'); };
-
-function toggleSubmenu(id){
-  document.querySelectorAll('.submenu').forEach(el=> el.style.display='none');
-  const t=document.getElementById('submenu-'+id); if(t) t.style.display='block';
-}
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.style.opacity=1; setTimeout(()=>t.style.opacity=0,1700); }
 function showOverlay(){ overlayEl.style.display='block'; }
 function hideOverlay(){ overlayEl.style.display='none'; }
+function showPopup(el){ showOverlay(); el.style.display='block'; }
+function hidePopups(){ document.querySelectorAll('.popup').forEach(p=>p.style.display='none'); }
+function hideAllLayers(){ hidePopups(); document.getElementById('cellSheet').style.display='none'; document.getElementById('quickRegisterCard').style.display='none'; hideOverlay(); }
 
-function showPopup(el){
-  showOverlay(); el.style.display='block';
-}
-function hidePopups(){
-  document.querySelectorAll('.popup').forEach(p=>p.style.display='none');
-}
-function hideAllLayers(){
-  hidePopups();
-  document.getElementById('cellSheet').style.display='none';
-  document.getElementById('quickRegisterCard').style.display='none';
-  hideOverlay();
-}
-function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.style.opacity=1; setTimeout(()=>t.style.opacity=0,1700); }
-
-/* 빠른등록 */
+/* ===== 빠른 등록 카드 ===== */
 function openQuickCard(){ document.getElementById('quickRegisterCard').style.display='block'; showOverlay(); }
 function closeQuickCard(){ document.getElementById('quickRegisterCard').style.display='none'; if (![...document.querySelectorAll('.popup')].some(p=>p.style.display==='block')) hideOverlay(); }
-</script>
 
-<script>
-/* ====== 스케줄 표(로컬 + UI) ====== */
-window.addEventListener('DOMContentLoaded', init);
+/* ===== 안전 초기화 (로드 상태와 무관) ===== */
+(function startSafely(){
+  if (document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', startApp, {once:true});
+  } else {
+    startApp();
+  }
+})();
 
-function init(){
-  // 토글(다음/지난 주)
-  document.getElementById('titleNext').addEventListener('click', ()=> toggleWrap('wrapNext'));
-  document.getElementById('titleLast').addEventListener('click', ()=> toggleWrap('wrapLast'));
-
-  // 오버레이 외부 클릭/ESC → 모두 닫기
+/* ===== 메인 스타트업 ===== */
+function startApp(){
+  // 기본 바인딩
+  document.getElementById('btnLogout').onclick=()=>{ alert('로그아웃되었습니다'); location.href='/login.html'; };
+  document.getElementById('hamburger').onclick=()=>{ document.getElementById('sidebar').classList.toggle('active'); };
   overlayEl.addEventListener('click', hideAllLayers);
   document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') hideAllLayers(); });
 
-  // 팝업 버튼
   document.getElementById('btnApplyRange').onclick=applyRangeCurr;
   document.getElementById('btnCancelRange').onclick=hideAllLayers;
   document.getElementById('btnSaveMinute').onclick=saveMinute;
   document.getElementById('btnCancelMinute').onclick=hideAllLayers;
 
-  // 레슨 팝업 버튼
   document.getElementById('btnSaveLesson').onclick=saveLesson;
   document.getElementById('btnDeleteLesson').onclick=deleteLesson;
 
-  // 액션시트 닫기
   document.getElementById('sheetClose').onclick=()=>{ document.getElementById('cellSheet').style.display='none'; };
 
-  // 빠른등록 버튼/링크
   document.getElementById('toggleQuickBtn').onclick=openQuickCard;
   document.getElementById('quickOpenBtn').onclick=openQuickCard;
   document.getElementById('btnGoRegister').onclick=()=>location.href='/member-registration.html';
 
-  // 시간 범위
+  // 다음/지난 주 토글
+  document.getElementById('titleNext').addEventListener('click', ()=> toggleWrap('wrapNext'));
+  document.getElementById('titleLast').addEventListener('click', ()=> toggleWrap('wrapLast'));
+
+  // 시간 범위 로드 & 표 생성
   const saved=JSON.parse(localStorage.getItem('scheduleRange')||'{}');
   if(saved.start && saved.end){ scheduleStart=saved.start; scheduleEnd=saved.end; }
 
   buildTables();
-  attachScheduleDelegation();   // ✅ 클릭/롱프레스 이벤트 위임
+  attachScheduleDelegation();       // 클릭/롱프레스 위임
   loadCurrFromLocal();
   highlightToday();
   updateTodayList();
   initTimeLine(); setInterval(updateTimeLine,60000);
 
-  // 시간 헤더 클릭 → 범위 설정
   document.getElementById('headerCurr').onclick=()=> showPopup(document.getElementById('popupRange'));
 
-  // 자동소진 토글/배너
+  // 자동 소진 토글/배너
   document.getElementById('autoConsumeToggle').checked = localStorage.getItem('autoConsume')==='1';
   document.getElementById('btnEnableAuto').onclick = enableAutoConsume;
   document.getElementById('btnLaterAuto').onclick  = dismissAutoAsk;
@@ -300,13 +285,18 @@ function init(){
 
   // 일괄 저장
   document.getElementById('saveScheduleBtn').addEventListener('click', bulkSave);
+
+  // 에러를 토스트로도 띄움 (현장 디버깅)
+  window.addEventListener('error', (e)=> toast('오류: '+(e.message||'unknown')));
 }
 
+/* ===== 섹션 래퍼 토글 ===== */
 function toggleWrap(id){
   const el=document.getElementById(id);
   el.style.display = (el.style.display==='none' || !el.style.display) ? 'block' : 'none';
 }
 
+/* ===== 표 생성 ===== */
 function buildTables(){
   buildOne('#scheduleTableCurr tbody', true);
   buildOne('#scheduleTableNext tbody', false);
@@ -321,7 +311,6 @@ function buildOne(sel, isMain){
     const c0=document.createElement('td'); c0.textContent=`${hh}:${minute}`; c0.className='time-cell';
     if(isMain) c0.addEventListener('click', ()=>openMinute(c0));
     r.append(c0);
-
     for(let i=0;i<7;i++){
       const c=document.createElement('td');
       c.dataset.weekcol = String(i+1); // 월=1 … 일=7
@@ -331,14 +320,14 @@ function buildOne(sel, isMain){
   }
 }
 
+/* ===== 이벤트 위임 (셀 클릭/롱프레스) ===== */
 function attachScheduleDelegation(){
   const tb=document.querySelector('#scheduleTableCurr tbody');
 
-  // 셀 클릭 → 레슨팝업
+  // 클릭 → 레슨 팝업
   tb.addEventListener('click', (e)=>{
-    const td=e.target.closest('td');
-    if(!td || td.cellIndex===0) return;
-    document.getElementById('cellSheet').style.display='none'; // 액션시트 닫기
+    const td=e.target.closest('td'); if(!td || td.cellIndex===0) return;
+    document.getElementById('cellSheet').style.display='none';
     openLesson(td);
   }, {passive:true});
 
@@ -373,6 +362,7 @@ function bindSheetHandlers(td){
   document.getElementById('sheetClose').onclick       = ()=>{ document.getElementById('cellSheet').style.display='none'; };
 }
 
+/* ===== 시간/분/레슨 팝업 ===== */
 function openMinute(cell){ currentCell=cell; showPopup(document.getElementById('popupMinute')); }
 function saveMinute(){
   const m=document.getElementById('minuteSelect').value;
@@ -384,10 +374,7 @@ function saveMinute(){
 function openLesson(cell){
   currentCell=cell;
   const d=cell.dataset.info?JSON.parse(cell.dataset.info):{};
-  document.getElementById('nameInput').value     = d.name||'';
-  document.getElementById('enrolledInput').value = d.enrolled||'';
-  document.getElementById('capacityInput').value = d.cap||'';
-  document.getElementById('memberIdInput').value = d.memberId||'';
+  nameInput.value=d.name||''; enrolledInput.value=d.enrolled||''; capacityInput.value=d.cap||''; memberIdInput.value=d.memberId||'';
   showPopup(document.getElementById('popupLesson'));
 }
 function rowHour(cell){ return cell.parentElement.firstChild.textContent; }
@@ -398,26 +385,21 @@ function saveLesson(){
   const enrolled = +(document.getElementById('enrolledInput').value || 0);
   const cap      = +(document.getElementById('capacityInput').value || 0);
   const memberId = (document.getElementById('memberIdInput').value || '').replace(/\D/g,'');
-
-  const nothing = !name && !memberId && !enrolled && !cap;
-  if(nothing){ toast('내용을 입력해주세요'); return; }
+  if(!name && !memberId && !enrolled && !cap){ toast('내용을 입력해주세요'); return; }
 
   const time = rowHour(currentCell);
   const di   = +currentCell.dataset.weekcol;
-
   const displayName = name || (memberId ? `[${memberId}]` : '—');
 
   currentCell.textContent = `${time}\n${displayName} (${enrolled}/${cap})`;
   const info = { name, enrolled, cap, time, di, memberId: memberId || null };
   currentCell.dataset.info = JSON.stringify(info);
 
-  // 로컬 백업
   let arr = JSON.parse(localStorage.getItem('scheduleData') || '[]');
   arr = arr.filter(x => !(x.time === info.time && x.di === info.di));
   arr.push(info);
   localStorage.setItem('scheduleData', JSON.stringify(arr));
 
-  // 파이어스토어 업서트
   if (window.upsertScheduleFromCell) {
     window.upsertScheduleFromCell(currentCell)
       .then(()=> toast('스케줄 저장 완료'))
@@ -428,7 +410,6 @@ function saveLesson(){
   updateTimeLine();
   hideAllLayers();
 }
-
 function deleteLesson(){
   if(!currentCell) return;
   const info=currentCell.dataset.info ? JSON.parse(currentCell.dataset.info) : null;
@@ -436,7 +417,6 @@ function deleteLesson(){
     window.deleteScheduleByCell(currentCell).catch(e=>toast("삭제 실패: "+(e.message||e.code)));
   }
   currentCell.innerHTML=''; delete currentCell.dataset.info; delete currentCell.dataset.docId;
-
   if(info){
     let data=JSON.parse(localStorage.getItem('scheduleData')||'[]');
     data=data.filter(x=>!(x.time===info.time && x.di===info.di));
@@ -446,6 +426,7 @@ function deleteLesson(){
   updateTodayList(); updateTimeLine(); hideAllLayers();
 }
 
+/* ===== 오늘 다음 레슨/타임라인 ===== */
 function loadCurrFromLocal(){
   const data=JSON.parse(localStorage.getItem('scheduleData')||'[]');
   const rows=Array.from(document.querySelectorAll('#scheduleTableCurr tbody tr'));
@@ -465,12 +446,10 @@ function loadCurrFromLocal(){
     }
   });
 }
-
 function highlightToday(){
   const di=new Date().getDay(); const ths=document.querySelectorAll('#scheduleTableCurr th');
   const idx=di===0?7:di; if(ths[idx]){ ths[idx].style.backgroundColor='#d4af37'; ths[idx].style.color='#0d1b2a'; }
 }
-
 function updateTodayList(){
   const now=new Date(); const todayIndex=now.getDay(); const columnIndex=todayIndex===0?7:todayIndex; const nowMin=now.getHours()*60+now.getMinutes(); const list=[];
   document.querySelectorAll('#scheduleTableCurr tbody tr').forEach(r=>{
@@ -486,7 +465,6 @@ function updateTodayList(){
   const ul=document.getElementById('todayLessonList'); ul.innerHTML='';
   list.slice(0,2).forEach(i=>{ const li=document.createElement('li'); li.textContent=i.text; ul.appendChild(li); });
 }
-
 function initTimeLine(){ updateTimeLine(); }
 function updateTimeLine(){
   document.querySelectorAll('.current-time-line').forEach(e=>e.remove());
@@ -502,6 +480,7 @@ function updateTimeLine(){
   });
 }
 
+/* ===== 일괄 저장 ===== */
 async function bulkSave(){
   const cells=[...document.querySelectorAll('#scheduleTableCurr tbody td')].filter(td=>td.cellIndex>0 && td.dataset.info);
   try{
@@ -514,7 +493,7 @@ async function bulkSave(){
 </script>
 
 <script type="module">
-/* ====== Firebase + 일정/회원 연동 ====== */
+/* ===== Firebase 연동 (익명 로그인 유지) ===== */
 import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
 import {
   getFirestore, collection, addDoc, setDoc, deleteDoc, doc,
@@ -534,11 +513,10 @@ const firebaseConfig = {
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const db  = getFirestore(app);
 
-// auth(익명 로그인)
 const auth = getAuth(app);
 onAuthStateChanged(auth, (u)=>{ if(!u) signInAnonymously(auth).catch(console.error); });
 
-/* ===== 유틸 ===== */
+/* ===== 스케줄 컬렉션 업서트/삭제 ===== */
 const p2 = n=>String(n).padStart(2,'0');
 const todayLocalISO = ()=>{ const d=new Date(); return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`; };
 const yesterLocalISO = ()=>{ const d=new Date(); d.setDate(d.getDate()-1); return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`; };
@@ -556,7 +534,6 @@ window.upsertScheduleFromCell = async (cell)=>{
     updatedAt: serverTimestamp(),
     ...(cell.dataset.docId ? {} : { createdAt: serverTimestamp() })
   };
-
   if(cell.dataset.docId){
     await setDoc(doc(db,"schedules",cell.dataset.docId), payload, {merge:true});
     return cell.dataset.docId;
@@ -572,7 +549,7 @@ window.deleteScheduleByCell = async (cell)=>{
   }
 };
 
-/* 빠른 등록(이름+전화만) */
+/* ===== 빠른 등록(이름+전화) ===== */
 function formatPhone(v){ v=String(v).replace(/\D/g,'').slice(0,11); if(v.length<=3) return v; if(v.length<=7) return v.slice(0,3)+'-'+v.slice(3); return v.slice(0,3)+'-'+v.slice(3,7)+'-'+v.slice(7); }
 document.getElementById('btnQuickSubmit').addEventListener('click', async ()=>{
   const name = (document.getElementById('quickName').value||"").trim();
@@ -590,12 +567,11 @@ document.getElementById('btnQuickSubmit').addEventListener('click', async ()=>{
     toast("빠른 등록 완료");
     document.getElementById('quickName').value = "";
     document.getElementById('quickPhone').value = "";
-    // 닫아줌
-    closeQuickCard();
+    closeQuickCard(); // 오버레이와 함께 닫힘
   }catch(e){ console.error(e); toast("등록 실패: "+(e.message||e.code)); }
 });
 
-/* 롱프레스 액션: 소진/노쇼 */
+/* ===== 소진/노쇼 플래그 ===== */
 window.consumeAdjust = async (memberId, deltaRemain, flagUpdate, td)=>{
   document.getElementById('cellSheet').style.display='none';
   try{
@@ -619,7 +595,7 @@ window.consumeAdjust = async (memberId, deltaRemain, flagUpdate, td)=>{
   }
 };
 
-/* 자동 소진 */
+/* ===== 자동 소진 ===== */
 function maybeAskAuto(){
   const asked = localStorage.getItem('autoAsked')==='1';
   const enabled = localStorage.getItem('autoConsume')==='1';
@@ -660,19 +636,8 @@ async function runAutoConsumeIfNeeded(forceNow){
   }
 }
 
-/* 일괄 저장 버튼 */
-async function bulkSave(){
-  const cells=[...document.querySelectorAll('#scheduleTableCurr tbody td')].filter(td=>td.cellIndex>0 && td.dataset.info);
-  try{
-    await Promise.all(cells.map(c=>window.upsertScheduleFromCell(c)));
-    toast("스케줄 저장 완료");
-  }catch(e){
-    console.error(e); toast("저장 실패: "+(e.message||e.code));
-  }
-}
-
-/* 오버레이 밖 클릭 닫기(빠른등록 포함) */
-overlayEl.addEventListener('click', hideAllLayers);
+/* ===== 바깥 클릭으로도 닫기 ===== */
+document.getElementById('popupOverlay').addEventListener('click', hideAllLayers);
 </script>
 </body>
 </html>
