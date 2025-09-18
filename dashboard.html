@@ -268,13 +268,48 @@ function renderCell(td, info){
       tb.appendChild(tr);
     }
   }
-  function attachDelegation(){
-    const tb=document.querySelector('#scheduleTableCurr tbody');
-    tb.addEventListener('click',(e)=>{ const td=e.target.closest('td'); if(!td || td.cellIndex===0) return; $('cellSheet').style.display='none'; openLesson(td); }, {passive:true});
-    let t=null; tb.addEventListener('pointerdown',(e)=>{ const td=e.target.closest('td'); if(!td || td.cellIndex===0) return; t=setTimeout(()=>openCellSheet(td),600); }, {passive:true});
-    ['pointerup','pointerleave','pointercancel'].forEach(ev=> tb.addEventListener(ev,()=>{ clearTimeout(t); t=null; }, {passive:true}));
-    tb.addEventListener('contextmenu',(e)=>e.preventDefault());
-  }
+ function attachDelegation(){
+  const tb = document.querySelector('#scheduleTableCurr tbody');
+
+  // 길게 누르면 액션시트
+  tb.addEventListener('pointerdown', (e)=>{
+    const td = e.target.closest('td');
+    if (!td || td.cellIndex === 0) return;
+    lpFired = false;
+    lpTimer = setTimeout(() => { 
+      lpFired = true; 
+      openCellSheet(td); 
+    }, 550);
+  }, { passive: true });
+
+  // 손을 떼었을 때: 롱프레스가 아니면 "레슨 정보"열기
+  tb.addEventListener('pointerup', (e)=>{
+    const td = e.target.closest('td');
+    if (!td || td.cellIndex === 0) return;
+    clearTimeout(lpTimer);
+    if (!lpFired) {            // 짧게 탭한 경우에만
+      openLesson(td);
+    }
+    lpTimer = null;
+  }, { passive: true });
+
+  // 취소/이탈 시 타이머만 정리
+  ['pointerleave','pointercancel'].forEach(ev => 
+    tb.addEventListener(ev, ()=>{ clearTimeout(lpTimer); lpTimer=null; }, { passive:true })
+  );
+
+  // 모바일 브라우저 일부에서 길게 누른 뒤 자동으로 오는 'click'을 무시
+  tb.addEventListener('click', (e)=>{
+    if (lpFired) {
+      e.preventDefault();
+      e.stopPropagation();
+      lpFired = false;
+    }
+  }, true);
+
+  // 길게 눌렀을 때 나오는 기본 컨텍스트 메뉴 방지
+  tb.addEventListener('contextmenu', (e)=> e.preventDefault());
+}
 
   function openCellSheet(td){
     if(!td.dataset.info){ toast('먼저 레슨을 저장하세요'); return; }
