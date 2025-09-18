@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>More Than Fitness · Dashboard</title>
 <style>
+ :root{ --sab: env(safe-area-inset-bottom, 0px); }
   *{box-sizing:border-box;margin:0;padding:0}
   :root{
     --navy:#0d1b2a;
@@ -32,17 +33,23 @@
   .section-title{font-weight:800;color:var(--ink);margin:12px 0 8px}
 
   /* Tables */
-  .schedule-wrapper{background:#fff;padding:8px;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,.08);margin-bottom:14px;overflow-x:auto}
-  .schedule-wrapper.fit{overflow-y:hidden}
-  table{width:100%;border-collapse:collapse;font-size:12px;min-width:700px}
-  th,td{border:1px solid #e5e7eb;padding:0;text-align:center;vertical-align:middle;position:relative}
-  th{background:var(--navy);color:#fff;height:28px}
-  th:first-child{background:#0d3b5a;cursor:pointer}
-  .time-cell{background:#f8fafc;cursor:pointer;font-weight:700}
-  .row-hour{font-size:12px;padding:6px}
-  .current-time-line{position:absolute;left:0;right:0;height:2px;background:#FF3B30;animation:pulse 5s ease-in-out infinite}
-  @keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
+  /* 덮어쓰기 */
+table{width:100%;border-collapse:collapse;font-size:12px;min-width:0;table-layout:fixed}
 
+/* 시간칸 고정 폭, 나머지 7칸은 자동 균등 */
+th:first-child, td:first-child{width:56px}
+th:not(:first-child), td:not(:first-child){width:calc((100% - 56px)/7)}
+
+/* 헤더/셀 여백 컴팩트 */
+th{background:#0d1b2a;color:#fff;height:28px}
+td{padding:0}
+
+/* 모바일에서 더 촘촘하게 */
+@media (max-width:480px){
+  th{height:24px;font-size:11px}
+  .row-hour{padding:2px;font-size:11px}
+  .slot{font-size:12px}
+}
   /* Overlay & popups */
   .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000}
   .popup{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:16px;border-radius:10px;z-index:1001;width:310px;max-width:92%;max-height:84vh;overflow:auto}
@@ -340,19 +347,29 @@
 
   /* ===== 한 화면에 맞추기 ===== */
   function fitWeekTable(){
-    const wrap = $('wrapCurr');
-    const tbl  = $('scheduleTableCurr');
-    if(!wrap || !tbl) return;
-    const rectTop = wrap.getBoundingClientRect().top;
-    const available = window.innerHeight - rectTop - 14;
-    wrap.style.maxHeight = available + 'px';
-    const theadH = tbl.tHead ? tbl.tHead.getBoundingClientRect().height : 28;
-    const rows = tbl.tBodies[0].rows;
-    if(!rows.length) return;
-    const rowH = Math.max(28, Math.floor((available - theadH - 6) / rows.length));
-    [...rows].forEach(r=> r.style.height = rowH+'px');
-  }
+  const wrap = document.getElementById('wrapCurr');
+  const tbl  = document.getElementById('scheduleTableCurr');
+  if(!wrap || !tbl) return;
 
+  const rectTop   = wrap.getBoundingClientRect().top;
+  const btns      = document.querySelector('.bottom-right');
+  const btnH      = btns ? btns.getBoundingClientRect().height + 12 : 0;
+  const safeBot   = parseInt(getComputedStyle(document.documentElement)
+                     .getPropertyValue('--sab')) || 0;
+
+  // 화면에서 실제로 스케줄이 차지할 수 있는 높이
+  const available = Math.max(220, window.innerHeight - rectTop - btnH - safeBot - 6);
+  wrap.style.maxHeight = available + 'px';
+  wrap.style.overflowY = 'hidden';   // 스크롤 제거(정확히 꽉 채우기)
+
+  const theadH = tbl.tHead ? tbl.tHead.getBoundingClientRect().height : 28;
+  const rows   = tbl.tBodies[0].rows;
+  if(!rows.length) return;
+
+  // 각 시간행 높이 계산 (보더 합도 고려해서 1px 여유)
+  const rowH = Math.max(22, Math.floor((available - theadH - 1) / rows.length));
+  for(const r of rows){ r.style.height = rowH + 'px'; }
+}
   /* ===== 이벤트 위임 (클릭/롱프레스 분리) ===== */
   let lpTimer=null, lpFired=false;
   function attachDelegation(){
