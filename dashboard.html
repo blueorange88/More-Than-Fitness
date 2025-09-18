@@ -213,30 +213,21 @@
 
   <!-- ===== 메인 UI 스크립트 (비모듈) ===== -->
   <script>
-  /* ===== 공용 유틸/토스트/레이어 ===== */
   let currentCell=null, scheduleStart=6, scheduleEnd=15;
-  const overlayEl=()=>document.getElementById('popupOverlay');
-
   const $ = (id)=>document.getElementById(id);
+  const overlayEl=()=>$('popupOverlay');
   const p2 = (n)=>String(n).padStart(2,'0');
 
-  function toast(msg){
-    const t=$('toast'); t.textContent=msg; t.style.opacity=1; setTimeout(()=>t.style.opacity=0,1700);
-  }
+  function toast(msg){ const t=$('toast'); t.textContent=msg; t.style.opacity=1; setTimeout(()=>t.style.opacity=0,1700); }
   function showOverlay(){ const o=overlayEl(); if(o) o.style.display='block'; }
   function hideOverlay(){ const o=overlayEl(); if(o) o.style.display='none'; }
   function showPopup(el){ if(!el) return; showOverlay(); el.style.display='block'; }
   function hidePopups(){ document.querySelectorAll('.popup').forEach(p=>p.style.display='none'); }
   function hideAllLayers(){ hidePopups(); $('cellSheet').style.display='none'; $('quickRegisterCard').style.display='none'; hideOverlay(); }
-
   function openQuickCard(){ $('quickRegisterCard').style.display='block'; showOverlay(); }
+  function toggleSubmenu(id){ document.querySelectorAll('.submenu').forEach(el=> el.style.display='none'); const t=document.getElementById('submenu-'+id); if(t) t.style.display='block'; }
 
-  function toggleSubmenu(id){
-    document.querySelectorAll('.submenu').forEach(el=> el.style.display='none');
-    const t=document.getElementById('submenu-'+id); if(t) t.style.display='block';
-  }
-
-  /* ===== 안전 초기화 (무조건 한 번 실행) ===== */
+  // 안전 시작(한 번만)
   (function startSafely(){
     const startOnce = (()=>{ let done=false; return ()=>{ if(done) return; done=true; startApp(); };})();
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', startOnce, {once:true});
@@ -246,64 +237,64 @@
   })();
 
   function startApp(){
-    try{
-      $('btnLogout').onclick=()=>{ alert('로그아웃되었습니다'); location.href='/login.html'; };
-      $('hamburger').onclick=()=>{ $('sidebar').classList.toggle('active'); };
+    $('btnLogout').onclick=()=>{ alert('로그아웃되었습니다'); location.href='/login.html'; };
+    $('hamburger').onclick=()=>{ $('sidebar').classList.toggle('active'); };
 
-      overlayEl()?.addEventListener('click', hideAllLayers);
-      document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') hideAllLayers(); });
+    overlayEl()?.addEventListener('click', hideAllLayers);
+    document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') hideAllLayers(); });
 
-      $('btnApplyRange').onclick=applyRangeCurr;
-      $('btnCancelRange').onclick=hideAllLayers;
-      $('btnSaveMinute').onclick=saveMinute;
-      $('btnCancelMinute').onclick=hideAllLayers;
+    $('btnApplyRange').onclick=applyRangeCurr;
+    $('btnCancelRange').onclick=hideAllLayers;
+    $('btnSaveMinute').onclick=saveMinute;
+    $('btnCancelMinute').onclick=hideAllLayers;
 
-      $('btnSaveLesson').onclick=saveLesson;
-      $('btnDeleteLesson').onclick=deleteLesson;
+    $('btnSaveLesson').onclick=saveLesson;
+    $('btnDeleteLesson').onclick=deleteLesson;
 
-      $('sheetClose').onclick=()=>{ $('cellSheet').style.display='none'; };
+    $('sheetClose').onclick = ()=>{ $('cellSheet').style.display='none'; };
 
-      $('toggleQuickBtn').onclick=openQuickCard;
-      $('quickOpenBtn').onclick=openQuickCard;
-      $('btnGoRegister').onclick=()=>location.href='/member-registration.html';
+    $('toggleQuickBtn').onclick=openQuickCard;
+    $('quickOpenBtn').onclick=openQuickCard;
+    $('btnGoRegister').onclick=()=>location.href='/member-registration.html';
 
-      $('titleNext').addEventListener('click', ()=> toggleWrap('wrapNext'));
-      $('titleLast').addEventListener('click', ()=> toggleWrap('wrapLast'));
+    $('titleNext').addEventListener('click', ()=> toggleWrap('wrapNext'));
+    $('titleLast').addEventListener('click', ()=> toggleWrap('wrapLast'));
 
-      const saved=JSON.parse(localStorage.getItem('scheduleRange')||'{}');
-      if(saved.start!=null && saved.end!=null){ scheduleStart=+saved.start; scheduleEnd=+saved.end; }
-
-      buildTables();
-      attachScheduleDelegation();
-      loadCurrFromLocal();
-      highlightToday();
-      updateTodayList();
-      initTimeLine(); setInterval(updateTimeLine,60000);
-
-      $('headerCurr').onclick=()=> showPopup($('popupRange'));
-
-      $('autoConsumeToggle').checked = localStorage.getItem('autoConsume')==='1';
-      $('btnEnableAuto').onclick = enableAutoConsume;
-      $('btnLaterAuto').onclick  = dismissAutoAsk;
-      $('autoConsumeToggle').addEventListener('change',(e)=>{
-        localStorage.setItem('autoConsume', e.target.checked?'1':'0');
-        if(e.target.checked) runAutoConsumeIfNeeded(true);
-      });
-      maybeAskAuto();
-
-      $('saveScheduleBtn').addEventListener('click', bulkSave);
-
-      window.addEventListener('error', (e)=> console.warn(e));
-    }catch(err){
-      console.error(err);
-      toast('초기화 오류: '+(err.message||err));
+    // 저장된 시간범위 검증/복구
+    const saved=JSON.parse(localStorage.getItem('scheduleRange')||'{}');
+    if(Number.isFinite(+saved.start) && Number.isFinite(+saved.end) && (+saved.end - +saved.start) >= 3){
+      scheduleStart=+saved.start; scheduleEnd=+saved.end;
+    }else{
+      scheduleStart=6; scheduleEnd=15;
+      localStorage.setItem('scheduleRange', JSON.stringify({start:scheduleStart,end:scheduleEnd}));
     }
+
+    buildTables();
+    attachScheduleDelegation();
+    loadCurrFromLocal();
+    highlightToday();
+    updateTodayList();
+    initTimeLine(); setInterval(updateTimeLine,60000);
+
+    $('headerCurr').onclick=()=> showPopup($('popupRange'));
+
+    // 자동 소진 토글(안전 호출)
+    $('autoConsumeToggle').checked = localStorage.getItem('autoConsume')==='1';
+    $('btnEnableAuto').onclick = ()=> window.enableAutoConsume && window.enableAutoConsume();
+    $('btnLaterAuto').onclick  = ()=> window.dismissAutoAsk && window.dismissAutoAsk();
+    $('autoConsumeToggle').addEventListener('change',(e)=>{
+      localStorage.setItem('autoConsume', e.target.checked?'1':'0');
+      if(e.target.checked) window.runAutoConsumeIfNeeded && window.runAutoConsumeIfNeeded(true);
+    });
+    // 배너 표시/자동처리는 모듈이 로드되면 내부에서 실행. 보조 호출(있을 때만)
+    setTimeout(()=>{ window.maybeAskAuto && window.maybeAskAuto(); }, 200);
+
+    $('saveScheduleBtn').addEventListener('click', bulkSave);
+
+    window.addEventListener('error', (e)=> console.warn(e));
   }
 
-  function toggleWrap(id){
-    const el=$(id);
-    el.style.display = (el.style.display==='none' || !el.style.display) ? 'block' : 'none';
-  }
+  function toggleWrap(id){ const el=$(id); el.style.display = (el.style.display==='none' || !el.style.display) ? 'block' : 'none'; }
 
   function buildTables(){
     buildOne('#scheduleTableCurr tbody', true);
@@ -326,7 +317,7 @@
 
       for(let i=0;i<7;i++){
         const td=document.createElement('td');
-        td.dataset.weekcol = String(i+1); // 월=1 … 일=7
+        td.dataset.weekcol = String(i+1);
         tr.appendChild(td);
       }
       tb.appendChild(tr);
@@ -334,8 +325,7 @@
   }
 
   function attachScheduleDelegation(){
-    const tb=document.querySelector('#scheduleTableCurr tbody');
-    if(!tb) return;
+    const tb=document.querySelector('#scheduleTableCurr tbody'); if(!tb) return;
 
     tb.addEventListener('click', (e)=>{
       const td=e.target.closest('td'); if(!td || td.cellIndex===0) return;
@@ -498,9 +488,7 @@
     try{
       await Promise.all(cells.map(c=>window.upsertScheduleFromCell(c)));
       toast("스케줄 저장 완료");
-    }catch(e){
-      console.error(e); toast("저장 실패: "+(e.message||e.code));
-    }
+    }catch(e){ console.error(e); toast("저장 실패: "+(e.message||e.code)); }
   }
   </script>
 
@@ -555,9 +543,7 @@
       return ref.id;
     }
   };
-  window.deleteScheduleByCell = async (cell)=>{
-    if(cell?.dataset.docId){ await deleteDoc(doc(db,"schedules",cell.dataset.docId)); }
-  };
+  window.deleteScheduleByCell = async (cell)=>{ if(cell?.dataset.docId){ await deleteDoc(doc(db,"schedules",cell.dataset.docId)); } };
 
   /* 빠른 등록(이름+전화) */
   window.submitQuickMember = async ()=>{
@@ -607,25 +593,25 @@
   };
 
   /* 자동 소진 */
-  function maybeAskAuto(){
+  window.maybeAskAuto = function(){
     const asked = localStorage.getItem('autoAsked')==='1';
     const enabled = localStorage.getItem('autoConsume')==='1';
     if(!asked && !enabled){ document.getElementById('autoAsk').style.display='block'; }
-    runAutoConsumeIfNeeded(false);
-  }
-  window.enableAutoConsume = ()=>{
+    window.runAutoConsumeIfNeeded && window.runAutoConsumeIfNeeded(false);
+  };
+  window.enableAutoConsume = function(){
     localStorage.setItem('autoAsked','1');
     localStorage.setItem('autoConsume','1');
     document.getElementById('autoAsk').style.display='none';
     document.getElementById('autoConsumeToggle').checked=true;
-    runAutoConsumeIfNeeded(true);
+    window.runAutoConsumeIfNeeded && window.runAutoConsumeIfNeeded(true);
   };
-  window.dismissAutoAsk = ()=>{
+  window.dismissAutoAsk = function(){
     localStorage.setItem('autoAsked','1');
     document.getElementById('autoAsk').style.display='none';
   };
 
-  async function runAutoConsumeIfNeeded(forceNow){
+  window.runAutoConsumeIfNeeded = async function(forceNow){
     const enabled = localStorage.getItem('autoConsume')==='1';
     if(!enabled) return;
     const target = yesterLocalISO();
@@ -652,9 +638,9 @@
       localStorage.setItem('autoConsumeLast', target);
       if(tasks.length>0) toast(`어제 (${target}) 자동 소진 ${tasks.length}건`);
     }catch(e){ console.error(e); }
-  }
+  };
 
-  /* 일괄 저장 버튼 */
+  // 일괄 저장 버튼
   document.getElementById('saveScheduleBtn').addEventListener('click', async ()=>{
     const cells=[...document.querySelectorAll('#scheduleTableCurr tbody td')].filter(td=>td.cellIndex>0 && td.dataset.info);
     try{
@@ -662,7 +648,6 @@
       toast("스케줄 저장 완료");
     }catch(e){ console.error(e); toast("저장 실패: "+(e.message||e.code)); }
   });
-
   </script>
 </body>
 </html>
