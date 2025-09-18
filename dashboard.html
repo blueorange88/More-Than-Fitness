@@ -201,15 +201,12 @@
   function showPopup(el){ showOverlay(); el.style.display='block'; }
   function hidePopups(){ document.querySelectorAll('.popup').forEach(p=>p.style.display='none'); }
   function hideAll(){ hidePopups(); $('cellSheet').style.display='none'; $('quickRegisterCard').style.display='none'; hideOverlay(); }
-
   function toggleSubmenu(id){ document.querySelectorAll('.submenu').forEach(el=> el.style.display='none'); const t=$('submenu-'+id); if(t) t.style.display='block'; }
 
-  // 안전 시작
   (function start(){
     const go=()=>{
       $('btnLogout').onclick=()=>{ alert('로그아웃되었습니다'); location.href='/login.html'; };
       $('hamburger').onclick=()=>{ $('sidebar').classList.toggle('active'); };
-
       $('popupOverlay').addEventListener('click', hideAll);
       document.addEventListener('keydown',(e)=>{ if(e.key==='Escape') hideAll(); });
 
@@ -227,19 +224,14 @@
       $('titleNext').onclick=()=>{ const w=$('wrapNext'); w.style.display = (w.style.display==='none'||!w.style.display)?'block':'none'; };
       $('titleLast').onclick=()=>{ const w=$('wrapLast'); w.style.display = (w.style.display==='none'||!w.style.display)?'block':'none'; };
 
-      // 잘못 저장된 시간범위 자동 복구
+      // 저장된 시간 범위 복구(유효성 검사)
       const saved=JSON.parse(localStorage.getItem('scheduleRange')||'{}');
       if(Number.isFinite(+saved.start) && Number.isFinite(+saved.end)){
         let s=+saved.start, e=+saved.end;
-        if(e<=s) e+=24;                         // 자정 넘어감 처리
+        if(e<=s) e+=24;
         if(e-s>=3 && e-s<=24){ scheduleStart=s; scheduleEnd=e; }
-        else { scheduleStart=6; scheduleEnd=15; localStorage.setItem('scheduleRange',JSON.stringify({start:scheduleStart,end:scheduleEnd})); }
-      }else{
-        scheduleStart=6; scheduleEnd=15;
       }
-
       buildTables(); attachDelegation(); loadCurrFromLocal(); highlightToday(); updateTodayList(); initTimeLine(); setInterval(updateTimeLine,60000);
-
       $('headerCurr').onclick=()=> showPopup($('popupRange'));
 
       // 자동소진(안전 호출)
@@ -263,10 +255,8 @@
     for(let h=scheduleStart; h<scheduleEnd; h++){
       const hh=(h%24).toString().padStart(2,'0');
       const tr=document.createElement('tr');
-
       const minute=localStorage.getItem(`minute-${hh}`)||'00';
       const td0=document.createElement('td'); td0.textContent=`${hh}:${minute}`; td0.className='time-cell'; if(isMain) td0.addEventListener('click',()=>openMinute(td0)); tr.appendChild(td0);
-
       for(let i=0;i<7;i++){ const td=document.createElement('td'); td.dataset.weekcol=String(i+1); tr.appendChild(td); }
       tb.appendChild(tr);
     }
@@ -299,6 +289,21 @@
   function openMinute(cell){ currentCell=cell; showPopup($('popupMinute')); }
   function saveMinute(){ const m=$('minuteSelect').value; const h=currentCell.textContent.split(':')[0]; currentCell.textContent=`${h}:${m}`; localStorage.setItem(`minute-${h}`,m); updateTimeLine(); hideAll(); }
 
+  // ✅ 빠진 함수: 시간 범위 적용
+  function applyRangeCurr(){
+    const rawS=$('rangeStart').value || '06:00';
+    const rawE=$('rangeEnd').value || '15:00';
+    let sH=parseInt(rawS.split(':')[0],10);
+    let eH=parseInt(rawE.split(':')[0],10);
+    if(rawE.startsWith('00')) eH=24;
+    if(eH<=sH) eH+=24;
+    if(eH - sH < 3){ toast('최소 3시간 이상으로 설정하세요'); return; }
+    scheduleStart=sH; scheduleEnd=eH;
+    localStorage.setItem('scheduleRange', JSON.stringify({start:scheduleStart,end:scheduleEnd}));
+    buildTables(); attachDelegation(); loadCurrFromLocal(); highlightToday(); updateTodayList(); updateTimeLine();
+    hideAll();
+  }
+
   function openLesson(cell){
     currentCell=cell;
     const d=cell.dataset.info?JSON.parse(cell.dataset.info):{};
@@ -313,7 +318,6 @@
     const enrolled=+($('enrolledInput').value||0);
     const cap=+($('capacityInput').value||0);
     const memberId=($('memberIdInput').value||'').replace(/\D/g,'');
-
     if(!name && !memberId && !enrolled && !cap){ toast('내용을 입력해주세요'); return; }
 
     const time=rowHour(currentCell); const di=+currentCell.dataset.weekcol;
@@ -388,7 +392,6 @@
   const yesterLocalISO=()=>{const d=new Date();d.setDate(d.getDate()-1);return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;};
   const add60=(t)=>{const [hh,mm]=t.split(':').map(Number);const m=hh*60+(mm||0)+60;return `${p2(Math.floor(m/60)%24)}:${p2(m%60)}`;};
 
-  // 전역에 노출
   window.upsertScheduleFromCell = async (cell)=>{
     if(!cell?.dataset.info) return null;
     const i=JSON.parse(cell.dataset.info);
@@ -408,7 +411,7 @@
       await setDoc(doc(db,"members",phoneRaw),{name,phone:phoneRaw,phoneDisplay:formatPhone(phoneRaw),createdAt:serverTimestamp(),level:"일반",lessonType:"PT",remainingSessions:0,totalSessionsPurchased:0,noShowDeducted:0,noShowUndeducted:0},{merge:true});
       toast("빠른 등록 완료");
       document.getElementById('quickName').value=""; document.getElementById('quickPhone').value="";
-      document.getElementById('popupOverlay').click(); // 오버레이로 닫기
+      document.getElementById('popupOverlay').click();
     }catch(e){ console.error(e); toast("등록 실패: "+(e.message||e.code)); }
   };
   function formatPhone(v){v=String(v).replace(/\D/g,'').slice(0,11); if(v.length<=3)return v; if(v.length<=7)return v.slice(0,3)+'-'+v.slice(3); return v.slice(0,3)+'-'+v.slice(3,7)+'-'+v.slice(7);}
@@ -422,7 +425,6 @@
     }catch(e){ console.error(e); toast("처리 실패: "+(e.message||e.code)); }
   };
 
-  // 자동 소진
   window.maybeAskAuto = function(){
     const asked=localStorage.getItem('autoAsked')==='1';
     const enabled=localStorage.getItem('autoConsume')==='1';
