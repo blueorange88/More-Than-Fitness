@@ -286,9 +286,12 @@
       $('btnSaveLesson').onclick=saveLesson;
       $('btnDeleteLesson').onclick=deleteLesson;
 
-      $('toggleQuickBtn').onclick=()=>{ $('quickRegisterCard').style.display='block'; showOverlay(); };
-      $('quickOpenBtn').onclick=()=>{ $('quickRegisterCard').style.display='block'; showOverlay(); };
-      $('btnGoRegister').onclick=()=>location.href='/member-registration.html';
+     $('toggleQuickBtn').onclick = ()=>{ $('quickRegisterCard').style.display='block'; showOverlay(); };
+$('quickOpenBtn').onclick  = ()=>{ $('quickRegisterCard').style.display='block'; showOverlay(); };
+$('btnGoRegister').onclick = ()=>location.href='/member-registration.html';
+
+/* ✅ 추가: 빠른 등록 버튼 -> 함수 실행 */
+$('btnQuickSubmit').onclick = () => window.submitQuickMember && window.submitQuickMember();
 
       $('titleNext').onclick=()=>{ const w=$('wrapNext'); w.style.display = (w.style.display==='none'||!w.style.display)?'block':'none'; };
       $('titleLast').onclick=()=>{ const w=$('wrapLast'); w.style.display = (w.style.display==='none'||!w.style.display)?'block':'none'; };
@@ -551,7 +554,7 @@
   import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
 
   /* 🔧 여기를 네 Firebase 설정으로 교체하세요 */
- const firebaseConfig = {
+const firebaseConfig = {
   apiKey: "AIzaSyCjydyeDx8qFPUznaChNEy9N0iYjTySnYM",
   authDomain: "more-than-fitness-f6adb.firebaseapp.com",
   projectId: "more-than-fitness-f6adb",
