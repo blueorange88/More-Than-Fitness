@@ -551,15 +551,15 @@
   import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
 
   /* 🔧 여기를 네 Firebase 설정으로 교체하세요 */
-  const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT.firebaseapp.com",
-    projectId: "YOUR_PROJECT",
-    storageBucket: "YOUR_PROJECT.appspot.com",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID",
-    measurementId: "YOUR_MEASUREMENT_ID"
-  };
+ const firebaseConfig = {
+  apiKey: "AIzaSyCjydyeDx8qFPUznaChNEy9N0iYjTySnYM",
+  authDomain: "more-than-fitness-f6adb.firebaseapp.com",
+  projectId: "more-than-fitness-f6adb",
+  storageBucket: "more-than-fitness-f6adb.appspot.com",
+  messagingSenderId: "993248877411",
+  appId: "1:993248877411:web:c0e6785162cf252fbcd156",
+  measurementId: "G-MKRVF6296"
+};
 
   const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
   const db  = getFirestore(app);
