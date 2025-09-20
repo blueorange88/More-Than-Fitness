@@ -379,26 +379,47 @@
     window.addEventListener('resize', fitGridToScreen);
   })();
 
-  function attachDelegation(){
-    const tb=document.querySelector('#scheduleTableCurr tbody');
-    tb.replaceWith(tb.cloneNode(true)); // 기존 리스너 제거
-    const tbn=document.querySelector('#scheduleTableCurr tbody');
+ function attachDelegation(){
+  const tb = document.querySelector('#scheduleTableCurr tbody');
+  tb.replaceWith(tb.cloneNode(true));           // 기존 리스너 제거
+  const tbn = document.querySelector('#scheduleTableCurr tbody');
 
-    tbn.addEventListener('pointerdown',(e)=>{
-      const td=e.target.closest('td'); if(!td || td.cellIndex===0) return;
-      lpFired=false;
-      lpTimer=setTimeout(()=>{ lpFired=true; openCellSheet(td); },600);
-    },{passive:true});
-    ['pointerup','pointerleave','pointercancel'].forEach(ev=>{
-      tbn.addEventListener(ev,()=>{ clearTimeout(lpTimer); lpTimer=null; },{passive:true});
-    });
-    tbn.addEventListener('click',(e)=>{
-      const td=e.target.closest('td'); if(!td || td.cellIndex===0) return;
-      if(lpFired){ lpFired=false; return; }      // 롱프레스 뒤 클릭 무시
-      $('cellSheet').style.display='none'; openLesson(td);
-    });
-    tbn.addEventListener('contextmenu',(e)=>e.preventDefault());
-  }
+  // 롱프레스 시작
+  tbn.addEventListener('pointerdown', (e)=>{
+    const td = e.target.closest('td'); 
+    if (!td || td.cellIndex === 0) return;      // 시간칸은 롱프레스 대상 아님
+    lpFired = false;
+    lpTimer = setTimeout(()=>{ lpFired = true; openCellSheet(td); }, 600);
+  }, {passive:true});
+
+  ['pointerup','pointerleave','pointercancel'].forEach(ev=>{
+    tbn.addEventListener(ev, ()=>{
+      clearTimeout(lpTimer); lpTimer = null;
+    }, {passive:true});
+  });
+
+  // ✅ 이 클릭 핸들러가 "교체되는" 부분
+  tbn.addEventListener('click', (e)=>{
+    const td = e.target.closest('td');
+    if (!td) return;
+
+    // 첫 번째 칼럼(시간칸) 클릭 → 분 설정 팝업
+    if (td.cellIndex === 0){
+      openMinute(td);
+      return;
+    }
+
+    // 롱프레스 뒤에 발생한 클릭은 무시
+    if (lpFired){ lpFired = false; return; }
+
+    // 일반 셀 클릭 → 레슨 팝업
+    $('cellSheet').style.display = 'none';
+    openLesson(td);
+  });
+
+  tbn.addEventListener('contextmenu',(e)=>e.preventDefault());
+}
+
 
   function openCellSheet(td){
     if(!td.dataset.info){ toast('먼저 레슨을 저장하세요'); return; }
