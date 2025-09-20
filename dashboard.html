@@ -300,32 +300,47 @@
 
   function buildTables(){ buildOne('#scheduleTableCurr tbody',true); buildOne('#scheduleTableNext tbody',false); buildOne('#scheduleTableLast tbody',false); fitGridToScreen(); }
   function buildOne(sel,isMain){
-    const tb=document.querySelector(sel); tb.innerHTML='';
-    for(let h=scheduleStart; h<scheduleEnd; h++){
-      const hh=(h%24).toString().padStart(2,'0');
-      const tr=document.createElement('tr');
-      const minute=localStorage.getItem(`minute-${hh}`)||'00';
-      const td0=document.createElement('td'); td0.textContent=`${hh}:${minute}`; td0.className='time-cell';
-      for(let i=0;i<7;i++){ const td=document.createElement('td'); td.dataset.weekcol=String(i+1); tr.appendChild(td); }
-      tb.appendChild(tr);
+  const tb = document.querySelector(sel);
+  tb.innerHTML = '';
 
+  for (let h = scheduleStart; h < scheduleEnd; h++){
+    const hh = (h % 24).toString().padStart(2,'0');
+    const tr = document.createElement('tr');
+
+    const minute = localStorage.getItem(`minute-${hh}`) || '00';
+   const td0 = document.createElement('td');
+td0.textContent = `${hh}:${minute}`;
+td0.className = 'time-cell';
+if (isMain) td0.addEventListener('click', ()=> openMinute(td0)); // ← 추가
+tr.appendChild(td0);
+    for (let i=0;i<7;i++){
+      const td = document.createElement('td');
+      td.dataset.weekcol = String(i+1);
+      tr.appendChild(td);
     }
+    tb.appendChild(tr);
   }
+}
+ function loadCurrFromLocal(){
+  const data = JSON.parse(localStorage.getItem('scheduleData')||'[]');
+  const rows = [...document.querySelectorAll('#scheduleTableCurr tbody tr')];
 
-  function loadCurrFromLocal(){
-    const data=JSON.parse(localStorage.getItem('scheduleData')||'[]');
-    const rows=[...document.querySelectorAll('#scheduleTableCurr tbody tr')];
-    data.forEach(i=>{
-      const [hour]=i.time.split(':');
-      const row=rows.find(r=>{ const [h,m]=r.firstChild.textContent.split(':'); return h===hour && m===(localStorage.getItem(`minute-${h}`)||'00'); });
-      if(row){ const c=row.children[i.di]; if(c){ renderCell(c, i); } }
+  data.forEach(i=>{
+    const [hour] = i.time.split(':');
+    const row = rows.find(r=>{
+      const [h,m] = (r.firstElementChild?.textContent || '').split(':');
+      return h === hour && m === (localStorage.getItem(`minute-${h}`) || '00');
     });
-  }
-
+    if(row){
+      const c = row.children[i.di];
+      if(c){ renderCell(c, i); }
+    }
+  });
+}
   function updateTodayList(){
     const now=new Date(); const today=now.getDay(); const col=today===0?7:today; const nowMin=now.getHours()*60+now.getMinutes(); const arr=[];
     document.querySelectorAll('#scheduleTableCurr tbody tr').forEach(r=>{
-      const [h,m]=r.firstChild.textContent.split(':').map(Number); const total=h*60+(m||0); const cell=r.children[col];
+  const [h,m]=(r.firstElementChild?.textContent || '00:00').split(':').map(Number);
       if(cell && cell.dataset.info){ const v=JSON.parse(cell.dataset.info); const dn=v.name||(v.memberId?`[${v.memberId}]`:'—'); if(total>=nowMin) arr.push({t:total,text:`${v.time} ${dn} (${v.enrolled||0}/${v.cap||0})`}); }
     });
     arr.sort((a,b)=>a.t-b.t); const ul=$('todayLessonList'); ul.innerHTML=''; arr.slice(0,2).forEach(i=>{ const li=document.createElement('li'); li.textContent=i.text; ul.appendChild(li); });
@@ -336,7 +351,8 @@
   const now=new Date(); const di=now.getDay();
   const dayIdx = di===0 ? 7 : di;
   document.querySelectorAll('#scheduleTableCurr tbody tr').forEach(r=>{
-    const [hh,mm]=(r.firstChild.textContent||'00:00').split(':').map(Number);
+  const [hh,mm]=(r.firstElementChild?.textContent||'00:00').split(':').map(Number);
+
     const rowTime=hh*60+(mm||0), nv=now.getHours()*60+now.getMinutes();
     if(nv>=rowTime && nv<rowTime+60){
       const pct=((nv-rowTime)/60)*100;
@@ -502,7 +518,7 @@ function openMinute(cell){
   setTimeout(()=> window.updateStatsFromInputs && window.updateStatsFromInputs(), 0);
 }
     function rowHour(cell){
-  const td0 = cell?.parentElement?.firstChild;  // 해당 행의 첫 번째(시간) 셀
+  const td0 = cell?.parentElement?.firstElementChild;
   return td0 ? td0.textContent : '';
 }
 
