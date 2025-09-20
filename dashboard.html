@@ -54,6 +54,15 @@
   /* 칸 색칠 (이름 4글자) */
   td.filled{color:#fff;font-weight:800}
   td.filled .label{display:block;padding:4px 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.slot-badge{
+  margin-left:8px;
+  font-size:12px;
+  padding:2px 8px;
+  border-radius:999px;
+  color:#0d1b2a;            /* 네이비 글자 */
+  background:#d4af37;       /* 골드 배경 */
+  font-weight:700;
+}
 
   /* Overlay / popups / action sheet */
   .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000}
@@ -408,14 +417,28 @@
     buildTables(); attachDelegation(); loadCurrFromLocal(); highlightToday(); updateTodayList(); updateTimeLine(); hideAll(); fitGridToScreen();
   }
 
-  function openLesson(cell){
-    currentCell=cell;
-    const d=cell.dataset.info?JSON.parse(cell.dataset.info):{};
-    $('nameInput').value=d.name||''; $('enrolledInput').value=d.enrolled||''; $('capacityInput').value=d.cap||''; $('memberIdInput').value=d.memberId||'';
-    showPopup($('popupLesson'));
-  }
-  function rowHour(cell){ return cell.parentElement.firstChild.textContent; }
+ function openLesson(cell){
+  currentCell = cell;
 
+  // ✅ 추가: 요일/시간 라벨 채우기
+  const dayNames = ['','월','화','수','목','금','토','일'];
+  const di = +cell.dataset.weekcol;             // 1~7
+  const time = rowHour(cell);                   // "09:00" 같은 문자열
+  const hint = document.getElementById('slotHint');
+  hint.textContent = `${dayNames[di]} ${time}`;
+  hint.style.display = 'inline-block';
+
+  const d = cell.dataset.info ? JSON.parse(cell.dataset.info) : {};
+  document.getElementById('nameInput').value = d.name || '';
+  document.getElementById('enrolledInput').value = d.enrolled || '';
+  document.getElementById('capacityInput').value = d.cap || '';
+  document.getElementById('memberIdInput').value = d.memberId || '';
+
+  showPopup(document.getElementById('popupLesson'));
+
+  // (쓰고 있다면) 자동 통계 갱신
+  setTimeout(()=> window.updateStatsFromInputs && window.updateStatsFromInputs(), 0);
+}
   function saveLesson(){
     if(!currentCell) return;
     const name=($('nameInput').value||'').trim();
@@ -484,7 +507,7 @@
   window.upsertScheduleFromCell = async (cell)=>{
     if(!cell?.dataset.info) return null;
     const i=JSON.parse(cell.dataset.info);
-    const payload={date:todayLocalISO(),di:i.di,start:i.time,end:add60(i.time),name:i.name||"",cap:i.cap||0,enrolled:i.enrolled||0,trainer:"남명구Master",memberId:i.memberId||null,updatedAt:serverTimestamp(),...(cell.dataset.docId?{}:{createdAt:serverTimestamp()})};
+    const payload={date:todayLocalISO(),di:i.di,start:i.time,end:add60(i.time),name:i.name||"",cap:i.cap||0,enrolled:i.enrolled||0,trainer:"트레이너 A",memberId:i.memberId||null,updatedAt:serverTimestamp(),...(cell.dataset.docId?{}:{createdAt:serverTimestamp()})};
     if(cell.dataset.docId){ await setDoc(doc(db,"schedules",cell.dataset.docId),payload,{merge:true}); return cell.dataset.docId; }
     const ref=await addDoc(collection(db,"schedules"),payload); cell.dataset.docId=ref.id; return ref.id;
   };
