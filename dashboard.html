@@ -54,15 +54,15 @@
   /* 칸 색칠 (이름 4글자) */
   td.filled{color:#fff;font-weight:800}
   td.filled .label{display:block;padding:4px 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.slot-badge{
-  margin-left:8px;
-  font-size:12px;
-  padding:2px 8px;
-  border-radius:999px;
-  color:#0d1b2a;            /* 네이비 글자 */
-  background:#d4af37;       /* 골드 배경 */
-  font-weight:700;
-}
+  .slot-badge{
+    margin-left:8px;
+    font-size:12px;
+    padding:2px 8px;
+    border-radius:999px;
+    color:#0d1b2a;
+    background:#d4af37;
+    font-weight:700;
+  }
 
   /* Overlay / popups / action sheet */
   .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000}
@@ -239,7 +239,7 @@
 
   <!-- ===== UI / TABLE SCRIPT (디자인 + 동작) ===== -->
   <script>
-  const $=(id)=>document.getElementById(id);
+  const $ = (id) => document.getElementById(id);
   let currentCell=null, scheduleStart=6, scheduleEnd=21;
   let lpTimer=null, lpFired=false;
 
@@ -249,17 +249,9 @@
   function showPopup(el){ showOverlay(); el.style.display='block'; }
   function hidePopups(){
     document.querySelectorAll('.popup').forEach(p => p.style.display = 'none');
-    const hint = document.getElementById('slotHint');
-    if (hint) {
-      hint.style.display = 'none';
-      hint.textContent = '';  // 이전 칸 라벨 지우기
-    }
+    const hint = $('slotHint'); if (hint) { hint.style.display='none'; hint.textContent=''; }
   }
- function hideAll(){hidePopups();
-  $('cellSheet').style.display = 'none';
-  $('quickRegisterCard').style.display = 'none';
-  hideOverlay();
-}
+  function hideAll(){ hidePopups(); $('cellSheet').style.display='none'; $('quickRegisterCard').style.display='none'; hideOverlay(); }
 
   function toggleSubmenu(id){ document.querySelectorAll('.submenu').forEach(el=> el.style.display='none'); const t=$('submenu-'+id); if(t) t.style.display='block'; }
 
@@ -298,79 +290,126 @@
     });
   }
 
-  function buildTables(){ buildOne('#scheduleTableCurr tbody',true); buildOne('#scheduleTableNext tbody',false); buildOne('#scheduleTableLast tbody',false); fitGridToScreen(); }
-  function buildOne(sel,isMain){
-  const tb = document.querySelector(sel);
-  tb.innerHTML = '';
-
-  for (let h = scheduleStart; h < scheduleEnd; h++){
-    const hh = (h % 24).toString().padStart(2,'0');
-    const tr = document.createElement('tr');
-
-    const minute = localStorage.getItem(`minute-${hh}`) || '00';
-const td0=document.createElement('td');
-td0.textContent=`${hh}:${minute}`;
-td0.className='time-cell';
-
-// (기존) 클릭하면 분 단위 설정
-if(isMain) td0.addEventListener('click',()=>openMinute(td0));
-
-// (추가) 롱프레스하면 시간 범위 설정 팝업
-if(isMain){
-  td0.addEventListener('pointerdown', ()=>{
-    td0._holdTimer = setTimeout(()=>{ openRangePopup(); }, 600);
-  }, {passive:true});
-  ['pointerup','pointerleave','pointercancel'].forEach(ev=>{
-    td0.addEventListener(ev, ()=>{ clearTimeout(td0._holdTimer); }, {passive:true});
-  });
-}
-
-tr.appendChild(td0);
- function loadCurrFromLocal(){
-  const data = JSON.parse(localStorage.getItem('scheduleData')||'[]');
-  const rows = [...document.querySelectorAll('#scheduleTableCurr tbody tr')];
-
-  data.forEach(i=>{
-    const [hour] = i.time.split(':');
-    const row = rows.find(r=>{
-      const [h,m] = (r.firstElementChild?.textContent || '').split(':');
-      return h === hour && m === (localStorage.getItem(`minute-${h}`) || '00');
-    });
-    if(row){
-      const c = row.children[i.di];
-      if(c){ renderCell(c, i); }
-    }
-  });
-}
-  function updateTodayList(){
-    const now=new Date(); const today=now.getDay(); const col=today===0?7:today; const nowMin=now.getHours()*60+now.getMinutes(); const arr=[];
-    document.querySelectorAll('#scheduleTableCurr tbody tr').forEach(r=>{
-  const [h,m]=(r.firstElementChild?.textContent || '00:00').split(':').map(Number);
-      if(cell && cell.dataset.info){ const v=JSON.parse(cell.dataset.info); const dn=v.name||(v.memberId?`[${v.memberId}]`:'—'); if(total>=nowMin) arr.push({t:total,text:`${v.time} ${dn} (${v.enrolled||0}/${v.cap||0})`}); }
-    });
-    arr.sort((a,b)=>a.t-b.t); const ul=$('todayLessonList'); ul.innerHTML=''; arr.slice(0,2).forEach(i=>{ const li=document.createElement('li'); li.textContent=i.text; ul.appendChild(li); });
+  function buildTables(){
+    buildOne('#scheduleTableCurr tbody', true);
+    buildOne('#scheduleTableNext tbody', false);
+    buildOne('#scheduleTableLast tbody', false);
+    fitGridToScreen();
   }
 
- function updateTimeLine(){
-  document.querySelectorAll('.current-time-line').forEach(e=>e.remove());
-  const now=new Date(); const di=now.getDay();
-  const dayIdx = di===0 ? 7 : di;
-  document.querySelectorAll('#scheduleTableCurr tbody tr').forEach(r=>{
-  const [hh,mm]=(r.firstElementChild?.textContent||'00:00').split(':').map(Number);
+  function buildOne(sel, isMain){
+    const tb = document.querySelector(sel);
+    tb.innerHTML = '';
 
-    const rowTime=hh*60+(mm||0), nv=now.getHours()*60+now.getMinutes();
-    if(nv>=rowTime && nv<rowTime+60){
-      const pct=((nv-rowTime)/60)*100;
-      const cell = r.children[dayIdx];
-      if(!cell) return;                   // ← 가드
-      const line=document.createElement('div');
-      line.className='current-time-line';
-      line.style.top=`${pct}%`;
-      cell.appendChild(line);
+    for (let h = scheduleStart; h < scheduleEnd; h++){
+      const hh = (h % 24).toString().padStart(2,'0');
+      const tr = document.createElement('tr');
+
+      const minute = localStorage.getItem(`minute-${hh}`) || '00';
+
+      // 시간 칸
+      const td0 = document.createElement('td');
+      td0.textContent = `${hh}:${minute}`;
+      td0.className   = 'time-cell';
+
+      if (isMain){
+        // 탭 → 분 설정 (롱프레스 직후 탭은 무시)
+        td0.addEventListener('click', ()=>{
+          if (td0._longPressed){ td0._longPressed=false; return; }
+          openMinute(td0);
+        });
+
+        // 롱프레스 → 시간 범위 팝업
+        td0.addEventListener('pointerdown', ()=>{
+          td0._longPressed = false;
+          td0._holdTimer = setTimeout(()=>{
+            td0._longPressed = true;
+            openRangePopup();
+          }, 600);
+        }, {passive:true});
+        ['pointerup','pointerleave','pointercancel'].forEach(ev=>{
+          td0.addEventListener(ev, ()=>{ clearTimeout(td0._holdTimer); }, {passive:true});
+        });
+      }
+      tr.appendChild(td0);
+
+      // 요일 7칸
+      for (let i=0;i<7;i++){
+        const td = document.createElement('td');
+        td.dataset.weekcol = String(i+1);  // 1~7 (월~일)
+        tr.appendChild(td);
+      }
+
+      tb.appendChild(tr);
     }
-  });
-}
+  }
 
+  function loadCurrFromLocal(){
+    const data = JSON.parse(localStorage.getItem('scheduleData')||'[]');
+    const rows = [...document.querySelectorAll('#scheduleTableCurr tbody tr')];
+
+    data.forEach(i=>{
+      const [hour] = i.time.split(':'); // "09" 같은 시만
+      const row = rows.find(r=>{
+        const [h,m] = (r.firstElementChild?.textContent || '').split(':');
+        return h === hour && m === (localStorage.getItem(`minute-${h}`) || '00');
+      });
+      if (row){
+        const c = row.children[i.di];   // di=1~7
+        if (c) renderCell(c, i);
+      }
+    });
+  }
+
+  function updateTodayList(){
+    const now = new Date();
+    const today = now.getDay();
+    const col = today === 0 ? 7 : today; // 일요일 7
+    const nowMin = now.getHours()*60 + now.getMinutes();
+    const arr = [];
+
+    document.querySelectorAll('#scheduleTableCurr tbody tr').forEach(r=>{
+      const [h,m] = (r.firstElementChild?.textContent || '00:00').split(':').map(Number);
+      const total = h*60 + (m||0);
+      const cell  = r.children[col];
+      if (cell && cell.dataset.info){
+        const v = JSON.parse(cell.dataset.info);
+        const dn = v.name || (v.memberId ? `[${v.memberId}]` : '—');
+        if (total >= nowMin){
+          arr.push({ t: total, text: `${v.time} ${dn} (${v.enrolled||0}/${v.cap||0})` });
+        }
+      }
+    });
+
+    arr.sort((a,b)=>a.t-b.t);
+    const ul = $('todayLessonList');
+    ul.innerHTML = '';
+    arr.slice(0,2).forEach(i=>{
+      const li = document.createElement('li');
+      li.textContent = i.text;
+      ul.appendChild(li);
+    });
+  }
+
+  function updateTimeLine(){
+    document.querySelectorAll('.current-time-line').forEach(e=>e.remove());
+    const now=new Date(); const di=now.getDay();
+    const dayIdx = di===0 ? 7 : di;
+    document.querySelectorAll('#scheduleTableCurr tbody tr').forEach(r=>{
+      const [hh,mm]=(r.firstElementChild?.textContent||'00:00').split(':').map(Number);
+
+      const rowTime=hh*60+(mm||0), nv=now.getHours()*60+now.getMinutes();
+      if(nv>=rowTime && nv<rowTime+60){
+        const pct=((nv-rowTime)/60)*100;
+        const cell = r.children[dayIdx];
+        if(!cell) return;
+        const line=document.createElement('div');
+        line.className='current-time-line';
+        line.style.top=`${pct}%`;
+        cell.appendChild(line);
+      }
+    });
+  }
 
   // 이벤트 바인딩
   (function wireUI(){
@@ -397,7 +436,7 @@ tr.appendChild(td0);
 
     buildTables(); attachDelegation(); loadCurrFromLocal(); highlightToday();
     updateTodayList(); updateTimeLine(); setInterval(updateTimeLine,60000);
-   $('headerCurr').onclick = openRangePopup;
+    $('headerCurr').onclick = openRangePopup;
 
     $('autoConsumeToggle').checked = localStorage.getItem('autoConsume')==='1';
     $('btnEnableAuto').onclick = ()=> window.enableAutoConsume && window.enableAutoConsume();
@@ -412,45 +451,40 @@ tr.appendChild(td0);
     window.addEventListener('resize', fitGridToScreen);
   })();
 
-function attachDelegation(){
-  const tb = document.querySelector('#scheduleTableCurr tbody');
-  tb.replaceWith(tb.cloneNode(true));               // 기존 리스너 제거
-  const tbn = document.querySelector('#scheduleTableCurr tbody');
+  function attachDelegation(){
+    const tb = document.querySelector('#scheduleTableCurr tbody');
+    tb.replaceWith(tb.cloneNode(true));               // 기존 리스너 제거
+    const tbn = document.querySelector('#scheduleTableCurr tbody');
 
-  // 롱프레스 시작 (시간칸은 제외)
-  tbn.addEventListener('pointerdown', (e)=>{
-    const td = e.target.closest('td');
-    if (!td || td.cellIndex === 0) return;
-    lpFired = false;
-    lpTimer = setTimeout(()=>{ lpFired = true; openCellSheet(td); }, 600);
-  }, { passive:true });
-
-  ['pointerup','pointerleave','pointercancel'].forEach(ev=>{
-    tbn.addEventListener(ev, ()=>{
-      clearTimeout(lpTimer); lpTimer = null;
-    }, { passive:true });
-  });
-
-  // ✅ 클릭: 시간칸 → 분 설정 / 일반칸 → 레슨 팝업
-  tbn.addEventListener('click', (e)=>{
-    const td = e.target.closest('td');
-    if (!td) return;
-
-    if (td.cellIndex === 0){        // 시간 칸 클릭
-      openMinute(td);
-      return;
-    }
-    if (lpFired){                   // 롱프레스 직후 클릭 무시
+    // 롱프레스 시작 (시간칸은 제외)
+    tbn.addEventListener('pointerdown', (e)=>{
+      const td = e.target.closest('td');
+      if (!td || td.cellIndex === 0) return;
       lpFired = false;
-      return;
-    }
-    $('cellSheet').style.display = 'none';
-    openLesson(td);
-  });
+      lpTimer = setTimeout(()=>{ lpFired = true; openCellSheet(td); }, 600);
+    }, { passive:true });
 
-  tbn.addEventListener('contextmenu', e=>e.preventDefault());
-}
+    ['pointerup','pointerleave','pointercancel'].forEach(ev=>{
+      tbn.addEventListener(ev, ()=>{
+        clearTimeout(lpTimer); lpTimer = null;
+      }, { passive:true });
+    });
 
+    // ✅ 클릭: 시간칸 제외 → 레슨 팝업
+    tbn.addEventListener('click', (e)=>{
+      const td = e.target.closest('td');
+      if (!td) return;
+      if (td.cellIndex === 0) return; // 시간칸은 개별 핸들러가 처리
+      if (lpFired){                   // 롱프레스 직후 클릭 무시
+        lpFired = false;
+        return;
+      }
+      $('cellSheet').style.display = 'none';
+      openLesson(td);
+    });
+
+    tbn.addEventListener('contextmenu', e=>e.preventDefault());
+  }
 
   function openCellSheet(td){
     if(!td.dataset.info){ toast('먼저 레슨을 저장하세요'); return; }
@@ -469,16 +503,19 @@ function attachDelegation(){
     $('sheetClose').onclick=()=>{ $('cellSheet').style.display='none'; };
   }
 
-function openMinute(cell){
-  currentCell = cell;
-  const curMin = (cell.textContent.split(':')[1] || '00');
-  $('minuteSelect').value = curMin;   // ← 현재 값으로 프리셋
-  showPopup($('popupMinute'));
-}
-  function saveMinute(){ const m=$('minuteSelect').value; const h=currentCell.textContent.split(':')[0]; currentCell.textContent=`${h}:${m}`; localStorage.setItem(`minute-${h}`,m); updateTimeLine(); hideAll(); }
-    
+  function openMinute(cell){
+    currentCell = cell;
+    const curMin = (cell.textContent.split(':')[1] || '00');
+    $('minuteSelect').value = curMin;
+    showPopup($('popupMinute'));
+  }
+  function saveMinute(){
+    const m=$('minuteSelect').value; const h=currentCell.textContent.split(':')[0];
+    currentCell.textContent=`${h}:${m}`; localStorage.setItem(`minute-${h}`,m);
+    updateTimeLine(); hideAll();
+  }
+
   function openRangePopup(){
-    // 현재 scheduleStart/End 값을 팝업 input에 채워 넣기
     const s = String(scheduleStart % 24).padStart(2,'0');
     const e = String(scheduleEnd % 24).padStart(2,'0'); // 24시는 00으로 보임
     $('rangeStart').value = `${s}:00`;
@@ -486,54 +523,52 @@ function openMinute(cell){
     showPopup($('popupRange'));
   }
   function applyRangeCurr(){
-  const rawS=$('rangeStart').value||'06:00', rawE=$('rangeEnd').value||'21:00';
-  let sH=parseInt(rawS.slice(0,2),10), eH=parseInt(rawE.slice(0,2),10);
-  if(rawE.startsWith('00')) eH=24;
-  if(eH<=sH) eH+=24;
-  if(eH-sH<3){ toast('최소 3시간 이상으로 설정하세요'); return; }
+    const rawS=$('rangeStart').value||'06:00', rawE=$('rangeEnd').value||'21:00';
+    let sH=parseInt(rawS.slice(0,2),10), eH=parseInt(rawE.slice(0,2),10);
+    if(rawE.startsWith('00')) eH=24;
+    if(eH<=sH) eH+=24;
+    if(eH-sH<3){ toast('최소 3시간 이상으로 설정하세요'); return; }
 
-  scheduleStart=sH; scheduleEnd=eH;
-  localStorage.setItem('scheduleRange', JSON.stringify({start:scheduleStart,end:scheduleEnd}));
+    scheduleStart=sH; scheduleEnd=eH;
+    localStorage.setItem('scheduleRange', JSON.stringify({start:scheduleStart,end:scheduleEnd}));
 
-  currentCell = null; // (선택) 이전 선택 초기화
+    currentCell = null;
 
-  buildTables();
-  attachDelegation();
-  loadCurrFromLocal();
-  highlightToday();
-  updateTodayList();
-  requestAnimationFrame(updateTimeLine); // (선택) 레이아웃 후 실행
-  hideAll();
-  fitGridToScreen();
-}
-
-
- function openLesson(cell){
-  currentCell = cell;
-
-  const dayNames = ['','월','화','수','목','금','토','일'];
-  const di   = +cell.dataset.weekcol;    // 1~7
-  const time = rowHour(cell);            // "09:00"
-  const hint = document.getElementById('slotHint');
-  if (hint) {
-    hint.textContent = `${dayNames[di]} ${time}`;
-    hint.style.display = 'inline-block';
+    buildTables();
+    attachDelegation();
+    loadCurrFromLocal();
+    highlightToday();
+    updateTodayList();
+    requestAnimationFrame(updateTimeLine);
+    hideAll();
+    fitGridToScreen();
   }
-  const d = cell.dataset.info ? JSON.parse(cell.dataset.info) : {};
-  document.getElementById('nameInput').value = d.name || '';
-  document.getElementById('enrolledInput').value = d.enrolled || '';
-  document.getElementById('capacityInput').value = d.cap || '';
-  document.getElementById('memberIdInput').value = d.memberId || '';
 
-  showPopup(document.getElementById('popupLesson'));
+  function openLesson(cell){
+    currentCell = cell;
 
-  // (쓰고 있다면) 자동 통계 갱신
-  setTimeout(()=> window.updateStatsFromInputs && window.updateStatsFromInputs(), 0);
-}
-    function rowHour(cell){
-  const td0 = cell?.parentElement?.firstElementChild;
-  return td0 ? td0.textContent : '';
-}
+    const dayNames = ['','월','화','수','목','금','토','일'];
+    const di   = +cell.dataset.weekcol;    // 1~7
+    const time = rowHour(cell);            // "09:00"
+    const hint = $('slotHint');
+    if (hint) {
+      hint.textContent = `${dayNames[di]} ${time}`;
+      hint.style.display = 'inline-block';
+    }
+    const d = cell.dataset.info ? JSON.parse(cell.dataset.info) : {};
+    $('nameInput').value = d.name || '';
+    $('enrolledInput').value = d.enrolled || '';
+    $('capacityInput').value = d.cap || '';
+    $('memberIdInput').value = d.memberId || '';
+
+    showPopup($('popupLesson'));
+
+    setTimeout(()=> window.updateStatsFromInputs && window.updateStatsFromInputs(), 0);
+  }
+  function rowHour(cell){
+    const td0 = cell?.parentElement?.firstElementChild;
+    return td0 ? td0.textContent : '';
+  }
 
   function saveLesson(){
     if(!currentCell) return;
@@ -562,7 +597,11 @@ function openMinute(cell){
     window.deleteScheduleByCell && window.deleteScheduleByCell(currentCell).catch(e=>toast("삭제 실패: "+(e.message||e.code)));
     currentCell.innerHTML=''; currentCell.classList.remove('filled'); currentCell.style.background='';
     delete currentCell.dataset.info; delete currentCell.dataset.docId;
-    if(info){ let data=JSON.parse(localStorage.getItem('scheduleData')||'[]'); data=data.filter(x=>!(x.time===info.time && x.di===info.di)); localStorage.setItem('scheduleData',JSON.stringify(data)); }
+    if(info){
+      let data=JSON.parse(localStorage.getItem('scheduleData')||'[]');
+      data=data.filter(x=>!(x.time===info.time && x.di===info.di));
+      localStorage.setItem('scheduleData',JSON.stringify(data));
+    }
     toast("삭제 완료"); updateTodayList(); updateTimeLine(); hideAll();
   }
 
@@ -603,9 +642,26 @@ function openMinute(cell){
   window.upsertScheduleFromCell = async (cell)=>{
     if(!cell?.dataset.info) return null;
     const i=JSON.parse(cell.dataset.info);
-    const payload={date:todayLocalISO(),di:i.di,start:i.time,end:add60(i.time),name:i.name||"",cap:i.cap||0,enrolled:i.enrolled||0,trainer:"트레이너 A",memberId:i.memberId||null,updatedAt:serverTimestamp(),...(cell.dataset.docId?{}:{createdAt:serverTimestamp()})};
-    if(cell.dataset.docId){ await setDoc(doc(db,"schedules",cell.dataset.docId),payload,{merge:true}); return cell.dataset.docId; }
-    const ref=await addDoc(collection(db,"schedules"),payload); cell.dataset.docId=ref.id; return ref.id;
+    const payload={
+      date:todayLocalISO(),
+      di:i.di,
+      start:i.time,
+      end:add60(i.time),
+      name:i.name||"",
+      cap:i.cap||0,
+      enrolled:i.enrolled||0,
+      trainer:"트레이너 A",
+      memberId:i.memberId||null,
+      updatedAt:serverTimestamp(),
+      ...(cell.dataset.docId?{}:{createdAt:serverTimestamp()})
+    };
+    if(cell.dataset.docId){
+      await setDoc(doc(db,"schedules",cell.dataset.docId),payload,{merge:true});
+      return cell.dataset.docId;
+    }
+    const ref=await addDoc(collection(db,"schedules"),payload);
+    cell.dataset.docId=ref.id;
+    return ref.id;
   };
   window.deleteScheduleByCell = async (cell)=>{ if(cell?.dataset.docId) await deleteDoc(doc(db,"schedules",cell.dataset.docId)); };
 
@@ -628,15 +684,32 @@ function openMinute(cell){
       document.getElementById('popupOverlay').click();
     }catch(e){ console.error(e); toast("등록 실패: "+(e.message||e.code)); }
   };
-  function formatPhone(v){v=String(v).replace(/\D/g,'').slice(0,11); if(v.length<=3)return v; if(v.length<=7)return v.slice(0,3)+'-'+v.slice(3); return v.slice(0,3)+'-'+v.slice(3,7)+'-'+v.slice(7);}
+  function formatPhone(v){
+    v=String(v).replace(/\D/g,'').slice(0,11);
+    if(v.length<=3)return v;
+    if(v.length<=7)return v.slice(0,3)+'-'+v.slice(3);
+    return v.slice(0,3)+'-'+v.slice(3,7)+'-'+v.slice(7);
+  }
 
   /* 롱프레스 액션: 소진/노쇼 */
   window.consumeAdjust = async (memberId,deltaRemain,flagUpdate,td)=>{
     document.getElementById('cellSheet').style.display='none';
     try{
-      if(memberId){ await updateDoc(doc(db,"members",memberId),{remainingSessions:increment(deltaRemain),...(flagUpdate.flag==='noShowDeducted'?{noShowDeducted:increment(flagUpdate.value?+1:-1)}:{})}); }
-      if(td?.dataset.docId){ await updateDoc(doc(db,"schedules",td.dataset.docId),{[flagUpdate.flag]:flagUpdate.value,[`${flagUpdate.flag}At`]:serverTimestamp()}); }
-      toast(flagUpdate.flag==='noShowDeducted' ? (flagUpdate.value?'노쇼 차감 완료':'노쇼 취소 완료') : (flagUpdate.value?'소진 처리 완료':'소진 취소 완료'));
+      if(memberId){
+        await updateDoc(doc(db,"members",memberId),{
+          remainingSessions:increment(deltaRemain),
+          ...(flagUpdate.flag==='noShowDeducted'?{noShowDeducted:increment(flagUpdate.value?+1:-1)}:{})
+        });
+      }
+      if(td?.dataset.docId){
+        await updateDoc(doc(db,"schedules",td.dataset.docId),{
+          [flagUpdate.flag]:flagUpdate.value,
+          [`${flagUpdate.flag}At`]:serverTimestamp()
+        });
+      }
+      toast(flagUpdate.flag==='noShowDeducted'
+        ? (flagUpdate.value?'노쇼 차감 완료':'노쇼 취소 완료')
+        : (flagUpdate.value?'소진 처리 완료':'소진 취소 완료'));
     }catch(e){ console.error(e); toast("처리 실패: "+(e.message||e.code)); }
   };
 
@@ -653,17 +726,27 @@ function openMinute(cell){
     document.getElementById('autoConsumeToggle').checked=true;
     window.runAutoConsumeIfNeeded && window.runAutoConsumeIfNeeded(true);
   };
-  window.dismissAutoAsk = function(){ localStorage.setItem('autoAsked','1'); document.getElementById('autoAsk').style.display='none'; };
+  window.dismissAutoAsk = function(){
+    localStorage.setItem('autoAsked','1');
+    document.getElementById('autoAsk').style.display='none';
+  };
 
   window.runAutoConsumeIfNeeded = async function(forceNow){
     const enabled=localStorage.getItem('autoConsume')==='1'; if(!enabled) return;
     const target=yesterLocalISO(); const last=localStorage.getItem('autoConsumeLast'); if(!forceNow && last===target) return;
     try{
       const qy=query(collection(db,"schedules"),where("date","==",target)); const snap=await getDocs(qy);
-      const tasks=[]; snap.forEach(docSnap=>{
+      const tasks=[];
+      snap.forEach(docSnap=>{
         const s=docSnap.data(); if(s.consumed || s.noShowDeducted) return;
-        if(s.memberId){ tasks.push(updateDoc(doc(db,"members",s.memberId),{remainingSessions:increment(-1)}).then(()=>updateDoc(doc(db,"schedules",docSnap.id),{consumed:true,consumedAt:serverTimestamp()}))); }
-        else { tasks.push(updateDoc(doc(db,"schedules",docSnap.id),{consumed:true,consumedAt:serverTimestamp()}).catch(()=>{})); }
+        if(s.memberId){
+          tasks.push(
+            updateDoc(doc(db,"members",s.memberId),{remainingSessions:increment(-1)})
+              .then(()=>updateDoc(doc(db,"schedules",docSnap.id),{consumed:true,consumedAt:serverTimestamp()}))
+          );
+        } else {
+          tasks.push(updateDoc(doc(db,"schedules",docSnap.id),{consumed:true,consumedAt:serverTimestamp()}).catch(()=>{}));
+        }
       });
       await Promise.all(tasks); localStorage.setItem('autoConsumeLast',target);
       if(tasks.length>0) toast(`어제 (${target}) 자동 소진 ${tasks.length}건`);
