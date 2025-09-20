@@ -331,14 +331,25 @@
     arr.sort((a,b)=>a.t-b.t); const ul=$('todayLessonList'); ul.innerHTML=''; arr.slice(0,2).forEach(i=>{ const li=document.createElement('li'); li.textContent=i.text; ul.appendChild(li); });
   }
 
-  function updateTimeLine(){
-    document.querySelectorAll('.current-time-line').forEach(e=>e.remove());
-    const now=new Date(); const di=now.getDay();
-    document.querySelectorAll('#scheduleTableCurr tbody tr').forEach(r=>{
-      const [hh,mm]=r.firstChild.textContent.split(':').map(Number); const rowTime=hh*60+(mm||0), nv=now.getHours()*60+now.getMinutes();
-      if(nv>=rowTime && nv<rowTime+60){ const pct=((nv-rowTime)/60)*100; const line=document.createElement('div'); line.className='current-time-line'; line.style.top=`${pct}%`; r.children[di===0?7:di].appendChild(line); }
-    });
-  }
+ function updateTimeLine(){
+  document.querySelectorAll('.current-time-line').forEach(e=>e.remove());
+  const now=new Date(); const di=now.getDay();
+  const dayIdx = di===0 ? 7 : di;
+  document.querySelectorAll('#scheduleTableCurr tbody tr').forEach(r=>{
+    const [hh,mm]=(r.firstChild.textContent||'00:00').split(':').map(Number);
+    const rowTime=hh*60+(mm||0), nv=now.getHours()*60+now.getMinutes();
+    if(nv>=rowTime && nv<rowTime+60){
+      const pct=((nv-rowTime)/60)*100;
+      const cell = r.children[dayIdx];
+      if(!cell) return;                   // ← 가드
+      const line=document.createElement('div');
+      line.className='current-time-line';
+      line.style.top=`${pct}%`;
+      cell.appendChild(line);
+    }
+  });
+}
+
 
   // 이벤트 바인딩
   (function wireUI(){
@@ -437,7 +448,12 @@ function attachDelegation(){
     $('sheetClose').onclick=()=>{ $('cellSheet').style.display='none'; };
   }
 
-  function openMinute(cell){ currentCell=cell; showPopup($('popupMinute')); }
+function openMinute(cell){
+  currentCell = cell;
+  const curMin = (cell.textContent.split(':')[1] || '00');
+  $('minuteSelect').value = curMin;   // ← 현재 값으로 프리셋
+  showPopup($('popupMinute'));
+}
   function saveMinute(){ const m=$('minuteSelect').value; const h=currentCell.textContent.split(':')[0]; currentCell.textContent=`${h}:${m}`; localStorage.setItem(`minute-${h}`,m); updateTimeLine(); hideAll(); }
 
   function applyRangeCurr(){
