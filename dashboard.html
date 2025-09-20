@@ -305,9 +305,10 @@
       const hh=(h%24).toString().padStart(2,'0');
       const tr=document.createElement('tr');
       const minute=localStorage.getItem(`minute-${hh}`)||'00';
-      const td0=document.createElement('td'); td0.textContent=`${hh}:${minute}`; td0.className='time-cell'; if(isMain) td0.addEventListener('click',()=>openMinute(td0)); tr.appendChild(td0);
+      const td0=document.createElement('td'); td0.textContent=`${hh}:${minute}`; td0.className='time-cell';
       for(let i=0;i<7;i++){ const td=document.createElement('td'); td.dataset.weekcol=String(i+1); tr.appendChild(td); }
       tb.appendChild(tr);
+
     }
   }
 
@@ -379,45 +380,43 @@
     window.addEventListener('resize', fitGridToScreen);
   })();
 
- function attachDelegation(){
+function attachDelegation(){
   const tb = document.querySelector('#scheduleTableCurr tbody');
-  tb.replaceWith(tb.cloneNode(true));           // 기존 리스너 제거
+  tb.replaceWith(tb.cloneNode(true));               // 기존 리스너 제거
   const tbn = document.querySelector('#scheduleTableCurr tbody');
 
-  // 롱프레스 시작
+  // 롱프레스 시작 (시간칸은 제외)
   tbn.addEventListener('pointerdown', (e)=>{
-    const td = e.target.closest('td'); 
-    if (!td || td.cellIndex === 0) return;      // 시간칸은 롱프레스 대상 아님
+    const td = e.target.closest('td');
+    if (!td || td.cellIndex === 0) return;
     lpFired = false;
     lpTimer = setTimeout(()=>{ lpFired = true; openCellSheet(td); }, 600);
-  }, {passive:true});
+  }, { passive:true });
 
   ['pointerup','pointerleave','pointercancel'].forEach(ev=>{
     tbn.addEventListener(ev, ()=>{
       clearTimeout(lpTimer); lpTimer = null;
-    }, {passive:true});
+    }, { passive:true });
   });
 
-  // ✅ 이 클릭 핸들러가 "교체되는" 부분
+  // ✅ 클릭: 시간칸 → 분 설정 / 일반칸 → 레슨 팝업
   tbn.addEventListener('click', (e)=>{
     const td = e.target.closest('td');
     if (!td) return;
 
-    // 첫 번째 칼럼(시간칸) 클릭 → 분 설정 팝업
-    if (td.cellIndex === 0){
+    if (td.cellIndex === 0){        // 시간 칸 클릭
       openMinute(td);
       return;
     }
-
-    // 롱프레스 뒤에 발생한 클릭은 무시
-    if (lpFired){ lpFired = false; return; }
-
-    // 일반 셀 클릭 → 레슨 팝업
+    if (lpFired){                   // 롱프레스 직후 클릭 무시
+      lpFired = false;
+      return;
+    }
     $('cellSheet').style.display = 'none';
     openLesson(td);
   });
 
-  tbn.addEventListener('contextmenu',(e)=>e.preventDefault());
+  tbn.addEventListener('contextmenu', e=>e.preventDefault());
 }
 
 
