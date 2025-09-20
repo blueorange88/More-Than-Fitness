@@ -308,19 +308,24 @@
     const tr = document.createElement('tr');
 
     const minute = localStorage.getItem(`minute-${hh}`) || '00';
-   const td0 = document.createElement('td');
-td0.textContent = `${hh}:${minute}`;
-td0.className = 'time-cell';
-if (isMain) td0.addEventListener('click', ()=> openMinute(td0)); // ← 추가
-tr.appendChild(td0);
-    for (let i=0;i<7;i++){
-      const td = document.createElement('td');
-      td.dataset.weekcol = String(i+1);
-      tr.appendChild(td);
-    }
-    tb.appendChild(tr);
-  }
+const td0=document.createElement('td');
+td0.textContent=`${hh}:${minute}`;
+td0.className='time-cell';
+
+// (기존) 클릭하면 분 단위 설정
+if(isMain) td0.addEventListener('click',()=>openMinute(td0));
+
+// (추가) 롱프레스하면 시간 범위 설정 팝업
+if(isMain){
+  td0.addEventListener('pointerdown', ()=>{
+    td0._holdTimer = setTimeout(()=>{ openRangePopup(); }, 600);
+  }, {passive:true});
+  ['pointerup','pointerleave','pointercancel'].forEach(ev=>{
+    td0.addEventListener(ev, ()=>{ clearTimeout(td0._holdTimer); }, {passive:true});
+  });
 }
+
+tr.appendChild(td0);
  function loadCurrFromLocal(){
   const data = JSON.parse(localStorage.getItem('scheduleData')||'[]');
   const rows = [...document.querySelectorAll('#scheduleTableCurr tbody tr')];
@@ -392,7 +397,7 @@ tr.appendChild(td0);
 
     buildTables(); attachDelegation(); loadCurrFromLocal(); highlightToday();
     updateTodayList(); updateTimeLine(); setInterval(updateTimeLine,60000);
-    $('headerCurr').onclick=()=> showPopup($('popupRange'));
+   $('headerCurr').onclick = openRangePopup;
 
     $('autoConsumeToggle').checked = localStorage.getItem('autoConsume')==='1';
     $('btnEnableAuto').onclick = ()=> window.enableAutoConsume && window.enableAutoConsume();
@@ -471,7 +476,15 @@ function openMinute(cell){
   showPopup($('popupMinute'));
 }
   function saveMinute(){ const m=$('minuteSelect').value; const h=currentCell.textContent.split(':')[0]; currentCell.textContent=`${h}:${m}`; localStorage.setItem(`minute-${h}`,m); updateTimeLine(); hideAll(); }
-
+    
+  function openRangePopup(){
+    // 현재 scheduleStart/End 값을 팝업 input에 채워 넣기
+    const s = String(scheduleStart % 24).padStart(2,'0');
+    const e = String(scheduleEnd % 24).padStart(2,'0'); // 24시는 00으로 보임
+    $('rangeStart').value = `${s}:00`;
+    $('rangeEnd').value   = `${e}:00`;
+    showPopup($('popupRange'));
+  }
   function applyRangeCurr(){
   const rawS=$('rangeStart').value||'06:00', rawE=$('rangeEnd').value||'21:00';
   let sH=parseInt(rawS.slice(0,2),10), eH=parseInt(rawE.slice(0,2),10);
