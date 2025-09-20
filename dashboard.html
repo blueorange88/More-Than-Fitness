@@ -255,6 +255,12 @@
       hint.textContent = '';  // 이전 칸 라벨 지우기
     }
   }
+ function hideAll(){hidePopups();
+  $('cellSheet').style.display = 'none';
+  $('quickRegisterCard').style.display = 'none';
+  hideOverlay();
+}
+
   function toggleSubmenu(id){ document.querySelectorAll('.submenu').forEach(el=> el.style.display='none'); const t=$('submenu-'+id); if(t) t.style.display='block'; }
 
   /* 이름에 따른 색상 (고정 해시) */
