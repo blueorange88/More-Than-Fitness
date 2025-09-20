@@ -441,13 +441,27 @@ function attachDelegation(){
   function saveMinute(){ const m=$('minuteSelect').value; const h=currentCell.textContent.split(':')[0]; currentCell.textContent=`${h}:${m}`; localStorage.setItem(`minute-${h}`,m); updateTimeLine(); hideAll(); }
 
   function applyRangeCurr(){
-    const rawS=$('rangeStart').value||'06:00', rawE=$('rangeEnd').value||'21:00';
-    let sH=parseInt(rawS.slice(0,2),10), eH=parseInt(rawE.slice(0,2),10);
-    if(rawE.startsWith('00')) eH=24; if(eH<=sH) eH+=24; if(eH-sH<3){ toast('최소 3시간 이상으로 설정하세요'); return; }
-    scheduleStart=sH; scheduleEnd=eH;
-    localStorage.setItem('scheduleRange', JSON.stringify({start:scheduleStart,end:scheduleEnd}));
-    buildTables(); attachDelegation(); loadCurrFromLocal(); highlightToday(); updateTodayList(); updateTimeLine(); hideAll(); fitGridToScreen();
-  }
+  const rawS=$('rangeStart').value||'06:00', rawE=$('rangeEnd').value||'21:00';
+  let sH=parseInt(rawS.slice(0,2),10), eH=parseInt(rawE.slice(0,2),10);
+  if(rawE.startsWith('00')) eH=24;
+  if(eH<=sH) eH+=24;
+  if(eH-sH<3){ toast('최소 3시간 이상으로 설정하세요'); return; }
+
+  scheduleStart=sH; scheduleEnd=eH;
+  localStorage.setItem('scheduleRange', JSON.stringify({start:scheduleStart,end:scheduleEnd}));
+
+  currentCell = null; // (선택) 이전 선택 초기화
+
+  buildTables();
+  attachDelegation();
+  loadCurrFromLocal();
+  highlightToday();
+  updateTodayList();
+  requestAnimationFrame(updateTimeLine); // (선택) 레이아웃 후 실행
+  hideAll();
+  fitGridToScreen();
+}
+
 
  function openLesson(cell){
   currentCell = cell;
