@@ -247,18 +247,14 @@
   function showOverlay(){ $('popupOverlay').style.display='block'; }
   function hideOverlay(){ $('popupOverlay').style.display='none'; }
   function showPopup(el){ showOverlay(); el.style.display='block'; }
-  function hidePopups(){document.querySelectorAll('.popup').forEach(p => p.style.display = 'none');
-  const hint = document.getElementById('slotHint');
-  if (hint) {
-    hint.style.display = 'none';
-    hint.textContent = ''; // 
+  function hidePopups(){
+    document.querySelectorAll('.popup').forEach(p => p.style.display = 'none');
+    const hint = document.getElementById('slotHint');
+    if (hint) {
+      hint.style.display = 'none';
+      hint.textContent = '';  // 이전 칸 라벨 지우기
+    }
   }
-}
-
-  const hint = document.getElementById('slotHint');
-  if (hint) {hint.style.display = 'none';hint.textContent = '';   // 이전 칸 라벨 지우기(깜빡임 방지)}
-}
-
   function toggleSubmenu(id){ document.querySelectorAll('.submenu').forEach(el=> el.style.display='none'); const t=$('submenu-'+id); if(t) t.style.display='block'; }
 
   /* 이름에 따른 색상 (고정 해시) */
@@ -449,6 +445,11 @@
   // (쓰고 있다면) 자동 통계 갱신
   setTimeout(()=> window.updateStatsFromInputs && window.updateStatsFromInputs(), 0);
 }
+    function rowHour(cell){
+  const td0 = cell?.parentElement?.firstChild;  // 해당 행의 첫 번째(시간) 셀
+  return td0 ? td0.textContent : '';
+}
+
   function saveLesson(){
     if(!currentCell) return;
     const name=($('nameInput').value||'').trim();
