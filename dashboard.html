@@ -449,8 +449,6 @@
   // (쓰고 있다면) 자동 통계 갱신
   setTimeout(()=> window.updateStatsFromInputs && window.updateStatsFromInputs(), 0);
 }
- function rowHour(cell){const td0 = cell?.parentElement?.firstChild;return td0 ? td0.textContent : '';}
-
   function saveLesson(){
     if(!currentCell) return;
     const name=($('nameInput').value||'').trim();
