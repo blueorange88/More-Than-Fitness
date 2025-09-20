@@ -202,6 +202,13 @@
   function hidePopups(){ document.querySelectorAll('.popup').forEach(p=>p.style.display='none'); }
   function hideAll(){ hidePopups(); $('cellSheet').style.display='none'; $('quickRegisterCard').style.display='none'; hideOverlay(); }
   function toggleSubmenu(id){ document.querySelectorAll('.submenu').forEach(el=> el.style.display='none'); const t=$('submenu-'+id); if(t) t.style.display='block'; }
+   // 셀 텍스트를 일관되게 렌더
+function renderCell(td, info){
+  const dn = info.name || (info.memberId ? `[${info.memberId}]` : '—');
+  const count = (info.cap || 0) ? ` (${info.enrolled || 0}/${info.cap})` : '';
+  td.textContent = `${dn}${count}`;
+  td.dataset.info = JSON.stringify(info);
+}
 
   (function start(){
     const go=()=>{
@@ -322,10 +329,8 @@
 
     const time=rowHour(currentCell); const di=+currentCell.dataset.weekcol;
     const displayName = name || (memberId?`[${memberId}]`:'—');
-
-    currentCell.textContent=`${time}\n${displayName} (${enrolled}/${cap})`;
-    const info={name,enrolled,cap,time,di,memberId:memberId||null};
-    currentCell.dataset.info=JSON.stringify(info);
+  const info = { name, enrolled, cap, time, di, memberId: memberId || null };
+  renderCell(currentCell, info);
 
     let arr=JSON.parse(localStorage.getItem('scheduleData')||'[]');
     arr=arr.filter(x=>!(x.time===info.time && x.di===info.di)); arr.push(info);
@@ -347,14 +352,21 @@
   }
 
   function loadCurrFromLocal(){
-    const data=JSON.parse(localStorage.getItem('scheduleData')||'[]');
-    const rows=[...document.querySelectorAll('#scheduleTableCurr tbody tr')];
-    data.forEach(i=>{
-      const [hour]=i.time.split(':');
-      const row=rows.find(r=>{ const [h,m]=r.firstChild.textContent.split(':'); return h===hour && m===(localStorage.getItem(`minute-${h}`)||'00'); });
-      if(row){ const c=row.children[i.di]; if(c){ const dn=i.name||(i.memberId?`[${i.memberId}]`:'—'); c.textContent=`${i.time}\n${dn} (${i.enrolled}/${i.cap})`; c.dataset.info=JSON.stringify(i); } }
+  const data = JSON.parse(localStorage.getItem('scheduleData') || '[]');
+  const rows = [...document.querySelectorAll('#scheduleTableCurr tbody tr')];
+
+  data.forEach(i => {
+    const [hour] = i.time.split(':');
+    const row = rows.find(r => {
+      const [h, m] = r.firstChild.textContent.split(':');
+      return h === hour && m === (localStorage.getItem(`minute-${h}`) || '00');
     });
-  }
+    if (row) {
+      const c = row.children[i.di]; // 0: 시간, 1~7: 요일
+      if (c) { renderCell(c, i); }
+    }
+  });
+}
   function highlightToday(){ const di=new Date().getDay(); const ths=document.querySelectorAll('#scheduleTableCurr th'); const idx=di===0?7:di; if(ths[idx]){ ths[idx].style.backgroundColor='#d4af37'; ths[idx].style.color='#0d1b2a'; } }
   function updateTodayList(){
     const now=new Date(); const today=now.getDay(); const col=today===0?7:today; const nowMin=now.getHours()*60+now.getMinutes(); const arr=[];
