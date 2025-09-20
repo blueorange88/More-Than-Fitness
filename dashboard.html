@@ -126,8 +126,8 @@
       <button onclick="location.href='personal-training-log.html'">고객 트레이닝 일지</button>
     </div>
     <button onclick="location.href='client-card.html'">고객 카드</button>
-    <button onclick="location.href=">상품 구매</button>
-    <button onclick="location.href=">운동 AI </button>
+    <button onclick="location.href='#'">상품 구매</button>
+    <button onclick="location.href='#'">운동 AI </button>
   </div>
 
   <!-- Main -->
@@ -247,8 +247,18 @@
   function showOverlay(){ $('popupOverlay').style.display='block'; }
   function hideOverlay(){ $('popupOverlay').style.display='none'; }
   function showPopup(el){ showOverlay(); el.style.display='block'; }
-  function hidePopups(){ document.querySelectorAll('.popup').forEach(p=>p.style.display='none'); }
-  function hideAll(){ hidePopups(); $('cellSheet').style.display='none'; $('quickRegisterCard').style.display='none'; hideOverlay(); }
+  function hidePopups(){document.querySelectorAll('.popup').forEach(p => p.style.display = 'none');
+  const hint = document.getElementById('slotHint');
+  if (hint) {
+    hint.style.display = 'none';
+    hint.textContent = ''; // 
+  }
+}
+
+  const hint = document.getElementById('slotHint');
+  if (hint) {hint.style.display = 'none';hint.textContent = '';   // 이전 칸 라벨 지우기(깜빡임 방지)}
+}
+
   function toggleSubmenu(id){ document.querySelectorAll('.submenu').forEach(el=> el.style.display='none'); const t=$('submenu-'+id); if(t) t.style.display='block'; }
 
   /* 이름에 따른 색상 (고정 해시) */
@@ -420,14 +430,14 @@
  function openLesson(cell){
   currentCell = cell;
 
-  // ✅ 추가: 요일/시간 라벨 채우기
   const dayNames = ['','월','화','수','목','금','토','일'];
-  const di = +cell.dataset.weekcol;             // 1~7
-  const time = rowHour(cell);                   // "09:00" 같은 문자열
+  const di   = +cell.dataset.weekcol;    // 1~7
+  const time = rowHour(cell);            // "09:00"
   const hint = document.getElementById('slotHint');
-  hint.textContent = `${dayNames[di]} ${time}`;
-  hint.style.display = 'inline-block';
-
+  if (hint) {
+    hint.textContent = `${dayNames[di]} ${time}`;
+    hint.style.display = 'inline-block';
+  }
   const d = cell.dataset.info ? JSON.parse(cell.dataset.info) : {};
   document.getElementById('nameInput').value = d.name || '';
   document.getElementById('enrolledInput').value = d.enrolled || '';
@@ -439,6 +449,8 @@
   // (쓰고 있다면) 자동 통계 갱신
   setTimeout(()=> window.updateStatsFromInputs && window.updateStatsFromInputs(), 0);
 }
+ function rowHour(cell){const td0 = cell?.parentElement?.firstChild;return td0 ? td0.textContent : '';}
+
   function saveLesson(){
     if(!currentCell) return;
     const name=($('nameInput').value||'').trim();
