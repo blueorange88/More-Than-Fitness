@@ -18,55 +18,40 @@
   header{position:sticky;top:0;z-index:10;background:linear-gradient(#fff,var(--underwhite));
          border-bottom:2px solid var(--gold);padding:14px 16px 12px}
   .toprow{display:flex;gap:10px;align-items:center;justify-content:space-between}
-  .brand{display:flex;gap:10px;align-items:center}
   .brand h1{margin:0;font-size:18px;color:var(--navy)}
-  .brand .links a{font-size:12px;color:var(--muted);text-decoration:none;margin-left:10px}
   .tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:10px}
   .tools input[type="search"]{flex:1;border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:14px;background:#fff}
   .tools .group{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--navy)}
   .tools select{border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:#fff}
   .btn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 12px;cursor:pointer}
   .btn.primary{background:var(--navy);color:#fff;border:none}
-  .btn.ghost{background:#fff}
   .toggle{border:1px solid var(--line);border-radius:10px;overflow:hidden;display:inline-flex}
   .toggle button{padding:8px 10px;border:0;background:#fff;cursor:pointer}
   .toggle button.active{background:var(--navy);color:#fff}
 
-  /* 그리드 */
   main{padding:18px}
   .grid{display:grid;gap:18px;grid-template-columns:repeat(auto-fill,minmax(320px,1fr))}
   .empty{padding:40px 16px;text-align:center;color:var(--muted)}
 
   /* 바인더 카드 */
-  .binder{
-    position:relative;height:200px;perspective:1200px; /* 3D 공간 */
-  }
+  .binder{position:relative;height:200px;perspective:1200px;}
   .binder .inner{
     position:absolute;inset:0;border-radius:18px;background:linear-gradient(135deg,#fdfdfd,#f1f5f9);
     border:1px solid var(--line);box-shadow:0 2px 8px rgba(0,0,0,.06);
     transform-style:preserve-3d;transition:transform .18s ease, box-shadow .18s ease;
     cursor:pointer;outline:0;
   }
-  .binder:focus-within .inner, .binder:hover .inner{
-    box-shadow:var(--shadow);
-  }
-
-  /* 두꺼운 등(스파인) */
+  .binder:hover .inner,.binder:focus-within .inner{box-shadow:var(--shadow);}
   .binder .spine{
     position:absolute;left:-14px;top:14px;bottom:14px;width:18px;border-radius:6px;
     background:linear-gradient(90deg,#e2e8f0,#cbd5e1);box-shadow:inset -2px 0 6px rgba(0,0,0,.08);
-    transform:translateZ(-20px) rotateY(15deg); /* 3D: 뒤로 */
+    transform:translateZ(-20px) rotateY(15deg);
   }
-
-  /* 표지 색상 (상태 기반) */
   .inner.blue{background:linear-gradient(135deg,#eef2ff,#e2e8f0)}
   .inner.yellow{background:linear-gradient(135deg,#fff7ed,#fef3c7)}
   .inner.pink{background:linear-gradient(135deg,#fff1f2,#ffe4e6)}
 
-  /* 표지 내용(큰 타이틀) */
-  .cover{
-    position:absolute;inset:0;padding:18px 16px 14px;display:flex;flex-direction:column;justify-content:space-between;
-  }
+  .cover{position:absolute;inset:0;padding:18px 16px 14px;display:flex;flex-direction:column;justify-content:space-between;}
   .name{font-weight:900;font-size:20px;color:#0f172a;letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .label{font-size:12px;color:#334155}
   .bottomrow{display:flex;justify-content:space-between;align-items:flex-end}
@@ -76,12 +61,11 @@
   .badge.expire{border-color:#ef4444;color:#991b1b;background:#fee2e2}
   .badge.ok{border-color:#10b981;color:#065f46;background:#ecfdf5}
 
-  /* 오버레이(호버 시 보여줄 정보) */
   .overlay{
     position:absolute;inset:0;background:rgba(255,255,255,.92);backdrop-filter:saturate(130%) blur(4px);
     border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:10px;opacity:0;pointer-events:none;transition:opacity .18s ease;
   }
-  .binder:hover .overlay, .binder:focus-within .overlay{opacity:1;pointer-events:auto}
+  .binder:hover .overlay,.binder:focus-within .overlay{opacity:1;pointer-events:auto}
   .rows{font-size:13px;color:#334155;display:grid;gap:6px}
   .row{display:flex;justify-content:space-between;gap:8px}
   .row .k{color:#64748b;width:80px}
@@ -89,22 +73,20 @@
   .actions{margin-top:auto;display:flex;gap:8px}
   .actions .btn{flex:1}
 
-  /* 보조 텍스트 */
   .footer{padding:10px 16px 18px;color:var(--muted);font-size:12px}
+  .banner{position:fixed;left:50%;top:10px;transform:translateX(-50%);
+          background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 12px;
+          color:#334155;font-size:12px;box-shadow:0 6px 16px rgba(0,0,0,.12);display:none}
 </style>
 </head>
 <body>
   <header>
     <div class="toprow">
-      <div class="brand">
-        <h1>개인 트레이닝 일지 – 바인더</h1>
-        <div class="links">
-          <a href="dashboard.html" title="메인 대시보드로">메인으로</a>
-          <a href="MTF-F.html" title="여성 운동 영상">MTF-F</a>
-          <a href="MTF-M.html" title="남성 운동 영상">MTF-M</a>
-        </div>
+      <div class="brand"><h1>개인 트레이닝 일지 – 바인더</h1></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn" onclick="location.href='dashboard.html'">메인으로</button>
+        <button class="btn primary" onclick="location.href='member-registration.html'">+ 회원 등록</button>
       </div>
-      <button class="btn primary" onclick="location.href='member-registration.html'">+ 회원 등록</button>
     </div>
 
     <div class="tools">
@@ -133,11 +115,13 @@
     <div id="grid" class="grid" aria-live="polite"></div>
     <div id="empty" class="empty" hidden>검색 결과가 없어요.</div>
   </main>
-  <div class="footer">Tip: 바인더에 마우스를 올리면 서류가 살짝 뽑혀요. 클릭하면 일지 화면으로 이동하거나 스케줄러 배치가 가능합니다.</div>
+  <div class="footer">Tip: 바인더에 마우스를 올리면 살짝 뽑히고 정보가 보입니다. 클릭하면 일지로 이동합니다.</div>
+  <div class="banner" id="fbStatus"></div>
 
   <script type="module">
-  /* ================= Firebase ================= */
+  /* ========== Firebase ========== */
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
   import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -150,9 +134,30 @@
     measurementId:"G-MK0RVFG296"
   };
   const app = initializeApp(firebaseConfig);
-  const db  = getFirestore(app);
+  const auth = getAuth(app);
+  const db   = getFirestore(app);
 
-  /* ================= DOM ================= */
+  const fbStatus = document.getElementById('fbStatus');
+  function showStatus(msg, ok=true){
+    fbStatus.textContent = msg;
+    fbStatus.style.display = 'block';
+    fbStatus.style.borderColor = ok ? '#c7d2fe' : '#fecaca';
+    setTimeout(()=>{ fbStatus.style.display='none'; }, 2000);
+  }
+
+  // 익명 로그인 후에 구독 시작
+  onAuthStateChanged(auth, (u)=>{
+    if (!u){
+      signInAnonymously(auth)
+        .then(()=>showStatus('Firebase 연결됨', true))
+        .catch(err=>showStatus('로그인 실패: '+(err?.code||''), false));
+    }else{
+      startSubscription();
+      showStatus('Firebase 연결됨', true);
+    }
+  });
+
+  /* ========== DOM & Utils ========== */
   const grid       = document.getElementById('grid');
   const empty      = document.getElementById('empty');
   const q          = document.getElementById('q');
@@ -160,7 +165,6 @@
   const dirToggle  = document.getElementById('dirToggle');
   const onlyRecent = document.getElementById('onlyRecent');
 
-  /* ================= Utils ================= */
   const escapeHtml = s => String(s??"").replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' }[m]));
   function formatPhone(raw){
     const v = String(raw||"").replace(/\D/g,'').slice(0,11);
@@ -175,31 +179,27 @@
 
   function coverClassByStatus(m){
     const dLeft = daysUntil(m.expireAt);
-    if (dLeft !== null && dLeft <= 7) return 'pink';   // 만료 임박
-    if (isRecent(m.lastLog))          return 'yellow'; // 최근 활동
+    if (dLeft !== null && dLeft <= 7) return 'pink';
+    if (isRecent(m.lastLog))          return 'yellow';
     return 'blue';
   }
   function firstCharGroup(name){
     const s = (name||"").trim();
     const ch = s[0] || "";
-    if (/[0-9]/.test(ch)) return 0;        // 숫자
-    if (/[A-Za-z]/.test(ch)) return 1;     // 영문
-    if (/[가-힣]/.test(ch)) return 2;      // 한글
-    return 3;                              // 기타
+    if (/[0-9]/.test(ch)) return 0;
+    if (/[A-Za-z]/.test(ch)) return 1;
+    if (/[가-힣]/.test(ch)) return 2;
+    return 3;
   }
-
   function cmpDate(a,b){
-    // a,b: "YYYY-MM-DD" | "" | null
     if (!a && !b) return 0;
     if (!a) return -1;
     if (!b) return 1;
     return a.localeCompare(b);
   }
 
-  /* ================= 상태 ================= */
-  let state = { members: [], dir: 'desc' }; // desc = 최근순/내림차
+  let state = { members: [], dir: 'desc' };
 
-  /* ================= 렌더 ================= */
   function render(list){
     grid.innerHTML = "";
     if (!list.length){ empty.hidden = false; return; }
@@ -220,12 +220,8 @@
       inner.setAttribute('aria-label', `${m.name} 바인더 열기`);
       wrap.appendChild(inner);
 
-      // 3D spine
-      const spine = document.createElement('div');
-      spine.className = 'spine';
-      inner.appendChild(spine);
+      const spine = document.createElement('div'); spine.className='spine'; inner.appendChild(spine);
 
-      // Cover content
       const coverEl = document.createElement('div');
       coverEl.className = 'cover';
       coverEl.innerHTML = `
@@ -242,11 +238,9 @@
               ? `<span class="badge expire">만료 D-${Math.max(0,dLeft)}</span>`
               : (recent ? `<span class="badge recent">최근 ${m.lastLog}</span>` : `<span class="badge ok">정상</span>`)
           }
-        </div>
-      `;
+        </div>`;
       inner.appendChild(coverEl);
 
-      // Overlay info
       const ov = document.createElement('div');
       ov.className = 'overlay';
       ov.innerHTML = `
@@ -259,51 +253,42 @@
           <div class="row"><span class="k">일지 수</span><span class="v">${m.logCount||0}회</span></div>
         </div>
         <div class="actions">
-          <button class="btn"        data-act="log">일지 열기</button>
-          <button class="btn"        data-act="sched">스케줄러 배치</button>
-          <button class="btn ghost"  data-act="main">메인으로</button>
-        </div>
-      `;
+          <button class="btn" data-act="log">일지 열기</button>
+          <button class="btn" data-act="sched">스케줄러 배치</button>
+          <button class="btn" data-act="main">메인으로</button>
+        </div>`;
       inner.appendChild(ov);
 
-      // Click actions
-      ov.addEventListener('click', (e)=>{
+      ov.addEventListener('click',(e)=>{
         const act = e.target?.dataset?.act;
-        if (!act) return;
-        if (act==='log')   location.href = `personal-training-log.html?id=${encodeURIComponent(m.id)}`;
-        if (act==='sched') location.href = `dashboard.html?memberId=${encodeURIComponent(m.id)}`;
-        if (act==='main')  location.href = `dashboard.html`;
+        if(!act) return;
+        if(act==='log')   location.href=`personal-training-log.html?id=${encodeURIComponent(m.id)}`;
+        if(act==='sched') location.href=`dashboard.html?memberId=${encodeURIComponent(m.id)}`;
+        if(act==='main')  location.href=`dashboard.html`;
         e.stopPropagation();
       });
-      // Click on cover = 일지 열기
       inner.addEventListener('click', ()=>{
         location.href = `personal-training-log.html?id=${encodeURIComponent(m.id)}`;
       });
 
-      // 3D tilt (살짝 뽑히는 느낌)
+      // 3D tilt
       let raf=0;
       function setTilt(ev){
-        const rect = inner.getBoundingClientRect();
-        const cx = rect.left + rect.width/2;
-        const cy = rect.top  + rect.height/2;
-        const dx = (ev.clientX - cx) / (rect.width/2);
-        const dy = (ev.clientY - cy) / (rect.height/2);
-        const rx = (+dy * 8);    // X로 기울기
-        const ry = (-dx * 10);   // Y로 기울기
-        inner.style.transform = `translateY(-6px) rotateX(${rx}deg) rotateY(${ry}deg)`;
+        const rect=inner.getBoundingClientRect();
+        const cx=rect.left+rect.width/2, cy=rect.top+rect.height/2;
+        const dx=(ev.clientX-cx)/(rect.width/2), dy=(ev.clientY-cy)/(rect.height/2);
+        inner.style.transform=`translateY(-6px) rotateX(${dy*8}deg) rotateY(${-dx*10}deg)`;
       }
       function resetTilt(){ inner.style.transform='translateY(0) rotateX(0) rotateY(0)'; }
-
       wrap.addEventListener('mousemove', e=>{ cancelAnimationFrame(raf); raf=requestAnimationFrame(()=>setTilt(e)); });
-      wrap.addEventListener('mouseleave', ()=>{ resetTilt(); });
+      wrap.addEventListener('mouseleave', resetTilt);
       wrap.addEventListener('focusin', ()=>{ inner.style.transform='translateY(-6px)'; });
-      wrap.addEventListener('focusout', ()=>{ resetTilt(); });
+      wrap.addEventListener('focusout', resetTilt);
 
       grid.appendChild(wrap);
     });
   }
 
-  /* ================= 필터/정렬 ================= */
   function filteredAndSorted(){
     const keyword = (q.value||"").trim().toLowerCase();
     const norm = s => String(s||"").toLowerCase();
@@ -322,71 +307,59 @@
 
     const by = sortSel.value;
     list.sort((a,b)=>{
-      if (by==='recent'){
-        return dir * cmpDate(b.lastLog||"", a.lastLog||""); // 최근 → 과거 (desc 기본)
-      }
-      if (by==='first'){
-        return dir * cmpDate(a.first||"", b.first||"");     // 등록일 오름차(asc가 자연스러움) / 토글 반영
-      }
-      if (by==='expire'){
-        return dir * cmpDate(a.expireAt||"", b.expireAt||"");
-      }
-      // 이름: 숫자→영문→가나다→기타, 동일 그룹 내 localeCompare(ko), 숫자 자연 정렬
+      if (by==='recent') return dir * cmpDate(b.lastLog||"", a.lastLog||"");
+      if (by==='first')  return dir * cmpDate(a.first||"", b.first||"");
+      if (by==='expire') return dir * cmpDate(a.expireAt||"", b.expireAt||"");
       if (by==='name'){
-        const ga = firstCharGroup(a.name), gb = firstCharGroup(b.name);
+        const ga=firstCharGroup(a.name), gb=firstCharGroup(b.name);
         if (ga !== gb) return dir * (ga - gb);
         return dir * a.name.localeCompare(b.name,'ko',{numeric:true,sensitivity:'base'});
       }
       return 0;
     });
-
     return list;
   }
+  function rerender(){ render(filteredAndSorted()); }
 
-  function rerender(){
-    render( filteredAndSorted() );
+  /* ========== Firestore 구독 (로그인 이후 시작) ========== */
+  function startSubscription(){
+    onSnapshot(collection(db, "members"), (snap)=>{
+      const list=[];
+      snap.forEach(docSnap=>{
+        const d = docSnap.data();
+        const createdAt = d.createdAt?.toDate ? d.createdAt.toDate() : null;
+        const first     = d.startDate || (createdAt ? dateToISO(createdAt) : "");
+        const expireAt  = d.expireAt?.toDate ? dateToISO(d.expireAt.toDate()) : (d.expireAt || "");
+        const lastLog   = d.lastLogAt?.toDate
+                          ? dateToISO(d.lastLogAt.toDate())
+                          : (d.lastPurchaseAt?.toDate ? dateToISO(d.lastPurchaseAt.toDate()) : "");
+        list.push({
+          id: docSnap.id,
+          name: d.name || "",
+          phone: d.phone || d.phoneDisplay || "",
+          trainer: d.trainer || "",
+          memo: d.memo || "",
+          first,
+          expireAt,
+          lastLog,
+          logCount: d.logCount || 0,
+          remainingSessions: d.remainingSessions ?? 0
+        });
+      });
+      state.members = list;
+      rerender();
+    }, (err)=>{
+      showStatus('Firestore 오류: '+(err?.code||err?.message||'알 수 없음'), false);
+    });
   }
 
-  /* ================= 실시간 구독 ================= */
-  onSnapshot(collection(db, "members"), (snap)=>{
-    const list = [];
-    snap.forEach(docSnap=>{
-      const d = docSnap.data();
-
-      const createdAt = d.createdAt?.toDate ? d.createdAt.toDate() : null;
-      const first     = d.startDate || (createdAt ? dateToISO(createdAt) : "");
-      const expireAt  = d.expireAt?.toDate ? dateToISO(d.expireAt.toDate()) : (d.expireAt || "");
-      const lastLog   = d.lastLogAt?.toDate
-                        ? dateToISO(d.lastLogAt.toDate())
-                        : (d.lastPurchaseAt?.toDate ? dateToISO(d.lastPurchaseAt.toDate()) : "");
-
-      list.push({
-        id: docSnap.id,
-        name: d.name || "",
-        phone: d.phone || d.phoneDisplay || "",
-        trainer: d.trainer || "",
-        memo: d.memo || "",
-        first,
-        expireAt,
-        lastLog,
-        logCount: d.logCount || 0,
-        remainingSessions: d.remainingSessions ?? 0
-      });
-    });
-
-    state.members = list;
-    rerender();
-  });
-
-  /* ================= UI 이벤트 ================= */
+  /* ========== UI 이벤트 ========== */
   q.addEventListener('input', rerender);
   sortSel.addEventListener('change', rerender);
   onlyRecent.addEventListener('change', rerender);
-
   dirToggle.addEventListener('click', (e)=>{
-    const btn = e.target.closest('button');
-    if (!btn) return;
-    state.dir = btn.dataset.dir; // 'asc' or 'desc'
+    const btn=e.target.closest('button'); if(!btn) return;
+    state.dir = btn.dataset.dir;
     [...dirToggle.children].forEach(x=>x.classList.toggle('active', x===btn));
     rerender();
   });
