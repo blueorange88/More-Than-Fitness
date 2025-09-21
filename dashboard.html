@@ -453,23 +453,61 @@
   })();
 
   function attachDelegation(){
-    const tb = document.querySelector('#scheduleTableCurr tbody');
-    tb.replaceWith(tb.cloneNode(true));               // 기존 리스너 제거
-    const tbn = document.querySelector('#scheduleTableCurr tbody');
+  const tb = document.querySelector('#scheduleTableCurr tbody');
+  tb.replaceWith(tb.cloneNode(true));                 // 기존 리스너 제거
+  const tbn = document.querySelector('#scheduleTableCurr tbody');
 
-    // 롱프레스 시작 (시간칸은 제외)
-    tbn.addEventListener('pointerdown', (e)=>{
+  // 롱프레스 시작 (시간칸 포함)
+  tbn.addEventListener('pointerdown', (e)=>{
+    const td = e.target.closest('td');
+    if (!td) return;
+    lpFired = false;
+
+    if (td.cellIndex === 0){
+      // 시간칸: 길게 누르면 시간 범위 팝업
+      td._longPressed = false;
+      td._holdTimer = setTimeout(()=>{
+        td._longPressed = true;
+        openRangePopup();
+      }, 600);
+    }else{
+      // 일반 칸: 길게 누르면 액션시트
+      lpTimer = setTimeout(()=>{
+        lpFired = true;
+        openCellSheet(td);
+      }, 600);
+    }
+  }, { passive:true });
+
+  // 롱프레스 취소
+  ['pointerup','pointerleave','pointercancel'].forEach(ev=>{
+    tbn.addEventListener(ev, (e)=>{
       const td = e.target.closest('td');
-      if (!td || td.cellIndex === 0) return;
-      lpFired = false;
-      lpTimer = setTimeout(()=>{ lpFired = true; openCellSheet(td); }, 600);
+      if (td && td._holdTimer){ clearTimeout(td._holdTimer); }
+      clearTimeout(lpTimer); lpTimer = null;
     }, { passive:true });
+  });
 
-    ['pointerup','pointerleave','pointercancel'].forEach(ev=>{
-      tbn.addEventListener(ev, ()=>{
-        clearTimeout(lpTimer); lpTimer = null;
-      }, { passive:true });
-    });
+  // 클릭 처리
+  tbn.addEventListener('click', (e)=>{
+    const td = e.target.closest('td');
+    if (!td) return;
+
+    // 시간칸 클릭 → 분 단위 설정 (단, 방금 롱프레스면 무시)
+    if (td.cellIndex === 0){
+      if (td._longPressed){ td._longPressed = false; return; }
+      openMinute(td);
+      return;
+    }
+
+    // 일반칸 클릭 → 레슨 팝업 (롱프레스 직후 클릭은 무시)
+    if (lpFired){ lpFired = false; return; }
+    $('cellSheet').style.display = 'none';
+    openLesson(td);
+  });
+
+  tbn.addEventListener('contextmenu', e=>e.preventDefault());
+}
 
     // ✅ 클릭: 시간칸 제외 → 레슨 팝업
     tbn.addEventListener('click', (e)=>{
