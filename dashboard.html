@@ -680,6 +680,8 @@ import {getFirestore, collection, addDoc, setDoc, deleteDoc, doc, serverTimestam
         remainingSessions:0, totalSessionsPurchased:0,
         noShowDeducted:0, noShowUndeducted:0
       },{merge:true});
+      membersCache.set(phoneRaw, { name, remainingSessions: 0 });  // ← 캐시에 넣기
+      window.refreshMembersDatalist && window.refreshMembersDatalist(); // ← 목록 갱신
       toast("빠른 등록 완료");
       document.getElementById('quickName').value=""; document.getElementById('quickPhone').value="";
       document.getElementById('popupOverlay').click();
