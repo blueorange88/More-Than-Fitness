@@ -615,7 +615,7 @@
   <!-- ===== Firebase / 저장 & 자동소진 (네 프로젝트 설정 적용됨) ===== -->
   <script type="module">
   import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
-  import { getFirestore, collection, addDoc, setDoc, deleteDoc, doc, serverTimestamp, updateDoc, increment, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+import {getFirestore, collection, addDoc, setDoc, deleteDoc, doc, serverTimestamp,updateDoc, increment, query, where, getDocs, /* 추가 */ getDoc} from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
   import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
 
   /* 👉 네가 준 실제 프로젝트 설정 */
@@ -691,6 +691,56 @@
     if(v.length<=7)return v.slice(0,3)+'-'+v.slice(3);
     return v.slice(0,3)+'-'+v.slice(3,7)+'-'+v.slice(7);
   }
+  // 🔽 여기부터 붙이기 (중복 선언 방지!)
+  const membersCache = new Map();
+
+  window.refreshMembersDatalist = function(){
+    const dl = document.getElementById('membersList');
+    if(!dl) return;
+    dl.innerHTML = '';
+    membersCache.forEach((m,id)=>{
+      const opt = document.createElement('option');
+      opt.value = id;
+      opt.label = `${m?.name||''} (${formatPhone(id)}) · 잔여 ${m?.remainingSessions||0}`;
+      dl.appendChild(opt);
+    });
+  };
+const memberIdEl = document.getElementById('memberIdInput');
+if (memberIdEl) {
+  memberIdEl.addEventListener('change', onMemberPicked);
+  memberIdEl.addEventListener('blur', onMemberPicked);
+}
+
+async function onMemberPicked(){
+  const id = (memberIdEl.value||'').replace(/\D/g,'');
+  if(!id) return;
+
+  // 캐시 → 없으면 단건 조회
+  let m = membersCache.get(id);
+  if(!m){
+    try{
+      const ref = doc(db,'members',id);
+      const ds  = await getDoc(ref);
+      if(ds.exists()){ m = ds.data(); membersCache.set(id, m); refreshMembersDatalist(); }
+    }catch(e){ console.error(e); }
+  }
+  if(!m) return;
+
+  // 이름이 비어있으면 채우기
+  const nameEl = document.getElementById('nameInput');
+  if(nameEl && !nameEl.value) nameEl.value = m.name || '';
+
+  // 팝업 배지에 잔여 표시
+  showRemainBadge(m.remainingSessions);
+}
+
+function showRemainBadge(remain){
+  const hint = document.getElementById('slotHint');
+  if (!hint) return;
+  const base = (hint.textContent||'').split(' · ')[0]; // "월 09:00"
+  hint.textContent = `${base} · 잔여 ${remain ?? 0}`;
+  hint.style.display = 'inline-block';
+}
 
   /* 롱프레스 액션: 소진/노쇼 */
   window.consumeAdjust = async (memberId,deltaRemain,flagUpdate,td)=>{
