@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>고객 카드 – 세로 바인더</title>
 <style>
   :root{
@@ -30,38 +30,62 @@
   .toggle button{padding:8px 10px;border:0;background:#fff;cursor:pointer}
   .toggle button.active{background:var(--navy);color:#fff}
 
-  /* Shelf layout */
   main{padding:18px}
-  .shelf{display:flex;flex-direction:column;gap:32px}
-  .rowWrap{display:flex;align-items:flex-end;gap:0;position:relative}
-  .rowWrap::after{content:"";position:absolute;left:0;right:0;bottom:-10px;height:8px;border-radius:8px;background:linear-gradient(180deg,#e5e7eb,#cbd5e1);} /* 선반 그림자 */
+  .shelf{display:flex;flex-direction:column;gap:56px; /* 선반 간격 넉넉히 */ }
+
+  /* ── 서류 받침대(책꽂이) 비주얼 ───────────────────────── */
+  .rowWrap{
+    position:relative;
+    display:flex;align-items:flex-end;gap:0;
+    transform:perspective(1200px) rotateX(6deg);  /* 대각선 구도(선반 전체가 살짝 기울어짐) */
+  }
+  /* 받침대 본체 */
+  .rowWrap::before{
+    content:""; position:absolute; left:0; bottom:-6px; width:120px; height:300px;
+    background:linear-gradient(180deg,#fff,#eef2f7);
+    border:1px solid #e2e8f0; border-radius:16px 16px 10px 10px;
+    box-shadow:0 8px 26px rgba(0,0,0,.12);
+    transform:skewY(-4deg) rotateZ(-2deg);  /* 사선 느낌 */
+  }
+  /* 손잡이 구멍 */
+  .rowWrap::after{
+    content:""; position:absolute; left:22px; bottom:110px; width:68px; height:120px;
+    background:var(--under); border-radius:40px/60px; box-shadow:inset 0 0 0 1px #e2e8f0;
+    transform:skewY(-4deg) rotateZ(-2deg);
+  }
+
   .empty{padding:40px 16px;text-align:center;color:var(--muted)}
 
-  /* Vertical file (binder) */
+  /* ── 바인더(세로 파일) ─────────────────────────────── */
   .file{
-    width:280px;height:380px; /* 크게 */
-    margin-left:-56px; /* 겹치기 */
-    position:relative;will-change:transform;
-    transition:transform .18s ease, box-shadow .18s ease, z-index .18s ease;
+    width:280px; height:380px;
+    margin-left:-170px;                  /* ★ 더 겹치게: 크게 음수 */
+    position:relative; will-change:transform;
+    transition:transform .18s ease, box-shadow .18s ease, z-index .18s ease, margin .18s ease;
     z-index:0;
+    transform:rotateZ(-6deg);            /* ★ 기본도 살짝 기울임(대각선 구도) */
   }
-  .file:first-child{margin-left:0}
-  .file:focus-within,.file:hover{z-index:10;transform:translateX(46px) translateY(-8px) rotateY(-14deg);} /* 뽑히는 느낌 */
-  .file .book{
-    position:absolute;inset:0;border-radius:12px;
-    background:linear-gradient(135deg,#f8fafc,#eef2f7);
-    border:1px solid var(--line);box-shadow:0 6px 14px rgba(0,0,0,.08);
-    transform-style:preserve-3d;overflow:hidden;cursor:pointer;outline:0;
+  .file:first-child{margin-left:140px}   /* 받침대 공간만큼 띄우고 시작 */
+  .file:focus-within,.file:hover{
+    z-index:10;
+    transform:translateX(70px) translateY(-10px) rotateY(-18deg) rotateZ(-1deg); /* ★ 더 세게 ‘쏙’ 뽑히기 */
   }
 
-  /* 색상 버전 (상태에 따라) */
+  .book{
+    position:absolute;inset:0;border-radius:12px;
+    background:linear-gradient(135deg,#f8fafc,#eef2f7);
+    border:1px solid var(--line);
+    box-shadow:0 6px 14px rgba(0,0,0,.08);
+    transform-style:preserve-3d;overflow:hidden;cursor:pointer;outline:0;
+  }
+  /* 상태별 색감 */
   .book.blue{background:linear-gradient(135deg,#eef2ff,#e2e8f0)}
   .book.yellow{background:linear-gradient(135deg,#fff7ed,#fde68a)}
   .book.pink{background:linear-gradient(135deg,#ffe4e6,#fecaca)}
 
   /* 두꺼운 등(spine) */
   .spine{
-    position:absolute;left:-18px;top:0;bottom:0;width:26px;border-radius:8px 0 0 8px;
+    position:absolute;left:-20px;top:0;bottom:0;width:28px;border-radius:8px 0 0 8px;
     background:linear-gradient(90deg,#e2e8f0,#cbd5e1);
     box-shadow:inset -3px 0 8px rgba(0,0,0,.12);
     transform:translateZ(-30px) rotateY(22deg);
@@ -95,6 +119,17 @@
   .banner{position:fixed;left:50%;top:10px;transform:translateX(-50%);
           background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 12px;
           color:#334155;font-size:12px;box-shadow:0 6px 16px rgba(0,0,0,.12);display:none}
+
+  /* 반응형: 화면 좁을 때 겹침 정도 완화 */
+  @media (max-width: 840px){
+    .file{width:230px;height:320px;margin-left:-120px}
+    .file:first-child{margin-left:120px}
+  }
+  @media (max-width: 600px){
+    .rowWrap{transform:none}
+    .file{transform:none;margin-left:12px}
+    .file:first-child{margin-left:12px}
+  }
 </style>
 </head>
 <body>
@@ -113,7 +148,7 @@
         정렬:
         <select id="sortBy" aria-label="정렬 기준">
           <option value="recent" selected>최근 작성</option>
-          <option value="name">이름 (숫자→영문→가나다)</option>
+          <option value="name">이름 (가나다 → 영문 → 숫자)</option>
           <option value="first">최초 등록일</option>
           <option value="expire">만료일</option>
         </select>
@@ -133,7 +168,7 @@
     <div id="shelf" class="shelf" aria-live="polite"></div>
     <div id="empty" class="empty" hidden>검색 결과가 없어요.</div>
   </main>
-  <div class="footer">Tip: 파일에 마우스를 올리면 살짝 ‘뽑혀’ 정보가 보입니다. 파일을 클릭하면 일지로 이동해요.</div>
+  <div class="footer">Tip: 파일에 마우스를 올리면 ‘세게’ 뽑혀 보입니다. 클릭하면 일지로 이동하고, 패널 버튼으로 스케줄러/메인 이동이 가능해요.</div>
   <div class="banner" id="fbStatus"></div>
 
   <script type="module">
@@ -200,25 +235,22 @@
     if (isRecent(m.lastLog))          return 'yellow';   // 최근 작성
     return 'blue';
   }
-  function firstCharGroup(name){
-    const s = (name||"").trim();
-    const ch = s[0] || "";
-    if (/[0-9]/.test(ch)) return 0;     // 숫자
-    if (/[A-Za-z]/.test(ch)) return 1;  // 영문
-    if (/[가-힣]/.test(ch)) return 2;   // 한글
+
+  /* 이름 그룹: 가나다(0) → 영문(1) → 숫자(2) → 기타(3) */
+  function nameGroup(name){
+    const s=(name||"").trim(); const ch=s[0]||"";
+    if (/[가-힣]/.test(ch)) return 0;
+    if (/[A-Za-z]/.test(ch)) return 1;
+    if (/[0-9]/.test(ch)) return 2;
     return 3;
   }
-  function cmpDate(a,b){
-    if (!a && !b) return 0;
-    if (!a) return -1;
-    if (!b) return 1;
-    return a.localeCompare(b);
+  function cmpDateAsc(a,b){
+    if (!a && !b) return 0; if (!a) return -1; if (!b) return 1; return a.localeCompare(b);
   }
 
   let state = { members: [], dir: 'desc' };
+  const PER_ROW = 4;
 
-  /* ===== 렌더링 (행마다 겹치기) ===== */
-  const PER_ROW = 4; // 한 행에 4개 → 겹침 안정
   function render(list){
     shelf.innerHTML = "";
     if (!list.length){ emptyEl.hidden = false; return; }
@@ -231,7 +263,7 @@
       list.slice(i, i+PER_ROW).forEach((m, idx)=>{
         const file = document.createElement('article');
         file.className = 'file';
-        if (idx===0) file.style.marginLeft = '0';
+        if (idx===0) file.style.marginLeft = '140px'; /* 첫 파일만 받침대 공간 */
 
         const book = document.createElement('div');
         book.className = `book ${coverClassByStatus(m)}`;
@@ -315,12 +347,12 @@
 
     const by = sortSel.value;
     list.sort((a,b)=>{
-      if (by==='recent') return dir * cmpDate(b.lastLog||"", a.lastLog||"");
-      if (by==='first')  return dir * cmpDate(a.first||"", b.first||"");
-      if (by==='expire') return dir * cmpDate(a.expireAt||"", b.expireAt||"");
+      if (by==='recent') return dir * cmpDateAsc(b.lastLog||"", a.lastLog||"");
+      if (by==='first')  return dir * cmpDateAsc(a.first||"", b.first||"");
+      if (by==='expire') return dir * cmpDateAsc(a.expireAt||"", b.expireAt||"");
       if (by==='name'){
-        const ga=firstCharGroup(a.name), gb=firstCharGroup(b.name);
-        if (ga !== gb) return dir * (ga - gb);
+        const ga=nameGroup(a.name), gb=nameGroup(b.name);
+        if (ga !== gb) return dir * (ga - gb);  // 가나다(0) → 영문(1) → 숫자(2)
         return dir * a.name.localeCompare(b.name,'ko',{numeric:true,sensitivity:'base'});
       }
       return 0;
