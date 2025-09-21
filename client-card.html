@@ -10,6 +10,11 @@
     --line:#e5e7eb; --card:#ffffff; --danger:#ef4444; --danger-bg:#fee2e2;
     --ok:#2563eb; --track:#e5e7eb;
     --shelf:#f3f4f6; --shelf-edge:#e5e7eb;
+
+    /* 크기/겹침(반응형에서 바뀜) */
+    --binder-w: 280px;
+    --binder-h: 460px;
+    --binder-overlap: -140px;
   }
   *{box-sizing:border-box}
   body{
@@ -34,7 +39,7 @@
   .tools select, .tools button{
     border:1px solid var(--line); border-radius:10px; padding:8px 10px; background:#fff; font-size:13px; cursor:pointer;
   }
-  .tools button.tgl{min-width:84px}
+  .tools button.tgl{min-width:92px}
   .back{
     margin-left:auto; border-color:#cbd5e1; background:#0B1E3A; color:#fff; font-weight:700;
   }
@@ -49,6 +54,7 @@
       linear-gradient(#fff, #fff) border-box;
     border-top:1px solid var(--shelf-edge); border-bottom:1px solid var(--shelf-edge);
     background-color:var(--shelf);
+    scroll-snap-type:x proximity;
   }
   .shelf::before, .shelf::after{
     content:""; position:sticky; left:0; width:40px; flex:0 0 40px; height:100%; pointer-events:none;
@@ -58,41 +64,50 @@
 
   /* ===== Binder (big, overlapped, 3D) ===== */
   .binder{
-    position:relative; width:280px; height:460px;
-    margin-left:-140px; /* 크게 겹치게 */
+    position:relative;
+    width:var(--binder-w);
+    height:var(--binder-h);
+    margin-left:var(--binder-overlap);      /* ← 겹침 정도 */
     border-radius:14px; cursor:pointer; user-select:none; outline:0;
     transform:translateZ(0) rotateY(-12deg) translateY(6px);
-    transform-origin:left center;
-    box-shadow:
-      -8px 0 0 rgba(0,0,0,.06) inset,
-      0 8px 20px rgba(0,0,0,.08);
+    transform-origin:left center; will-change:transform, filter;
+    box-shadow:-8px 0 0 rgba(0,0,0,.06) inset, 0 8px 20px rgba(0,0,0,.08);
     transition:transform .28s cubic-bezier(.2,.8,.2,1), box-shadow .28s, filter .28s, z-index .28s;
     background:linear-gradient(160deg, #9ec5ff 0%, #6aa0ff 55%, #3a6ddf 100%);
     border:1px solid rgba(0,0,0,.06);
     color:#0b1220;
+    scroll-snap-align:start;
   }
   .binder:first-child{ margin-left:8px; }
   .binder:hover, .binder:focus-visible{
     z-index:9;
     transform:translateY(-14px) rotateY(-2deg) scale(1.04);
-    box-shadow:
-      -10px 0 0 rgba(255,255,255,.18) inset,
-      0 22px 40px rgba(0,0,0,.22);
+    box-shadow:-10px 0 0 rgba(255,255,255,.18) inset, 0 22px 40px rgba(0,0,0,.22);
     filter:saturate(1.05);
   }
-  /* 스파인/구멍 */
+  /* 스파인(책등) */
   .binder::before{
     content:""; position:absolute; left:0; top:0; bottom:0; width:24px; border-radius:14px 0 0 14px;
     background:linear-gradient(180deg, rgba(255,255,255,.22), rgba(0,0,0,.1));
     box-shadow:2px 0 6px rgba(0,0,0,.12) inset;
   }
+  .spine-label{
+    position:absolute; left:4px; top:48px; bottom:48px; width:20px;
+    writing-mode:vertical-rl; text-orientation:mixed; transform:rotate(180deg);
+    font-weight:900; font-size:12px; letter-spacing:.5px; color:rgba(0,0,0,.7);
+    text-shadow:0 1px 0 rgba(255,255,255,.6);
+    overflow:hidden;
+  }
   .holes{position:absolute; left:8px; bottom:18px; display:grid; gap:8px}
   .hole{width:8px; height:8px; border-radius:50%; background:rgba(0,0,0,.22); box-shadow:0 1px 0 rgba(255,255,255,.5) inset}
 
   /* 상단 이름/배지 */
-  .head{display:flex; align-items:center; justify-content:space-between; padding:16px 16px 8px 36px}
+  .head{display:flex; align-items:flex-start; justify-content:space-between; padding:16px 16px 8px 36px}
   .name{font-weight:900; font-size:19px; color:#0b1220; text-shadow:0 1px 0 rgba(255,255,255,.35)}
   .name .suffix{margin-left:4px; font-weight:800; color:#1f2937; font-size:15px}
+  .name-wrap{display:flex; flex-direction:column; gap:2px}
+  .sub-sessions{font-size:12px; font-weight:800; color:#334155; opacity:.9}
+
   .badges{display:flex; gap:6px; align-items:center}
   .badge{
     font-size:11px; padding:3px 8px; border-radius:999px; background:rgba(255,255,255,.65);
@@ -118,14 +133,12 @@
   .row{display:flex; gap:6px}
   .row .label{width:66px; color:#334155; font-weight:700}
   .row .value{flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-  .name-wrap{display:flex;flex-direction:column;gap:2px}
-  .sub-sessions{font-size:12px;color:#334155;opacity:.9;margin-top:2px}
+
   /* 프로그레스 링 */
   .ring{
     --pct: 0; /* 0~100 */
     width:84px; height:84px; border-radius:50%;
-    background:
-      conic-gradient(var(--ok) calc(var(--pct)*1%), var(--track) 0);
+    background:conic-gradient(var(--ok) calc(var(--pct)*1%), var(--track) 0);
     display:grid; place-items:center; margin:2px 8px 6px auto; border:6px solid rgba(255,255,255,.6);
     box-shadow:0 2px 10px rgba(0,0,0,.08) inset, 0 6px 14px rgba(0,0,0,.08);
   }
@@ -155,9 +168,7 @@
 
   /* 잔여 0 강조 + 전체 카드 경고 */
   .binder.zero{
-    box-shadow:
-      -12px 0 0 rgba(239,68,68,.15) inset,
-      0 22px 40px rgba(239,68,68,.25);
+    box-shadow:-12px 0 0 rgba(239,68,68,.15) inset, 0 22px 40px rgba(239,68,68,.25);
     filter:saturate(1.05) contrast(1.03);
   }
 
@@ -170,8 +181,48 @@
   .c6{background:linear-gradient(160deg,#fecaca,#f87171,#ef4444)}
   .c7{background:linear-gradient(160deg,#c7d2fe,#818cf8,#4f46e5)}
 
-  /* Empty */
+  /* 빈 표시 */
   .empty{padding:40px 16px; text-align:center; color:var(--muted)}
+
+  /* 반응형: 더 작아질수록 폭/높이 줄이고 겹침 완화 */
+  @media (max-width: 860px){
+    :root{ --binder-w: 220px; --binder-h: 380px; --binder-overlap: -96px; }
+  }
+  @media (max-width: 540px){
+    :root{ --binder-w: 180px; --binder-h: 310px; --binder-overlap: -78px; }
+  }
+  @media (max-width: 420px){
+    :root{ --binder-w: 160px; --binder-h: 280px; --binder-overlap: -64px; }
+    .head{padding-left:30px}
+    .binder::before{width:22px}
+  }
+
+  /* 다크 모드 파스텔 */
+  @media (prefers-color-scheme: dark){
+    body{ background:linear-gradient(#0b1220,#101826); color:#e5e7eb; }
+    header{ background:linear-gradient(#0f172a,#0b1220); border-bottom-color:#475569; }
+    .tools input[type="search"], .tools select, .tools button{
+      background:#0f172a; color:#e5e7eb; border-color:#374151;
+    }
+    .shelf{
+      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.02));
+      border-top-color:#374151; border-bottom-color:#374151;
+    }
+    .binder{ color:#eef2ff; border-color:rgba(255,255,255,.06);
+             box-shadow:-8px 0 0 rgba(0,0,0,.45) inset, 0 12px 28px rgba(0,0,0,.65); }
+    .panel{ background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.1); }
+    .badge{ background:rgba(255,255,255,.1); border-color:rgba(255,255,255,.16); color:#e5e7eb; }
+    .row .label{ color:#cbd5e1; }
+    .sub-sessions{ color:#cbd5e1; }
+
+    .c1{background:linear-gradient(160deg,#baf7d6,#84e8ba,#4fc79a)}
+    .c2{background:linear-gradient(160deg,#fde6a6,#f8cf7a,#e8b15a)}
+    .c3{background:linear-gradient(160deg,#cfe1ff,#9cc0ff,#6a99ff)}
+    .c4{background:linear-gradient(160deg,#f6d1ea,#efa6cd,#e07fb6)}
+    .c5{background:linear-gradient(160deg,#e3d9ff,#c8beff,#a79eff)}
+    .c6{background:linear-gradient(160deg,#ffcfd1,#ff9fb0,#ff7a8a)}
+    .c7{background:linear-gradient(160deg,#d5dbff,#b6c0ff,#8e9aff)}
+  }
 </style>
 </head>
 <body>
@@ -200,10 +251,9 @@
   </section>
 
   <script type="module">
-
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
   import { getFirestore, collection, onSnapshot, doc, updateDoc, increment,
-    query, where, /*orderBy, limit,*/ getDocs } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+           query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
   import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
 
   /* ===== Firestore ===== */
@@ -228,11 +278,12 @@
 
   /* ===== Utils ===== */
   const collator = new Intl.Collator('ko-KR',{numeric:true,sensitivity:'base'});
-  const escapeHtml = s => String(s??"").replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' }[m]));
+  const escapeHtml = s => String(s ?? "").replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' }[m]));
   const p2 = n => String(n).padStart(2,'0');
   const todayISO = () => { const d = new Date(); return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`; };
   const nowHM = () => { const d=new Date(); return `${p2(d.getHours())}:${p2(d.getMinutes())}`; };
-  const toISO = ts => ts?.toDate ? ts.toDate().toISOString().slice(0,10) : (typeof ts==='string'? ts : "");
+  const toISO = ts => ts?.toDate ? ts.toDate().toISOString().slice(0,10) : (typeof ts==='string' ? ts : "");
+
   // 다음 생일/기념일까지 D-day (<=30이면 숫자, 아니면 null)
   function daysUntilAnnual(dateStr){
     if(!dateStr) return null;
@@ -247,33 +298,29 @@
   const COLORS = ['c1','c2','c3','c4','c5','c6','c7'];
   const colorClass = name => COLORS[Math.abs([...String(name||'')].reduce((a,c)=> (a*31 + c.charCodeAt(0))|0,7)) % COLORS.length];
 
-  // 다음 예약 조회 (memberId 기준)
- async function fetchNextSchedule(memberId){
-  try{
-    // where만 사용 (orderBy/limit 제거 → 인덱스 필요 없음)
-    const qy = query(collection(db,'schedules'), where('memberId','==', memberId));
-    const snap = await getDocs(qy);
+  // 다음 예약 조회 (memberId 기준) — where만 사용하고 로컬 정렬
+  async function fetchNextSchedule(memberId){
+    try{
+      const qy = query(collection(db,'schedules'), where('memberId','==', memberId));
+      const snap = await getDocs(qy);
 
-    const today = todayISO(), now = nowHM();
-    const list = [];
-    snap.forEach(ds=>{
-      const s = ds.data();
-      const d = String(s.date||''); const st = String(s.start||'00:00');
-      if (d > today || (d===today && st >= now)) list.push({date:d,start:st});
-    });
-    list.sort((a,b)=> (a.date===b.date ? a.start.localeCompare(b.start) : a.date.localeCompare(b.date)));
-    return list[0] ? `${list[0].date} ${list[0].start}` : null;
-  }catch(e){
-    console.error(e);
-    return null;
+      const today = todayISO(), now = nowHM();
+      const list = [];
+      snap.forEach(ds=>{
+        const s = ds.data();
+        const d = String(s.date||''); const st = String(s.start||'00:00');
+        if (d > today || (d===today && st >= now)) list.push({date:d,start:st});
+      });
+      list.sort((a,b)=> (a.date===b.date ? a.start.localeCompare(b.start) : a.date.localeCompare(b.date)));
+      return list[0] ? `${list[0].date} ${list[0].start}` : '-';
+    }catch(e){
+      console.error(e);
+      return '-';
+    }
   }
-}
 
   /* ===== State ===== */
-  let state = {
-    orderAsc: true,
-    members: []
-  };
+  let state = { orderAsc: true, members: [] };
 
   /* ===== Render ===== */
   function render(list){
@@ -292,28 +339,29 @@
       art.setAttribute('role','button');
       art.setAttribute('aria-label', `${m.name} 고객 카드`);
 
-      // 상단 배지: 만료 임박, 최근작성, 생일/기념일
       const dLeft = m.expireAt ? Math.ceil((new Date(m.expireAt) - new Date(todayISO()))/86400000) : null;
       let rightBadge = `<span class="badge">${escapeHtml(m.grade||"")}</span>`;
       if (m.lastLog) rightBadge = `<span class="badge">최근 ${m.lastLog}</span>`;
       if (dLeft !== null && dLeft <= 7) rightBadge = `<span class="badge danger">만료 D-${Math.max(dLeft,0)}</span>`;
 
-      // 생일/기념일 (30일 이내)
       const cakeDays = daysUntilAnnual(m.birthday) ?? daysUntilAnnual(m.anniversary);
       const cakeBadge = cakeDays!==null ? `<span class="badge cake">🎂 D-${cakeDays}</span>` : '';
 
+      const spineTxt = (m.name || '').slice(0,6);
+
       art.innerHTML = `
-    <div class="head">
-    <div class="name-wrap">
-    <div class="name">${escapeHtml(m.name)} <span class="suffix">고객님</span></div>
-    <!-- 요청하신 형식: (총/남은) -->
-    <div class="sub-sessions">(${m.total||0}/${m.remaining||0})</div>
-    </div>
-    <div class="badges">
-    ${cakeBadge}
-    ${rightBadge}
-    </div>
-    </div>
+        <div class="spine-label">${escapeHtml(spineTxt)}</div>
+
+        <div class="head">
+          <div class="name-wrap">
+            <div class="name">${escapeHtml(m.name)} <span class="suffix">고객님</span></div>
+            <div class="sub-sessions">(${m.total||0}/${m.remaining||0})</div>
+          </div>
+          <div class="badges">
+            ${cakeBadge}
+            ${rightBadge}
+          </div>
+        </div>
 
         <div class="panel">
           <div style="display:flex; align-items:center; gap:8px;">
@@ -347,7 +395,7 @@
         </div>
       `;
 
-      // 액션들
+      // 액션
       art.querySelector('[data-act="journal"]').addEventListener('click', (e)=>{
         e.stopPropagation();
         location.href = `personal-training-log.html?id=${encodeURIComponent(m.id)}`;
@@ -369,14 +417,14 @@
         location.href = `personal-training-log.html?id=${encodeURIComponent(m.id)}`;
       });
 
-      // 다음 예약 비동기 로드 (호버할 때만 조회 → 가볍게)
+      // 다음 예약 비동기 로드 (호버/포커스 시점)
       let fetched = false;
       const ensureNext = async ()=>{
         if (fetched) return;
         fetched = true;
         const nx = await fetchNextSchedule(m.id);
         const tgt = art.querySelector(`#nx-${m.id}`);
-        if (tgt) tgt.textContent = nx || '-';
+        if (tgt) tgt.textContent = nx;
       };
       art.addEventListener('mouseenter', ensureNext, {passive:true});
       art.addEventListener('focus', ensureNext, {passive:true});
@@ -401,10 +449,10 @@
 
     list.sort((a,b)=>{
       if(by==='name')   return dir * collator.compare(a.name, b.name);
-      if(by==='recent') return dir * ( (b.lastLog||'').localeCompare(a.lastLog||'') );
-      if(by==='remain') return dir * ( (a.remaining||0) - (b.remaining||0) );
-      if(by==='first')  return dir * ( (a.first||'').localeCompare(b.first||'') );
-      if(by==='expire') return dir * ( (a.expireAt||'').localeCompare(b.expireAt||'') );
+      if(by==='recent') return dir * ((b.lastLog||'').localeCompare(a.lastLog||''));
+      if(by==='remain') return dir * ((a.remaining||0) - (b.remaining||0));
+      if(by==='first')  return dir * ((a.first||'').localeCompare(b.first||''));
+      if(by==='expire') return dir * ((a.expireAt||'').localeCompare(b.expireAt||''));
       return 0;
     });
 
@@ -420,17 +468,23 @@
   qEl.addEventListener('input', filterSort);
   sortSel.addEventListener('change', filterSort);
 
-  /* ===== Subscribe members ===== */
+  /* ===== Subscribe members (익명 로그인 후) ===== */
+  const auth = getAuth(app);
+  onAuthStateChanged(auth, (u)=>{
+    if (u) startMembers();
+    else signInAnonymously(auth).catch((e)=>{
+      console.error(e);
+      empty.textContent='로그인 실패로 데이터를 볼 수 없어요.'; empty.hidden=false;
+    });
+  });
 
-  // ---- Firestore 구독을 시작하는 함수 ----
-  function subscribeMembers(){
+  function startMembers(){
     onSnapshot(
       collection(db,'members'),
       (snap)=>{
         const list=[];
         snap.forEach(ds=>{
           const d=ds.data();
-          const toISO=ts=>ts?.toDate?ts.toDate().toISOString().slice(0,10):(typeof ts==='string'?ts:"");
           list.push({
             id: ds.id,
             name: d.name || "",
@@ -451,27 +505,10 @@
       },
       (err)=>{
         console.error(err);
-        const empty=document.getElementById('empty');
-        empty.textContent = '데이터를 불러오지 못했어요. (권한/네트워크 확인)';
-        empty.hidden = false;
+        empty.textContent = '데이터를 불러오지 못했어요. (권한/네트워크 확인)'; empty.hidden = false;
       }
     );
   }
-
-  // ---- 익명 로그인 후 구독 시작 ----
-  const auth = getAuth(app);
-  onAuthStateChanged(auth, (u)=>{
-    if (u) {
-      subscribeMembers();
-    } else {
-      signInAnonymously(auth).catch((e)=>{
-        console.error(e);
-        const empty=document.getElementById('empty');
-        empty.textContent='로그인 실패로 데이터를 볼 수 없어요.';
-        empty.hidden=false;
-      });
-    }
-  });
   </script>
 </body>
 </html>
