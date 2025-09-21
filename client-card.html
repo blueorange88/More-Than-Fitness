@@ -12,9 +12,9 @@
     --shelf:#f3f4f6; --shelf-edge:#e5e7eb;
 
     /* 크기/겹침(반응형에서 바뀜) */
-    --binder-w: 280px;
-    --binder-h: 460px;
-    --binder-overlap: -140px;
+    --binder-w: 320px;
+    --binder-h: 520px;
+    --binder-overlap: -180px;
   }
   *{box-sizing:border-box}
   body{
@@ -45,7 +45,21 @@
   }
 
   /* ===== Shelf ===== */
-  .shelf-wrap{padding:18px 0 28px}
+  .shelf-wrap{position:relative; padding:18px 0 28px}
+  /* 선반 위/아래 실제 그림자 (바닥에 드리운 느낌) */
+  .shelf-wrap::before{
+    content:""; position:absolute; left:0; right:0; top:6px; height:18px; pointer-events:none;
+    background:
+      radial-gradient(80% 14px at 50% 0, rgba(0,0,0,.18), rgba(0,0,0,0) 70%);
+    filter: blur(2px);
+  }
+  .shelf-wrap::after{
+    content:""; position:absolute; left:0; right:0; bottom:2px; height:24px; pointer-events:none;
+    background:
+      radial-gradient(70% 18px at 50% 100%, rgba(0,0,0,.22), rgba(0,0,0,0) 70%);
+    filter: blur(2px);
+  }
+
   .shelf{
     position:relative; display:flex; gap:0; padding:26px 22px;
     overflow-x:auto; overflow-y:visible; scrollbar-width:thin;
@@ -63,11 +77,20 @@
   .shelf::after{ left:auto; right:0; background:linear-gradient(270deg,#f9fafb,rgba(249,250,251,0)); }
 
   /* ===== Binder (big, overlapped, 3D) ===== */
+  @keyframes breathe {
+    0%,100% { filter:saturate(1.0) brightness(1.00); }
+    50%     { filter:saturate(1.10) brightness(1.06); }
+  }
+  @keyframes glowPulse {
+    0%,100%{ box-shadow:-10px 0 0 rgba(255,255,255,.18) inset, 0 22px 40px rgba(0,0,0,.22); }
+    50%    { box-shadow:-12px 0 0 rgba(255,255,255,.25) inset, 0 28px 60px rgba(0,0,0,.28); }
+  }
+
   .binder{
     position:relative;
     width:var(--binder-w);
     height:var(--binder-h);
-    margin-left:var(--binder-overlap);      /* ← 겹침 정도 */
+    margin-left:var(--binder-overlap);
     border-radius:14px; cursor:pointer; user-select:none; outline:0;
     transform:translateZ(0) rotateY(-12deg) translateY(6px);
     transform-origin:left center; will-change:transform, filter;
@@ -79,11 +102,13 @@
     scroll-snap-align:start;
   }
   .binder:first-child{ margin-left:8px; }
-  .binder:hover, .binder:focus-visible{
+  .binder:hover,
+  .binder:focus-visible{
     z-index:9;
     transform:translateY(-14px) rotateY(-2deg) scale(1.04);
     box-shadow:-10px 0 0 rgba(255,255,255,.18) inset, 0 22px 40px rgba(0,0,0,.22);
     filter:saturate(1.05);
+    animation:breathe 2.6s ease-in-out infinite;
   }
   /* 스파인(책등) */
   .binder::before{
@@ -91,13 +116,44 @@
     background:linear-gradient(180deg, rgba(255,255,255,.22), rgba(0,0,0,.1));
     box-shadow:2px 0 6px rgba(0,0,0,.12) inset;
   }
-  .spine-label{
-    position:absolute; left:4px; top:48px; bottom:48px; width:20px;
-    writing-mode:vertical-rl; text-orientation:mixed; transform:rotate(180deg);
-    font-weight:900; font-size:12px; letter-spacing:.5px; color:rgba(0,0,0,.7);
-    text-shadow:0 1px 0 rgba(255,255,255,.6);
-    overflow:hidden;
+  /* 모서리 반짝(코너 하이라이트 + 대각선 스윕용 레이어) */
+  .binder::after{
+    content:""; position:absolute; inset:0; pointer-events:none; border-radius:14px;
+    background:
+      radial-gradient(28px 28px at calc(100% - 10px) 10px, rgba(255,255,255,.65), rgba(255,255,255,0) 70%) top right / 40% 40% no-repeat,
+      radial-gradient(22px 22px at 12px calc(100% - 12px), rgba(255,255,255,.35), rgba(255,255,255,0) 70%) bottom left / 35% 35% no-repeat;
+    opacity:.0; transition:opacity .25s ease;
   }
+  .binder:hover::after,
+  .binder:focus-visible::after{ opacity:1; }
+
+  /* 대각선 광택 스윕 */
+  .shine{
+    position:absolute; inset:-2px; border-radius:14px; pointer-events:none;
+    background:linear-gradient(120deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.28) 30%, rgba(255,255,255,0) 60%);
+    transform: translateX(-130%);
+    filter: blur(.2px);
+    transition: transform .9s ease;
+    mix-blend-mode: screen;
+  }
+  .binder:hover .shine,
+  .binder:focus-visible .shine{ transform: translateX(130%); }
+
+  /* 바닥 접점 그림자(실제 물체 같은 느낌) */
+  .under{
+    position:absolute; left:18%; right:12px; bottom:-10px; height:20px; pointer-events:none;
+    background:radial-gradient(60% 100% at 50% 0, rgba(0,0,0,.28), rgba(0,0,0,0));
+    filter: blur(3px);
+    opacity:.65; transition:opacity .25s, transform .25s;
+  }
+  .binder:hover .under,
+  .binder:focus-visible .under{ opacity:.9; transform: translateY(2px) scale(1.06); }
+
+  /* 눌렀을 때 한 번 튀는 글로우 */
+  .binder.pulse{
+    animation: glowPulse 1.1s ease-in-out 1;
+  }
+
   .holes{position:absolute; left:8px; bottom:18px; display:grid; gap:8px}
   .hole{width:8px; height:8px; border-radius:50%; background:rgba(0,0,0,.22); box-shadow:0 1px 0 rgba(255,255,255,.5) inset}
 
@@ -136,9 +192,9 @@
 
   /* 프로그레스 링 */
   .ring{
-    --pct: 0; /* 0~100 */
+    --pct: 0;
     width:84px; height:84px; border-radius:50%;
-    background:conic-gradient(var(--ok) calc(var(--pct)*1%), var(--track) 0);
+    background: conic-gradient(var(--ok) calc(var(--pct)*1%), var(--track) 0);
     display:grid; place-items:center; margin:2px 8px 6px auto; border:6px solid rgba(255,255,255,.6);
     box-shadow:0 2px 10px rgba(0,0,0,.08) inset, 0 6px 14px rgba(0,0,0,.08);
   }
@@ -151,20 +207,6 @@
   .pill.remain{border-color:#60a5fa; background:#eff6ff}
   .pill.remain.low{border-color:#ef4444; background:#fee2e2; color:#991b1b}
   .pill.total{border-color:#d1d5db; background:#f9fafb}
-
-  /* 빠른 액션(호버 시 등장) */
-  .actions{
-    position:absolute; left:36px; right:10px; bottom:14px;
-    display:flex; gap:8px; opacity:0; transform:translateY(6px);
-    transition:opacity .2s, transform .2s;
-  }
-  .binder:hover .actions, .binder:focus-visible .actions{ opacity:1; transform:translateY(0); }
-  .actions button{
-    flex:1; border:1px solid rgba(0,0,0,.08); background:#0B1E3A; color:#fff;
-    border-radius:10px; padding:9px 10px; font-size:13px; cursor:pointer; font-weight:800;
-    box-shadow:0 8px 18px rgba(11,30,58,.18);
-  }
-  .actions .light{ background:#fff; color:#0B1E3A; }
 
   /* 잔여 0 강조 + 전체 카드 경고 */
   .binder.zero{
@@ -184,15 +226,15 @@
   /* 빈 표시 */
   .empty{padding:40px 16px; text-align:center; color:var(--muted)}
 
-  /* 반응형: 더 작아질수록 폭/높이 줄이고 겹침 완화 */
+  /* 반응형 */
   @media (max-width: 860px){
-    :root{ --binder-w: 220px; --binder-h: 380px; --binder-overlap: -96px; }
+    :root{ --binder-w: 260px; --binder-h: 440px; --binder-overlap: -120px; }
   }
   @media (max-width: 540px){
-    :root{ --binder-w: 180px; --binder-h: 310px; --binder-overlap: -78px; }
+    :root{ --binder-w: 200px; --binder-h: 360px; --binder-overlap: -90px; }
   }
   @media (max-width: 420px){
-    :root{ --binder-w: 160px; --binder-h: 280px; --binder-overlap: -64px; }
+    :root{ --binder-w: 170px; --binder-h: 300px; --binder-overlap: -70px; }
     .head{padding-left:30px}
     .binder::before{width:22px}
   }
@@ -270,11 +312,11 @@
   const db  = getFirestore(app);
 
   /* ===== DOM ===== */
-  const shelf = document.getElementById('shelf');
-  const empty = document.getElementById('empty');
-  const qEl   = document.getElementById('q');
+  const shelf   = document.getElementById('shelf');
+  const empty   = document.getElementById('empty');
+  const qEl     = document.getElementById('q');
   const sortSel = document.getElementById('sortBy');
-  const orderBtn = document.getElementById('orderBtn');
+  const orderBtn= document.getElementById('orderBtn');
 
   /* ===== Utils ===== */
   const collator = new Intl.Collator('ko-KR',{numeric:true,sensitivity:'base'});
@@ -284,26 +326,23 @@
   const nowHM = () => { const d=new Date(); return `${p2(d.getHours())}:${p2(d.getMinutes())}`; };
   const toISO = ts => ts?.toDate ? ts.toDate().toISOString().slice(0,10) : (typeof ts==='string' ? ts : "");
 
-  // 다음 생일/기념일까지 D-day (<=30이면 숫자, 아니면 null)
   function daysUntilAnnual(dateStr){
     if(!dateStr) return null;
-    const [y,m,d] = dateStr.split('-').map(Number); if(!m||!d) return null;
+    const [y,m,d] = String(dateStr).split('-').map(Number); if(!m||!d) return null;
     const now = new Date();
     const tgt = new Date(now.getFullYear(), m-1, d);
     if (tgt < new Date(now.getFullYear(), now.getMonth(), now.getDate())) tgt.setFullYear(now.getFullYear()+1);
     const diff = Math.ceil((tgt - now)/86400000);
     return diff<=30 ? diff : null;
   }
-  // 이름 해시 → 색상 클래스
   const COLORS = ['c1','c2','c3','c4','c5','c6','c7'];
   const colorClass = name => COLORS[Math.abs([...String(name||'')].reduce((a,c)=> (a*31 + c.charCodeAt(0))|0,7)) % COLORS.length];
 
-  // 다음 예약 조회 (memberId 기준) — where만 사용하고 로컬 정렬
+  // 다음 예약 조회 (memberId 기준)
   async function fetchNextSchedule(memberId){
     try{
       const qy = query(collection(db,'schedules'), where('memberId','==', memberId));
       const snap = await getDocs(qy);
-
       const today = todayISO(), now = nowHM();
       const list = [];
       snap.forEach(ds=>{
@@ -348,6 +387,8 @@
       const cakeBadge = cakeDays!==null ? `<span class="badge cake">🎂 D-${cakeDays}</span>` : '';
 
       art.innerHTML = `
+        <span class="shine" aria-hidden="true"></span>
+        <span class="under" aria-hidden="true"></span>
 
         <div class="head">
           <div class="name-wrap">
@@ -363,7 +404,7 @@
         <div class="panel">
           <div style="display:flex; align-items:center; gap:8px;">
             <div class="ring ${lowRemain?'low':''}" style="--pct:${Math.max(0,Math.min(100, Math.round(((m.remaining||0)/(m.total||1))*100)))}">
-              <div class="ring-label">${m.total||0}/${m.remaining||0}</div>
+              <div class="ring-label">${m.remaining||0}/${m.total||0}</div>
             </div>
             <div class="rows" style="flex:1">
               <div class="row"><span class="label">담당</span><span class="value">${escapeHtml(m.trainer||"-")}</span></div>
@@ -392,7 +433,7 @@
         </div>
       `;
 
-      // 액션
+      // 액션들
       art.querySelector('[data-act="journal"]').addEventListener('click', (e)=>{
         e.stopPropagation();
         location.href = `personal-training-log.html?id=${encodeURIComponent(m.id)}`;
@@ -413,6 +454,14 @@
       art.addEventListener('click', ()=>{
         location.href = `personal-training-log.html?id=${encodeURIComponent(m.id)}`;
       });
+
+      // 눌렀을 때(터치/마우스) 반짝 펄스
+      const addPulse = ()=> art.classList.add('pulse');
+      const removePulse = ()=> art.classList.remove('pulse');
+      art.addEventListener('pointerdown', addPulse);
+      art.addEventListener('pointerup', removePulse);
+      art.addEventListener('pointerleave', removePulse);
+      art.addEventListener('animationend', (e)=>{ if(e.animationName==='glowPulse') removePulse(); });
 
       // 다음 예약 비동기 로드 (호버/포커스 시점)
       let fetched = false;
