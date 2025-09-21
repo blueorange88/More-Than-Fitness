@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>고객 카드 – 파일 분류</title>
 <style>
   :root{
@@ -21,28 +21,83 @@
   .tools input[type="search"]{flex:1;border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:14px;background:#fff}
   .tools .select,.tools .check{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--navy)}
   .tools select{border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:#fff}
-  .grid{padding:18px;display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
-  .file-card{position:relative;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 14px 14px;
-             box-shadow:0 2px 8px rgba(0,0,0,.05);cursor:pointer;transition:transform .15s,box-shadow .15s,border-color .15s;outline:0}
-  .file-card::before{content:"";position:absolute;top:-12px;left:14px;width:84px;height:18px;
-                     background:linear-gradient(90deg,var(--gold),var(--gold-d));
-                     border-radius:10px 10px 2px 2px;box-shadow:0 -1px 0 rgba(0,0,0,.04)}
-  .file-card:hover,.file-card:focus-visible{transform:translateY(-2px);box-shadow:0 14px 28px rgba(11,30,58,.18);border-color:var(--gold)}
-  .file-card.recent::after{content:"";position:absolute;inset:10px auto 10px 8px;width:4px;border-radius:4px;background:var(--gold)}
-  .file-card.vip{border-color:var(--gold)} .file-card.vip::before{background:linear-gradient(90deg,var(--gold),var(--gold-d))}
-  .file-card.silver{border-color:var(--silver)} .file-card.silver::before{background:linear-gradient(90deg,#e6ebf2,var(--silver))}
-  .file-card.bronze{border-color:var(--bronze)} .file-card.bronze::before{background:linear-gradient(90deg,#d9c3a3,var(--bronze))}
-  .file-card.blue{border-color:var(--blue)} .file-card.blue::before{background:linear-gradient(90deg,#1d3a66,var(--blue))}
+
+  /* Grid + 3D 원근감 */
+  .grid{padding:18px;display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+        perspective: 900px;}
+
+  .file-card{
+    position:relative;background:var(--card);border:1px solid var(--line);border-radius:16px;
+    padding:16px 14px 48px; /* 아래 여백(액션버튼 공간) */
+    box-shadow:0 2px 8px rgba(0,0,0,.05);cursor:pointer;
+    outline:0; transform-origin: top center; transform-style: preserve-3d;
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    will-change: transform, box-shadow;
+  }
+  .file-card::before{
+    content:"";position:absolute;top:-12px;left:14px;width:84px;height:18px;
+    background:linear-gradient(90deg,var(--gold),var(--gold-d));
+    border-radius:10px 10px 2px 2px;box-shadow:0 -1px 0 rgba(0,0,0,.04)
+  }
+  .file-card.recent::after{ /* 우측 골드 바 */
+    content:"";position:absolute;inset:10px auto 10px 8px;width:4px;border-radius:4px;background:var(--gold)
+  }
+
+  /* 소프트 바닥 그림자 */
+  .file-card>.shadow-floor{
+    content:"";position:absolute;left:10px;right:10px;bottom:10px;height:18px;
+    background: radial-gradient(ellipse at center, rgba(0,0,0,.18), rgba(0,0,0,0) 60%);
+    filter: blur(10px);opacity:0;transform: translateY(6px) scale(.9);
+    transition: opacity .18s ease, transform .18s ease; pointer-events:none;
+  }
+
+  /* 등급 색상 */
+  .file-card.vip{border-color:var(--gold)}
+  .file-card.vip::before{background:linear-gradient(90deg,var(--gold),var(--gold-d))}
+  .file-card.silver{border-color:var(--silver)}
+  .file-card.silver::before{background:linear-gradient(90deg,#e6ebf2,var(--silver))}
+  .file-card.bronze{border-color:var(--bronze)}
+  .file-card.bronze::before{background:linear-gradient(90deg,#d9c3a3,var(--bronze))}
+  .file-card.blue{border-color:var(--blue)}
+  .file-card.blue::before{background:linear-gradient(90deg,#1d3a66,var(--blue))}
   .file-card.expiring{border-color:var(--danger);box-shadow:0 12px 26px rgba(239,68,68,.25)}
   .file-card.expiring::before{background:linear-gradient(90deg,#fca5a5,var(--danger))}
+
+  /* 호버(데스크톱) */
+  @media (hover:hover) and (pointer:fine){
+    .file-card:hover,.file-card:focus-visible{
+      transform: translateY(-4px) rotateX(4deg);
+      box-shadow: 0 18px 34px rgba(11,30,58,.22);
+      border-color: var(--gold);
+    }
+    .file-card:hover>.shadow-floor,
+    .file-card:focus-visible>.shadow-floor{
+      opacity:1; transform: translateY(12px) scale(1);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .file-card,.file-card>.shadow-floor{transition:none}
+  }
+
   .file-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
   .name{font-weight:800;font-size:17px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:70%;color:var(--navy)}
+  .badges{display:flex;gap:6px;align-items:center}
   .badge{font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--gold);background:var(--recent-bg);color:#8a6d1d}
   .badge.neutral{border-color:#e5e7eb;background:#fff;color:#475569}
   .badge.danger{background:var(--danger-bg);border-color:var(--danger);color:#991b1b}
+  .badge.gray{border-color:#e5e7eb;background:#f8fafc;color:#475569}
+
   .row{display:flex;gap:6px;align-items:center;font-size:13px;color:var(--muted);margin:3px 0}
   .row .label{width:64px;color:#334155}
   .row .value{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  .actions{
+    position:absolute;left:12px;right:12px;bottom:12px;display:flex;gap:8px;
+  }
+  .btn{flex:1;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:#fff;cursor:pointer;font-size:13px}
+  .btn.primary{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .btn:hover{filter:brightness(.98)}
   .empty{padding:40px 16px;text-align:center;color:var(--muted)}
   .footer{padding:10px 16px 18px;color:var(--muted);font-size:12px}
 </style>
@@ -61,18 +116,22 @@
           <option value="first">최초 등록일</option>
         </select>
       </div>
-      <label class="check"><input id="onlyRecent" type="checkbox"> 최근 작성만 보기</label>
+      <label class="check" style="gap:8px;display:flex;align-items:center">
+        <input id="onlyRecent" type="checkbox"> 최근 작성만
+      </label>
     </div>
   </header>
 
   <main class="grid" id="grid" aria-live="polite"></main>
   <div id="empty" class="empty" hidden>검색 결과가 없어요.</div>
-  <div class="footer">Tip: 카드를 클릭하면 해당 회원의 운동일지로 이동합니다. 최근 7일 이내 작성은 골드, 만료 임박은 빨간 배지로 표시돼요.</div>
+  <div class="footer">
+    Tip: 카드를 클릭하면 해당 회원의 운동일지로 이동합니다. 최근 7일 이내 작성은 골드, 만료 임박은 빨간 배지로 표시돼요.
+  </div>
 
-  <!-- 하나의 모듈 스크립트만 사용 -->
   <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
   import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+  import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
 
   /* ===== Firestore 연결 ===== */
   const firebaseConfig = {
@@ -87,9 +146,14 @@
   const app = initializeApp(firebaseConfig);
   const db  = getFirestore(app);
 
+  // (권장) 익명 로그인 – 보안 규칙에 따라 필요
+  const auth = getAuth(app);
+  onAuthStateChanged(auth, (u)=>{ if(!u) signInAnonymously(auth).catch(console.error); });
+
   /* ===== 설정 ===== */
-  const COL = "members"; // ← 네가 정한 컬렉션 이름
-  const PT_LOG_URL = "./personal-training-log.html"; // 경로 상황에 맞게 조정
+  const COL = "members";
+  const PT_LOG_URL = "./personal-training-log.html";
+  const SCHED_URL  = "./MTF-F.html"; // 스케줄러 페이지
 
   /* ===== DOM ===== */
   const grid = document.getElementById('grid');
@@ -99,7 +163,7 @@
   const onlyRecent = document.getElementById('onlyRecent');
 
   /* ===== Utils ===== */
-  const escapeHtml = s => String(s).replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' }[m]));
+  const escapeHtml = s => String(s??"").replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' }[m]));
   const formatPhone = raw => {
     const v = String(raw||"").replace(/\D/g,'').slice(0,11);
     if (v.length<=3) return v;
@@ -107,20 +171,28 @@
     return v.slice(0,3)+'-'+v.slice(3,7)+'-'+v.slice(7);
   };
   const dateToISO = d => d instanceof Date ? d.toISOString().slice(0,10) : "";
+  const asDateStr = v => {
+    if (!v) return "";
+    if (typeof v?.toDate === "function") return dateToISO(v.toDate());
+    if (v instanceof Date) return dateToISO(v);
+    if (typeof v === "string") return v.slice(0,10);
+    return "";
+  };
   const daysDiff = (dateStr) => { if(!dateStr) return null; const d = new Date(dateStr+'T00:00:00'); const t = new Date(); t.setHours(0,0,0,0); return Math.floor((t - d)/86400000); };
   const daysUntil = (dateStr) => { if(!dateStr) return null; const d = new Date(dateStr+'T00:00:00'); const t = new Date(); t.setHours(0,0,0,0); return Math.ceil((d - t)/86400000); };
   const isRecent = (dateStr) => { const dd = daysDiff(dateStr); return dd !== null && dd <= 7; };
   function gradeClass(grade){
     const g = String(grade||"").toLowerCase();
-    if (g === "vip") return "vip";                                   // 골드
-    if (g.includes("프로모션") || g === "promotion") return "bronze"; // 브론즈
-    if (g.includes("일반") || g === "normal" || g === "silver") return "silver"; // 실버
-    return "blue";                                                    // 기본
+    if (g === "vip" || g.includes("마스터")) return "vip";
+    if (g.includes("프로모션") || g === "promotion" || g.includes("브론즈")) return "bronze";
+    if (g.includes("일반") || g === "normal" || g.includes("실버")) return "silver";
+    return "blue";
   }
 
-  /* ===== 상태 & 렌더링 ===== */
+  /* ===== 상태 ===== */
   let state = { members: [] };
 
+  /* ===== 렌더 ===== */
   function render(list){
     grid.innerHTML = "";
     if (!list.length){ empty.hidden = false; return; }
@@ -141,30 +213,53 @@
       card.tabIndex = 0;
       card.setAttribute('role','button');
       card.setAttribute('aria-label', `${m.name} 일지 열기`);
+      card.dataset.memberId = m.id;
 
-      // 우측 배지: 만료 임박 > 최근 작성 > 등급
-      let rightBadge = `<span class="badge neutral">${escapeHtml(m.grade||"")}</span>`;
-      if (recent) rightBadge = `<span class="badge">최근 작성 ${m.lastLog}</span>`;
-      if (dLeft !== null && dLeft <= 7) rightBadge = `<span class="badge danger">만료 D-${Math.max(dLeft,0)}</span>`;
+      // 뱃지 조립: (우선순위) 만료 임박 > 최근 작성 > 잔여회차 > 등급
+      const badges = [];
+      if (dLeft !== null && dLeft <= 7) badges.push(`<span class="badge danger">만료 D-${Math.max(dLeft,0)}</span>`);
+      else if (recent) badges.push(`<span class="badge">최근 ${m.lastLog}</span>`);
+      if (typeof m.remaining === 'number') badges.push(`<span class="badge gray">잔여 ${m.remaining}회</span>`);
+      badges.push(`<span class="badge neutral">${escapeHtml(m.grade||"")}</span>`);
 
       card.innerHTML = `
         <div class="file-head">
-          <div class="name">${escapeHtml(m.name)}</div>
-          ${rightBadge}
+          <div class="name">${escapeHtml(m.name||"-")}</div>
+          <div class="badges">${badges.join("")}</div>
         </div>
+
         <div class="row"><span class="label">연락처</span><span class="value">${formatPhone(m.phone)}</span></div>
         <div class="row"><span class="label">성별</span><span class="value">${escapeHtml(m.gender||"")}</span></div>
         <div class="row"><span class="label">담당</span><span class="value">${escapeHtml(m.trainer||"")}</span></div>
-        <div class="row"><span class="label">등록일</span><span class="value">${escapeHtml(m.first||"")}</span></div>
+        <div class="row"><span class="label">등록일</span><span class="value">${m.first||""}</span></div>
         <div class="row"><span class="label">작성</span><span class="value">${m.logCount||0}회</span></div>
         <div class="row"><span class="label">만료일</span><span class="value">${m.expireAt||"-"}</span></div>
+
+        <div class="actions">
+          <button class="btn" data-act="schedule">스케줄에 배치</button>
+          <button class="btn primary" data-act="log">일지 열기</button>
+        </div>
+        <div class="shadow-floor"></div>
       `;
 
+      // 기본: 카드 클릭 → 일지
       const openLog = ()=>{ location.href = `${PT_LOG_URL}?id=${encodeURIComponent(m.id)}`; };
-      card.addEventListener('click', openLog);
+      card.addEventListener('click', e=>{
+        // 버튼 클릭은 개별 액션으로
+        const act = e.target?.dataset?.act;
+        if (act === 'log') { openLog(); e.stopPropagation(); return; }
+        if (act === 'schedule') {
+          location.href = `${SCHED_URL}?memberId=${encodeURIComponent(m.id)}`;
+          e.stopPropagation(); return;
+        }
+        openLog();
+      });
       card.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); openLog(); }});
       grid.appendChild(card);
     });
+
+    // (선택) 마우스 위치에 따라 미세 틸트
+    attachCardTilt();
   }
 
   function filterSort(){
@@ -186,8 +281,8 @@
     const by = sortSel.value;
     list.sort((a,b)=>{
       if (by==='recent') return (b.lastLog||'').localeCompare(a.lastLog||'');
-      if (by==='name')   return a.name.localeCompare(b.name,'ko');
-      if (by==='grade')  return (a.grade||'').localeCompare(b.grade||'','ko');
+      if (by==='name')   return (a.name||"").localeCompare(b.name||"",'ko');
+      if (by==='grade')  return (a.grade||"").localeCompare(b.grade||"",'ko');
       if (by==='first')  return (b.first||'').localeCompare(a.first||'');
       return 0;
     });
@@ -195,18 +290,17 @@
     render(list);
   }
 
-  /* ===== Firestore 실시간 구독 ===== */
+  /* ===== 실시간 구독: members ===== */
   onSnapshot(collection(db, COL), (snap)=>{
     const list = [];
     snap.forEach(docSnap=>{
       const d = docSnap.data();
 
-      const createdAt = d.createdAt?.toDate ? d.createdAt.toDate() : null;
-      const startStr  = d.startDate || (createdAt ? dateToISO(createdAt) : "");
-      const expireAt  = d.expireAt?.toDate ? dateToISO(d.expireAt.toDate()) : (d.expireAt || "");
-      const lastLog   = d.lastLogAt?.toDate
-                          ? dateToISO(d.lastLogAt.toDate())
-                          : (d.lastPurchaseAt?.toDate ? dateToISO(d.lastPurchaseAt.toDate()) : "");
+      const createdAt  = asDateStr(d.createdAt);
+      const startStr   = d.startDate ? asDateStr(d.startDate) : (createdAt || "");
+      const expireAt   = asDateStr(d.expireAt);
+      const lastLog    = d.lastLogAt ? asDateStr(d.lastLogAt)
+                        : (d.lastPurchaseAt ? asDateStr(d.lastPurchaseAt) : "");
 
       list.push({
         id: docSnap.id,
@@ -218,13 +312,40 @@
         first: startStr,
         expireAt,
         lastLog,
-        logCount: d.logCount || 0
+        logCount: d.logCount || 0,
+        remaining: typeof d.remainingSessions === 'number' ? d.remainingSessions : null
       });
     });
 
     state.members = list;
     filterSort();
   });
+
+  /* ===== 마우스 위치에 따른 미세 틸트(선택) ===== */
+  function attachCardTilt(){
+    if (!window.matchMedia('(hover:hover) and (pointer:fine)').matches) return;
+    const max = 6; // 최대 기울기(deg)
+    document.querySelectorAll('.file-card').forEach(card=>{
+      const onMove = (e)=>{
+        const r = card.getBoundingClientRect();
+        const x = (e.clientX - r.left) / r.width;   // 0~1
+        const y = (e.clientY - r.top)  / r.height;  // 0~1
+        const rx = (0.5 - y) * max;                 // 위/아래
+        const ry = (x - 0.5) * max;                 // 좌/우
+        card.style.transform = `translateY(-4px) rotateX(${rx}deg) rotateY(${ry}deg)`;
+        card.style.boxShadow = `0 18px 34px rgba(11,30,58,.22)`;
+        card.style.borderColor = `var(--gold)`;
+      };
+      const onLeave = ()=>{
+        card.style.transform = "";
+        card.style.boxShadow = "";
+        card.style.borderColor = "";
+      };
+      card.addEventListener('mousemove', onMove);
+      card.addEventListener('mouseleave', onLeave);
+      card.addEventListener('blur', onLeave);
+    });
+  }
 
   /* ===== UI 이벤트 ===== */
   q.addEventListener('input', filterSort);
