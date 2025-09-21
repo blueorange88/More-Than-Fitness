@@ -347,10 +347,7 @@
       const cakeDays = daysUntilAnnual(m.birthday) ?? daysUntilAnnual(m.anniversary);
       const cakeBadge = cakeDays!==null ? `<span class="badge cake">🎂 D-${cakeDays}</span>` : '';
 
-      const spineTxt = (m.name || '').slice(0,6);
-
       art.innerHTML = `
-        <div class="spine-label">${escapeHtml(spineTxt)}</div>
 
         <div class="head">
           <div class="name-wrap">
@@ -366,7 +363,7 @@
         <div class="panel">
           <div style="display:flex; align-items:center; gap:8px;">
             <div class="ring ${lowRemain?'low':''}" style="--pct:${Math.max(0,Math.min(100, Math.round(((m.remaining||0)/(m.total||1))*100)))}">
-              <div class="ring-label">${m.remaining||0}/${m.total||0}</div>
+              <div class="ring-label">${m.total||0}/${m.remaining||0}</div>
             </div>
             <div class="rows" style="flex:1">
               <div class="row"><span class="label">담당</span><span class="value">${escapeHtml(m.trainer||"-")}</span></div>
