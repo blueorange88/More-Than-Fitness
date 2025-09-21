@@ -271,11 +271,10 @@
   }
 
   function fitGridToScreen(){
-    /* 상단/오늘카드/테이블헤더/여백 계산 → 한 화면에 맞게 행 높이 */
     const topH = document.querySelector('.topbar')?.offsetHeight || 0;
     const todayH = document.querySelector('.card')?.offsetHeight || 0;
     const headH = document.querySelector('#scheduleTableCurr thead')?.offsetHeight || 32;
-    const extra = 72; /* 아래 버튼/여백 여유 */
+    const extra = 72;
     const avail = window.innerHeight - (topH + todayH + headH + extra + 12);
     const hours = Math.max(1, (scheduleEnd - scheduleStart));
     const row = Math.max(26, Math.floor(avail / hours));
@@ -308,30 +307,10 @@
 
       const minute = localStorage.getItem(`minute-${hh}`) || '00';
 
-      // 시간 칸
+      // 시간 칸 (리스너는 attachDelegation에서 일괄 처리)
       const td0 = document.createElement('td');
       td0.textContent = `${hh}:${minute}`;
       td0.className   = 'time-cell';
-
-      if (isMain){
-        // 탭 → 분 설정 (롱프레스 직후 탭은 무시)
-        td0.addEventListener('click', ()=>{
-          if (td0._longPressed){ td0._longPressed=false; return; }
-          openMinute(td0);
-        });
-
-        // 롱프레스 → 시간 범위 팝업
-        td0.addEventListener('pointerdown', ()=>{
-          td0._longPressed = false;
-          td0._holdTimer = setTimeout(()=>{
-            td0._longPressed = true;
-            openRangePopup();
-          }, 600);
-        }, {passive:true});
-        ['pointerup','pointerleave','pointercancel'].forEach(ev=>{
-          td0.addEventListener(ev, ()=>{ clearTimeout(td0._holdTimer); }, {passive:true});
-        });
-      }
       tr.appendChild(td0);
 
       // 요일 7칸
@@ -350,7 +329,7 @@
     const rows = [...document.querySelectorAll('#scheduleTableCurr tbody tr')];
 
     data.forEach(i=>{
-      const [hour] = i.time.split(':'); // "09" 같은 시만
+      const [hour] = i.time.split(':');
       const row = rows.find(r=>{
         const [h,m] = (r.firstElementChild?.textContent || '').split(':');
         return h === hour && m === (localStorage.getItem(`minute-${h}`) || '00');
@@ -365,7 +344,7 @@
   function updateTodayList(){
     const now = new Date();
     const today = now.getDay();
-    const col = today === 0 ? 7 : today; // 일요일 7
+    const col = today === 0 ? 7 : today;
     const nowMin = now.getHours()*60 + now.getMinutes();
     const arr = [];
 
@@ -426,14 +405,15 @@
     $('toggleQuickBtn').onclick=()=>{ $('quickRegisterCard').style.display='block'; showOverlay(); };
     $('quickOpenBtn').onclick=()=>{ $('quickRegisterCard').style.display='block'; showOverlay(); };
     $('btnGoRegister').onclick=()=>location.href='/member-registration.html';
-    /* 빠른 등록 버튼 → 함수 연결 */
     $('btnQuickSubmit').onclick = ()=> window.submitQuickMember && window.submitQuickMember();
 
     $('titleNext').onclick=()=>{ const w=$('wrapNext'); w.style.display=(w.style.display==='none'||!w.style.display)?'block':'none'; };
     $('titleLast').onclick=()=>{ const w=$('wrapLast'); w.style.display=(w.style.display==='none'||!w.style.display)?'block':'none'; };
 
     const saved=JSON.parse(localStorage.getItem('scheduleRange')||'{}');
-    if(Number.isFinite(+saved.start) && Number.isFinite(+saved.end)){ let s=+saved.start, e=+saved.end; if(e<=s) e+=24; if(e-s>=3 && e-s<=24){ scheduleStart=s; scheduleEnd=e; } }
+    if(Number.isFinite(+saved.start) && Number.isFinite(+saved.end)){
+      let s=+saved.start, e=+saved.end; if(e<=s) e+=24; if(e-s>=3 && e-s<=24){ scheduleStart=s; scheduleEnd=e; }
+    }
 
     buildTables(); attachDelegation(); loadCurrFromLocal(); highlightToday();
     updateTodayList(); updateTimeLine(); setInterval(updateTimeLine,60000);
@@ -453,71 +433,55 @@
   })();
 
   function attachDelegation(){
-  const tb = document.querySelector('#scheduleTableCurr tbody');
-  tb.replaceWith(tb.cloneNode(true));                 // 기존 리스너 제거
-  const tbn = document.querySelector('#scheduleTableCurr tbody');
+    const tb = document.querySelector('#scheduleTableCurr tbody');
+    tb.replaceWith(tb.cloneNode(true));                 // 기존 리스너 제거
+    const tbn = document.querySelector('#scheduleTableCurr tbody');
 
-  // 롱프레스 시작 (시간칸 포함)
-  tbn.addEventListener('pointerdown', (e)=>{
-    const td = e.target.closest('td');
-    if (!td) return;
-    lpFired = false;
-
-    if (td.cellIndex === 0){
-      // 시간칸: 길게 누르면 시간 범위 팝업
-      td._longPressed = false;
-      td._holdTimer = setTimeout(()=>{
-        td._longPressed = true;
-        openRangePopup();
-      }, 600);
-    }else{
-      // 일반 칸: 길게 누르면 액션시트
-      lpTimer = setTimeout(()=>{
-        lpFired = true;
-        openCellSheet(td);
-      }, 600);
-    }
-  }, { passive:true });
-
-  // 롱프레스 취소
-  ['pointerup','pointerleave','pointercancel'].forEach(ev=>{
-    tbn.addEventListener(ev, (e)=>{
+    // 롱프레스 시작 (시간칸 포함)
+    tbn.addEventListener('pointerdown', (e)=>{
       const td = e.target.closest('td');
-      if (td && td._holdTimer){ clearTimeout(td._holdTimer); }
-      clearTimeout(lpTimer); lpTimer = null;
+      if (!td) return;
+      lpFired = false;
+
+      if (td.cellIndex === 0){
+        // 시간칸: 길게 누르면 시간 범위 팝업
+        td._longPressed = false;
+        td._holdTimer = setTimeout(()=>{
+          td._longPressed = true;
+          openRangePopup();
+        }, 600);
+      }else{
+        // 일반 칸: 길게 누르면 액션시트
+        lpTimer = setTimeout(()=>{
+          lpFired = true;
+          openCellSheet(td);
+        }, 600);
+      }
     }, { passive:true });
-  });
 
-  // 클릭 처리
-  tbn.addEventListener('click', (e)=>{
-    const td = e.target.closest('td');
-    if (!td) return;
+    // 롱프레스 취소
+    ['pointerup','pointerleave','pointercancel'].forEach(ev=>{
+      tbn.addEventListener(ev, (e)=>{
+        const td = e.target.closest('td');
+        if (td && td._holdTimer){ clearTimeout(td._holdTimer); }
+        clearTimeout(lpTimer); lpTimer = null;
+      }, { passive:true });
+    });
 
-    // 시간칸 클릭 → 분 단위 설정 (단, 방금 롱프레스면 무시)
-    if (td.cellIndex === 0){
-      if (td._longPressed){ td._longPressed = false; return; }
-      openMinute(td);
-      return;
-    }
-
-    // 일반칸 클릭 → 레슨 팝업 (롱프레스 직후 클릭은 무시)
-    if (lpFired){ lpFired = false; return; }
-    $('cellSheet').style.display = 'none';
-    openLesson(td);
-  });
-
-  tbn.addEventListener('contextmenu', e=>e.preventDefault());
-}
-
-    // ✅ 클릭: 시간칸 제외 → 레슨 팝업
+    // 클릭 처리
     tbn.addEventListener('click', (e)=>{
       const td = e.target.closest('td');
       if (!td) return;
-      if (td.cellIndex === 0) return; // 시간칸은 개별 핸들러가 처리
-      if (lpFired){                   // 롱프레스 직후 클릭 무시
-        lpFired = false;
+
+      // 시간칸 클릭 → 분 단위 설정 (단, 방금 롱프레스면 무시)
+      if (td.cellIndex === 0){
+        if (td._longPressed){ td._longPressed = false; return; }
+        openMinute(td);
         return;
       }
+
+      // 일반칸 클릭 → 레슨 팝업 (롱프레스 직후 클릭은 무시)
+      if (lpFired){ lpFired = false; return; }
       $('cellSheet').style.display = 'none';
       openLesson(td);
     });
@@ -653,7 +617,7 @@
   <!-- ===== Firebase / 저장 & 자동소진 (네 프로젝트 설정 적용됨) ===== -->
   <script type="module">
   import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
-import {getFirestore, collection, addDoc, setDoc, deleteDoc, doc, serverTimestamp,updateDoc, increment, query, where, getDocs, /* 추가 */ getDoc} from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+  import {getFirestore, collection, addDoc, setDoc, deleteDoc, doc, serverTimestamp,updateDoc, increment, query, where, getDocs, getDoc} from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
   import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
 
   /* 👉 네가 준 실제 프로젝트 설정 */
@@ -718,8 +682,8 @@ import {getFirestore, collection, addDoc, setDoc, deleteDoc, doc, serverTimestam
         remainingSessions:0, totalSessionsPurchased:0,
         noShowDeducted:0, noShowUndeducted:0
       },{merge:true});
-      membersCache.set(phoneRaw, { name, remainingSessions: 0 });  // ← 캐시에 넣기
-      window.refreshMembersDatalist && window.refreshMembersDatalist(); // ← 목록 갱신
+      membersCache.set(phoneRaw, { name, remainingSessions: 0 });
+      window.refreshMembersDatalist && window.refreshMembersDatalist();
       toast("빠른 등록 완료");
       document.getElementById('quickName').value=""; document.getElementById('quickPhone').value="";
       document.getElementById('popupOverlay').click();
@@ -731,7 +695,8 @@ import {getFirestore, collection, addDoc, setDoc, deleteDoc, doc, serverTimestam
     if(v.length<=7)return v.slice(0,3)+'-'+v.slice(3);
     return v.slice(0,3)+'-'+v.slice(3,7)+'-'+v.slice(7);
   }
-  // 🔽 여기부터 붙이기 (중복 선언 방지!)
+
+  // 멤버 미니카드/자동완성용 캐시
   const membersCache = new Map();
 
   window.refreshMembersDatalist = function(){
@@ -745,42 +710,47 @@ import {getFirestore, collection, addDoc, setDoc, deleteDoc, doc, serverTimestam
       dl.appendChild(opt);
     });
   };
-const memberIdEl = document.getElementById('memberIdInput');
-if (memberIdEl) {
-  memberIdEl.addEventListener('change', onMemberPicked);
-  memberIdEl.addEventListener('blur', onMemberPicked);
-}
 
-async function onMemberPicked(){
-  const id = (memberIdEl.value||'').replace(/\D/g,'');
-  if(!id) return;
-
-  // 캐시 → 없으면 단건 조회
-  let m = membersCache.get(id);
-  if(!m){
-    try{
-      const ref = doc(db,'members',id);
-      const ds  = await getDoc(ref);
-      if(ds.exists()){ m = ds.data(); membersCache.set(id, m); refreshMembersDatalist(); }
-    }catch(e){ console.error(e); }
+  const memberIdEl = document.getElementById('memberIdInput');
+  if (memberIdEl) {
+    memberIdEl.addEventListener('change', onMemberPicked);
+    memberIdEl.addEventListener('blur', onMemberPicked);
   }
-  if(!m) return;
 
-  // 이름이 비어있으면 채우기
-  const nameEl = document.getElementById('nameInput');
-  if(nameEl && !nameEl.value) nameEl.value = m.name || '';
+  async function onMemberPicked(){
+    const id = (memberIdEl.value||'').replace(/\D/g,'');
+    if(!id) return;
 
-  // 팝업 배지에 잔여 표시
-  showRemainBadge(m.remainingSessions);
-}
+    // 캐시 우선 → 없으면 DB 단건 조회
+    let m = membersCache.get(id);
+    if(!m){
+      try{
+        const ref = doc(db,'members',id);
+        const ds  = await getDoc(ref);
+        if(ds.exists()){
+          m = ds.data();
+          membersCache.set(id, m);
+          refreshMembersDatalist();
+        }
+      }catch(e){ console.error(e); }
+    }
+    if(!m) return;
 
-function showRemainBadge(remain){
-  const hint = document.getElementById('slotHint');
-  if (!hint) return;
-  const base = (hint.textContent||'').split(' · ')[0]; // "월 09:00"
-  hint.textContent = `${base} · 잔여 ${remain ?? 0}`;
-  hint.style.display = 'inline-block';
-}
+    // 이름이 비어있으면 채우기
+    const nameEl = document.getElementById('nameInput');
+    if(nameEl && !nameEl.value) nameEl.value = m.name || '';
+
+    // 팝업 배지에 잔여 표시
+    showRemainBadge(m.remainingSessions);
+  }
+
+  function showRemainBadge(remain){
+    const hint = document.getElementById('slotHint');
+    if (!hint) return;
+    const base = (hint.textContent||'').split(' · ')[0]; // "월 09:00"
+    hint.textContent = `${base} · 잔여 ${remain ?? 0}`;
+    hint.style.display = 'inline-block';
+  }
 
   /* 롱프레스 액션: 소진/노쇼 */
   window.consumeAdjust = async (memberId,deltaRemain,flagUpdate,td)=>{
