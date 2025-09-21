@@ -118,7 +118,8 @@
   .row{display:flex; gap:6px}
   .row .label{width:66px; color:#334155; font-weight:700}
   .row .value{flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-
+  .name-wrap{display:flex;flex-direction:column;gap:2px}
+  .sub-sessions{font-size:12px;color:#334155;opacity:.9;margin-top:2px}
   /* 프로그레스 링 */
   .ring{
     --pct: 0; /* 0~100 */
@@ -302,13 +303,17 @@
       const cakeBadge = cakeDays!==null ? `<span class="badge cake">🎂 D-${cakeDays}</span>` : '';
 
       art.innerHTML = `
-        <div class="head">
-          <div class="name">${escapeHtml(m.name)} <span class="suffix">고객님</span></div>
-          <div class="badges">
-            ${cakeBadge}
-            ${rightBadge}
-          </div>
-        </div>
+    <div class="head">
+    <div class="name-wrap">
+    <div class="name">${escapeHtml(m.name)} <span class="suffix">고객님</span></div>
+    <!-- 요청하신 형식: (총/남은) -->
+    <div class="sub-sessions">(${m.total||0}/${m.remaining||0})</div>
+    </div>
+    <div class="badges">
+    ${cakeBadge}
+    ${rightBadge}
+    </div>
+    </div>
 
         <div class="panel">
           <div style="display:flex; align-items:center; gap:8px;">
