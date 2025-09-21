@@ -1,182 +1,211 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>고객 카드 – 세로 바인더</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>고객 카드 – 바인더 선반</title>
 <style>
   :root{
-    --navy:#0b1e3a; --gold:#c8a848; --under:#f7f6f2; --ink:#0b1220;
-    --muted:#6b7280; --line:#e5e7eb; --card:#ffffff;
-    --danger:#ef4444; --recent:#f59e0b; --ok:#10b981;
-    --shadow: 0 18px 40px rgba(11,30,58,.22);
+    --navy:#0B1E3A; --gold:#C8A848; --ink:#0b1220; --muted:#6b7280;
+    --line:#e5e7eb; --card:#ffffff; --danger:#ef4444; --danger-bg:#fee2e2;
+    --ok:#2563eb; --track:#e5e7eb;
+    --shelf:#f3f4f6; --shelf-edge:#e5e7eb;
   }
   *{box-sizing:border-box}
-  body{margin:0;background:var(--under);color:var(--ink);
-       font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,sans-serif}
-
-  /* Header */
-  header{position:sticky;top:0;z-index:20;background:linear-gradient(#fff,var(--under));
-         border-bottom:2px solid var(--gold);padding:14px 16px 12px}
-  .head-top{display:flex;gap:10px;align-items:center;justify-content:space-between}
-  .brand{font-size:18px;color:var(--navy);font-weight:800;margin:0}
-  .tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:10px}
-  .tools input[type="search"]{flex:1;border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:14px;background:#fff}
-  .tools .group{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--navy)}
-  .tools select{border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:#fff}
-  .btn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 12px;cursor:pointer}
-  .btn.primary{background:var(--navy);color:#fff;border:none}
-  .toggle{border:1px solid var(--line);border-radius:10px;overflow:hidden;display:inline-flex}
-  .toggle button{padding:8px 10px;border:0;background:#fff;cursor:pointer}
-  .toggle button.active{background:var(--navy);color:#fff}
-
-  main{padding:18px}
-  .shelf{display:flex;flex-direction:column;gap:56px; /* 선반 간격 넉넉히 */ }
-
-  /* ── 서류 받침대(책꽂이) 비주얼 ───────────────────────── */
-  .rowWrap{
-    position:relative;
-    display:flex;align-items:flex-end;gap:0;
-    transform:perspective(1200px) rotateX(6deg);  /* 대각선 구도(선반 전체가 살짝 기울어짐) */
-  }
-  /* 받침대 본체 */
-  .rowWrap::before{
-    content:""; position:absolute; left:0; bottom:-6px; width:120px; height:300px;
-    background:linear-gradient(180deg,#fff,#eef2f7);
-    border:1px solid #e2e8f0; border-radius:16px 16px 10px 10px;
-    box-shadow:0 8px 26px rgba(0,0,0,.12);
-    transform:skewY(-4deg) rotateZ(-2deg);  /* 사선 느낌 */
-  }
-  /* 손잡이 구멍 */
-  .rowWrap::after{
-    content:""; position:absolute; left:22px; bottom:110px; width:68px; height:120px;
-    background:var(--under); border-radius:40px/60px; box-shadow:inset 0 0 0 1px #e2e8f0;
-    transform:skewY(-4deg) rotateZ(-2deg);
+  body{
+    margin:0; background:linear-gradient(#fff,#fbfbfb); color:var(--ink);
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,sans-serif;
   }
 
-  .empty{padding:40px 16px;text-align:center;color:var(--muted)}
-
-  /* ── 바인더(세로 파일) ─────────────────────────────── */
-  .file{
-    width:280px; height:380px;
-    margin-left:-170px;                  /* ★ 더 겹치게: 크게 음수 */
-    position:relative; will-change:transform;
-    transition:transform .18s ease, box-shadow .18s ease, z-index .18s ease, margin .18s ease;
-    z-index:0;
-    transform:rotateZ(-6deg);            /* ★ 기본도 살짝 기울임(대각선 구도) */
+  /* ===== Header / Tools ===== */
+  header{
+    position:sticky; top:0; z-index:20;
+    background:linear-gradient(#fff,#f9fafb);
+    border-bottom:2px solid var(--gold);
+    padding:14px 16px 12px;
   }
-  .file:first-child{margin-left:140px}   /* 받침대 공간만큼 띄우고 시작 */
-  .file:focus-within,.file:hover{
-    z-index:10;
-    transform:translateX(70px) translateY(-10px) rotateY(-18deg) rotateZ(-1deg); /* ★ 더 세게 ‘쏙’ 뽑히기 */
+  header h1{margin:0 0 10px; font-size:18px; color:var(--navy);}
+  .tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .tools input[type="search"]{
+    flex:1; min-width:220px; border:1px solid var(--line); border-radius:12px;
+    padding:10px 12px; font-size:14px; background:#fff;
+  }
+  .tools .group{display:flex;gap:8px; align-items:center; font-size:13px; color:var(--navy)}
+  .tools select, .tools button{
+    border:1px solid var(--line); border-radius:10px; padding:8px 10px; background:#fff; font-size:13px; cursor:pointer;
+  }
+  .tools button.tgl{min-width:84px}
+  .back{
+    margin-left:auto; border-color:#cbd5e1; background:#0B1E3A; color:#fff; font-weight:700;
   }
 
-  .book{
-    position:absolute;inset:0;border-radius:12px;
-    background:linear-gradient(135deg,#f8fafc,#eef2f7);
-    border:1px solid var(--line);
+  /* ===== Shelf ===== */
+  .shelf-wrap{padding:18px 0 28px}
+  .shelf{
+    position:relative; display:flex; gap:0; padding:26px 22px;
+    overflow-x:auto; overflow-y:visible; scrollbar-width:thin;
+    perspective:1200px; background:
+      linear-gradient(180deg, rgba(0,0,0,0.04), rgba(0,0,0,0.02)) padding-box,
+      linear-gradient(#fff, #fff) border-box;
+    border-top:1px solid var(--shelf-edge); border-bottom:1px solid var(--shelf-edge);
+    background-color:var(--shelf);
+  }
+  .shelf::before, .shelf::after{
+    content:""; position:sticky; left:0; width:40px; flex:0 0 40px; height:100%; pointer-events:none;
+    background:linear-gradient(90deg,#f9fafb,rgba(249,250,251,0));
+  }
+  .shelf::after{ left:auto; right:0; background:linear-gradient(270deg,#f9fafb,rgba(249,250,251,0)); }
+
+  /* ===== Binder (big, overlapped, 3D) ===== */
+  .binder{
+    position:relative; width:280px; height:460px;
+    margin-left:-140px; /* 크게 겹치게 */
+    border-radius:14px; cursor:pointer; user-select:none; outline:0;
+    transform:translateZ(0) rotateY(-12deg) translateY(6px);
+    transform-origin:left center;
+    box-shadow:
+      -8px 0 0 rgba(0,0,0,.06) inset,
+      0 8px 20px rgba(0,0,0,.08);
+    transition:transform .28s cubic-bezier(.2,.8,.2,1), box-shadow .28s, filter .28s, z-index .28s;
+    background:linear-gradient(160deg, #9ec5ff 0%, #6aa0ff 55%, #3a6ddf 100%);
+    border:1px solid rgba(0,0,0,.06);
+    color:#0b1220;
+  }
+  .binder:first-child{ margin-left:8px; }
+  .binder:hover, .binder:focus-visible{
+    z-index:9;
+    transform:translateY(-14px) rotateY(-2deg) scale(1.04);
+    box-shadow:
+      -10px 0 0 rgba(255,255,255,.18) inset,
+      0 22px 40px rgba(0,0,0,.22);
+    filter:saturate(1.05);
+  }
+  /* 스파인/구멍 */
+  .binder::before{
+    content:""; position:absolute; left:0; top:0; bottom:0; width:24px; border-radius:14px 0 0 14px;
+    background:linear-gradient(180deg, rgba(255,255,255,.22), rgba(0,0,0,.1));
+    box-shadow:2px 0 6px rgba(0,0,0,.12) inset;
+  }
+  .holes{position:absolute; left:8px; bottom:18px; display:grid; gap:8px}
+  .hole{width:8px; height:8px; border-radius:50%; background:rgba(0,0,0,.22); box-shadow:0 1px 0 rgba(255,255,255,.5) inset}
+
+  /* 상단 이름/배지 */
+  .head{display:flex; align-items:center; justify-content:space-between; padding:16px 16px 8px 36px}
+  .name{font-weight:900; font-size:19px; color:#0b1220; text-shadow:0 1px 0 rgba(255,255,255,.35)}
+  .name .suffix{margin-left:4px; font-weight:800; color:#1f2937; font-size:15px}
+  .badges{display:flex; gap:6px; align-items:center}
+  .badge{
+    font-size:11px; padding:3px 8px; border-radius:999px; background:rgba(255,255,255,.65);
+    border:1px solid rgba(0,0,0,.08); color:#1f2937; backdrop-filter:blur(2px);
+  }
+  .badge.danger{background:var(--danger-bg); border-color:var(--danger); color:#991b1b}
+  .badge.cake{display:inline-flex; align-items:center; gap:4px}
+
+  /* 내용 패널 (호버 시 앞으로 슬라이드) */
+  .panel{
+    position:absolute; right:10px; top:70px; bottom:12px; left:36px;
+    background:rgba(255,255,255,.78); border:1px solid rgba(0,0,0,.08);
+    border-radius:12px; padding:12px; overflow:hidden;
     box-shadow:0 6px 14px rgba(0,0,0,.08);
-    transform-style:preserve-3d;overflow:hidden;cursor:pointer;outline:0;
+    transform:translateZ(30px) translateX(8px) rotateY(6deg); opacity:.0;
+    transition:opacity .25s, transform .28s;
+    backdrop-filter: blur(6px);
   }
-  /* 상태별 색감 */
-  .book.blue{background:linear-gradient(135deg,#eef2ff,#e2e8f0)}
-  .book.yellow{background:linear-gradient(135deg,#fff7ed,#fde68a)}
-  .book.pink{background:linear-gradient(135deg,#ffe4e6,#fecaca)}
+  .binder:hover .panel, .binder:focus-visible .panel{
+    opacity:1; transform:translateZ(60px) translateX(0) rotateY(0deg);
+  }
+  .rows{font-size:13px; color:#374151; display:grid; gap:6px; margin-top:10px}
+  .row{display:flex; gap:6px}
+  .row .label{width:66px; color:#334155; font-weight:700}
+  .row .value{flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 
-  /* 두꺼운 등(spine) */
-  .spine{
-    position:absolute;left:-20px;top:0;bottom:0;width:28px;border-radius:8px 0 0 8px;
-    background:linear-gradient(90deg,#e2e8f0,#cbd5e1);
-    box-shadow:inset -3px 0 8px rgba(0,0,0,.12);
-    transform:translateZ(-30px) rotateY(22deg);
+  /* 프로그레스 링 */
+  .ring{
+    --pct: 0; /* 0~100 */
+    width:84px; height:84px; border-radius:50%;
+    background:
+      conic-gradient(var(--ok) calc(var(--pct)*1%), var(--track) 0);
+    display:grid; place-items:center; margin:2px 8px 6px auto; border:6px solid rgba(255,255,255,.6);
+    box-shadow:0 2px 10px rgba(0,0,0,.08) inset, 0 6px 14px rgba(0,0,0,.08);
+  }
+  .ring.low{ --ok:#ef4444; }
+  .ring .ring-label{background:#fff; border-radius:999px; padding:6px 8px; font-size:12px; font-weight:900; border:1px solid #e5e7eb}
+
+  .stats{display:flex; gap:8px; flex-wrap:wrap; margin-top:10px}
+  .pill{border:1px solid var(--line); padding:6px 10px; border-radius:999px; font-size:12px; background:#fff}
+  .pill strong{font-weight:900}
+  .pill.remain{border-color:#60a5fa; background:#eff6ff}
+  .pill.remain.low{border-color:#ef4444; background:#fee2e2; color:#991b1b}
+  .pill.total{border-color:#d1d5db; background:#f9fafb}
+
+  /* 빠른 액션(호버 시 등장) */
+  .actions{
+    position:absolute; left:36px; right:10px; bottom:14px;
+    display:flex; gap:8px; opacity:0; transform:translateY(6px);
+    transition:opacity .2s, transform .2s;
+  }
+  .binder:hover .actions, .binder:focus-visible .actions{ opacity:1; transform:translateY(0); }
+  .actions button{
+    flex:1; border:1px solid rgba(0,0,0,.08); background:#0B1E3A; color:#fff;
+    border-radius:10px; padding:9px 10px; font-size:13px; cursor:pointer; font-weight:800;
+    box-shadow:0 8px 18px rgba(11,30,58,.18);
+  }
+  .actions .light{ background:#fff; color:#0B1E3A; }
+
+  /* 잔여 0 강조 + 전체 카드 경고 */
+  .binder.zero{
+    box-shadow:
+      -12px 0 0 rgba(239,68,68,.15) inset,
+      0 22px 40px rgba(239,68,68,.25);
+    filter:saturate(1.05) contrast(1.03);
   }
 
-  /* 커버 내용 */
-  .cover{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:18px 16px 14px}
-  .name{font-weight:900;font-size:22px;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .label{font-size:12px;color:#334155}
-  .bottom{display:flex;justify-content:space-between;align-items:flex-end}
-  .badge{font-size:11px;padding:3px 8px;border-radius:999px;border:1px solid #e5e7eb;background:#fff;color:#334155}
-  .badge.exp{border-color:var(--danger);color:#991b1b;background:#fee2e2}
-  .badge.recent{border-color:var(--recent);color:#92400e;background:#fff7ed}
-  .badge.ok{border-color:#10b981;color:#065f46;background:#ecfdf5}
+  /* 색상 파레트 (이름 해시로 바인더 색 바뀜) */
+  .c1{background:linear-gradient(160deg,#a7f3d0,#34d399,#059669)}
+  .c2{background:linear-gradient(160deg,#fde68a,#fbbf24,#d97706)}
+  .c3{background:linear-gradient(160deg,#bfdbfe,#60a5fa,#2563eb)}
+  .c4{background:linear-gradient(160deg,#fbcfe8,#f472b6,#db2777)}
+  .c5{background:linear-gradient(160deg,#ddd6fe,#a78bfa,#7c3aed)}
+  .c6{background:linear-gradient(160deg,#fecaca,#f87171,#ef4444)}
+  .c7{background:linear-gradient(160deg,#c7d2fe,#818cf8,#4f46e5)}
 
-  /* Hover info panel */
-  .info{
-    position:absolute;right:-2px;top:8px;width:260px;background:rgba(255,255,255,.96);
-    border:1px solid #e2e8f0;border-radius:12px;padding:12px;box-shadow:var(--shadow);
-    opacity:0;pointer-events:none;transform:translateX(-8px);transition:opacity .18s ease,transform .18s ease;
-  }
-  .file:hover .info,.file:focus-within .info{opacity:1;pointer-events:auto;transform:translateX(4px)}
-  .rows{display:grid;gap:6px;font-size:13px;color:#334155}
-  .row{display:flex;gap:8px}
-  .row .k{width:80px;color:#64748b}
-  .row .v{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .actions{display:flex;gap:8px;margin-top:10px}
-  .actions .btn{flex:1}
-
-  .footer{padding:10px 16px 18px;color:var(--muted);font-size:12px}
-  .banner{position:fixed;left:50%;top:10px;transform:translateX(-50%);
-          background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 12px;
-          color:#334155;font-size:12px;box-shadow:0 6px 16px rgba(0,0,0,.12);display:none}
-
-  /* 반응형: 화면 좁을 때 겹침 정도 완화 */
-  @media (max-width: 840px){
-    .file{width:230px;height:320px;margin-left:-120px}
-    .file:first-child{margin-left:120px}
-  }
-  @media (max-width: 600px){
-    .rowWrap{transform:none}
-    .file{transform:none;margin-left:12px}
-    .file:first-child{margin-left:12px}
-  }
+  /* Empty */
+  .empty{padding:40px 16px; text-align:center; color:var(--muted)}
 </style>
 </head>
 <body>
   <header>
-    <div class="head-top">
-      <h1 class="brand">개인 트레이닝 일지 – 세로 바인더</h1>
-      <div style="display:flex;gap:8px">
-        <button class="btn" onclick="location.href='dashboard.html'">메인으로</button>
-        <button class="btn primary" onclick="location.href='member-registration.html'">+ 회원 등록</button>
-      </div>
-    </div>
-
+    <h1>개인 트레이닝 – 바인더 서류철</h1>
     <div class="tools">
-      <input id="q" type="search" placeholder="회원 이름 / 연락처 / 담당 / 메모 검색" />
+      <input id="q" type="search" placeholder="이름 / 담당 / 등급 검색" />
       <div class="group">
         정렬:
-        <select id="sortBy" aria-label="정렬 기준">
-          <option value="recent" selected>최근 작성</option>
-          <option value="name">이름 (가나다 → 영문 → 숫자)</option>
+        <select id="sortBy" aria-label="정렬">
+          <option value="name" selected>이름(가나다·영문·숫자)</option>
+          <option value="recent">최근 작성</option>
+          <option value="remain">잔여 세션</option>
           <option value="first">최초 등록일</option>
           <option value="expire">만료일</option>
         </select>
+        <button id="orderBtn" class="tgl" aria-pressed="false">오름차순 ↑</button>
       </div>
-      <div class="group">
-        방향:
-        <div class="toggle" id="dirToggle" role="group" aria-label="정렬 방향">
-          <button type="button" data-dir="desc" class="active">최근순/내림차</button>
-          <button type="button" data-dir="asc">과거순/오름차</button>
-        </div>
-      </div>
-      <label class="group"><input id="onlyRecent" type="checkbox"> 최근 7일 작성만</label>
+      <button id="btnDash" class="back" onclick="location.href='dashboard.html'">대시보드로</button>
     </div>
   </header>
 
-  <main>
+  <section class="shelf-wrap">
     <div id="shelf" class="shelf" aria-live="polite"></div>
     <div id="empty" class="empty" hidden>검색 결과가 없어요.</div>
-  </main>
-  <div class="footer">Tip: 파일에 마우스를 올리면 ‘세게’ 뽑혀 보입니다. 클릭하면 일지로 이동하고, 패널 버튼으로 스케줄러/메인 이동이 가능해요.</div>
-  <div class="banner" id="fbStatus"></div>
+  </section>
 
   <script type="module">
-  /* ===== Firebase ===== */
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
-  import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
-  import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+  import {
+    getFirestore, collection, onSnapshot, doc, updateDoc, increment,
+    query, where, orderBy, limit, getDocs
+  } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
 
+  /* ===== Firestore ===== */
   const firebaseConfig = {
     apiKey:"AIzaSyCjdyveDx0qFPUzmaChnEy9Ni0VjTysYnM",
     authDomain:"more-than-fitness-f6adb.firebaseapp.com",
@@ -187,220 +216,239 @@
     measurementId:"G-MK0RVFG296"
   };
   const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db   = getFirestore(app);
+  const db  = getFirestore(app);
 
-  const fbStatus = document.getElementById('fbStatus');
-  function showStatus(msg, ok=true){
-    fbStatus.textContent = msg;
-    fbStatus.style.display = 'block';
-    fbStatus.style.borderColor = ok ? '#c7d2fe' : '#fecaca';
-    setTimeout(()=>{ fbStatus.style.display='none'; }, 2000);
-  }
+  /* ===== DOM ===== */
+  const shelf = document.getElementById('shelf');
+  const empty = document.getElementById('empty');
+  const qEl   = document.getElementById('q');
+  const sortSel = document.getElementById('sortBy');
+  const orderBtn = document.getElementById('orderBtn');
 
-  onAuthStateChanged(auth, (u)=>{
-    if(!u){
-      signInAnonymously(auth)
-        .then(()=>showStatus('Firebase 연결됨', true))
-        .catch(err=>showStatus('로그인 실패: '+(err?.code||''), false));
-    }else{
-      showStatus('Firebase 연결됨', true);
-      startSubscription();
-    }
-  });
-
-  /* ===== DOM / Utils ===== */
-  const shelf      = document.getElementById('shelf');
-  const emptyEl    = document.getElementById('empty');
-  const q          = document.getElementById('q');
-  const sortSel    = document.getElementById('sortBy');
-  const dirToggle  = document.getElementById('dirToggle');
-  const onlyRecent = document.getElementById('onlyRecent');
-
+  /* ===== Utils ===== */
+  const collator = new Intl.Collator('ko-KR',{numeric:true,sensitivity:'base'});
   const escapeHtml = s => String(s??"").replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' }[m]));
-  function formatPhone(raw){
-    const v = String(raw||"").replace(/\D/g,'').slice(0,11);
-    if (v.length<=3) return v;
-    if (v.length<=7) return v.slice(0,3)+'-'+v.slice(3);
-    return v.slice(0,3)+'-'+v.slice(3,7)+'-'+v.slice(7);
+  const p2 = n => String(n).padStart(2,'0');
+  const todayISO = () => { const d = new Date(); return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`; };
+  const nowHM = () => { const d=new Date(); return `${p2(d.getHours())}:${p2(d.getMinutes())}`; };
+  const toISO = ts => ts?.toDate ? ts.toDate().toISOString().slice(0,10) : (typeof ts==='string'? ts : "");
+  // 다음 생일/기념일까지 D-day (<=30이면 숫자, 아니면 null)
+  function daysUntilAnnual(dateStr){
+    if(!dateStr) return null;
+    const [y,m,d] = dateStr.split('-').map(Number); if(!m||!d) return null;
+    const now = new Date();
+    const tgt = new Date(now.getFullYear(), m-1, d);
+    if (tgt < new Date(now.getFullYear(), now.getMonth(), now.getDate())) tgt.setFullYear(now.getFullYear()+1);
+    const diff = Math.ceil((tgt - now)/86400000);
+    return diff<=30 ? diff : null;
   }
-  const dateToISO = d => d instanceof Date ? d.toISOString().slice(0,10) : "";
-  const daysDiff  = s => { if(!s) return null; const d=new Date(s+'T00:00:00'); const t=new Date(); t.setHours(0,0,0,0); return Math.floor((t-d)/86400000); };
-  const daysUntil = s => { if(!s) return null; const d=new Date(s+'T00:00:00'); const t=new Date(); t.setHours(0,0,0,0); return Math.ceil((d-t)/86400000); };
-  const isRecent  = s => { const dd = daysDiff(s); return dd !== null && dd <= 7; };
+  // 이름 해시 → 색상 클래스
+  const COLORS = ['c1','c2','c3','c4','c5','c6','c7'];
+  const colorClass = name => COLORS[Math.abs([...String(name||'')].reduce((a,c)=> (a*31 + c.charCodeAt(0))|0,7)) % COLORS.length];
 
-  function coverClassByStatus(m){
-    const dLeft = daysUntil(m.expireAt);
-    if (dLeft !== null && dLeft <= 7) return 'pink';     // 만료 임박
-    if (isRecent(m.lastLog))          return 'yellow';   // 최근 작성
-    return 'blue';
+  // 다음 예약 조회 (memberId 기준)
+  async function fetchNextSchedule(memberId){
+    try{
+      const qy = query(
+        collection(db,'schedules'),
+        where('memberId','==', memberId),
+        orderBy('date','asc'),
+        limit(15)
+      );
+      const snap = await getDocs(qy);
+      const today = todayISO(), now = nowHM();
+      let next = null;
+      snap.forEach(ds=>{
+        const s = ds.data();
+        const d = String(s.date||'');
+        const st= String(s.start||'00:00');
+        if (d > today || (d===today && st >= now)){
+          if (!next || d < next.date || (d===next.date && st < next.start)){
+            next = {date:d, start:st};
+          }
+        }
+      });
+      return next ? `${next.date} ${next.start}` : null;
+    }catch(e){
+      console.error(e);
+      return null;
+    }
   }
 
-  /* 이름 그룹: 가나다(0) → 영문(1) → 숫자(2) → 기타(3) */
-  function nameGroup(name){
-    const s=(name||"").trim(); const ch=s[0]||"";
-    if (/[가-힣]/.test(ch)) return 0;
-    if (/[A-Za-z]/.test(ch)) return 1;
-    if (/[0-9]/.test(ch)) return 2;
-    return 3;
-  }
-  function cmpDateAsc(a,b){
-    if (!a && !b) return 0; if (!a) return -1; if (!b) return 1; return a.localeCompare(b);
-  }
+  /* ===== State ===== */
+  let state = {
+    orderAsc: true,
+    members: []
+  };
 
-  let state = { members: [], dir: 'desc' };
-  const PER_ROW = 4;
-
+  /* ===== Render ===== */
   function render(list){
-    shelf.innerHTML = "";
-    if (!list.length){ emptyEl.hidden = false; return; }
-    emptyEl.hidden = true;
+    shelf.innerHTML = '';
+    if(!list.length){ empty.hidden = false; return; }
+    empty.hidden = true;
 
-    for (let i=0; i<list.length; i+=PER_ROW){
-      const row = document.createElement('div');
-      row.className = 'rowWrap';
+    list.forEach(m=>{
+      const cls = ['binder', colorClass(m.name)];
+      const lowRemain = (m.remaining ?? 0) <= 3;
+      if ((m.remaining ?? 0) <= 0) cls.push('zero');
 
-      list.slice(i, i+PER_ROW).forEach((m, idx)=>{
-        const file = document.createElement('article');
-        file.className = 'file';
-        if (idx===0) file.style.marginLeft = '140px'; /* 첫 파일만 받침대 공간 */
+      const art = document.createElement('article');
+      art.className = cls.join(' ');
+      art.tabIndex = 0;
+      art.setAttribute('role','button');
+      art.setAttribute('aria-label', `${m.name} 고객 카드`);
 
-        const book = document.createElement('div');
-        book.className = `book ${coverClassByStatus(m)}`;
-        book.setAttribute('role','button');
-        book.setAttribute('aria-label', `${m.name} 파일 열기`);
-        file.appendChild(book);
+      // 상단 배지: 만료 임박, 최근작성, 생일/기념일
+      const dLeft = m.expireAt ? Math.ceil((new Date(m.expireAt) - new Date(todayISO()))/86400000) : null;
+      let rightBadge = `<span class="badge">${escapeHtml(m.grade||"")}</span>`;
+      if (m.lastLog) rightBadge = `<span class="badge">최근 ${m.lastLog}</span>`;
+      if (dLeft !== null && dLeft <= 7) rightBadge = `<span class="badge danger">만료 D-${Math.max(dLeft,0)}</span>`;
 
-        const spine = document.createElement('div'); spine.className='spine'; book.appendChild(spine);
+      // 생일/기념일 (30일 이내)
+      const cakeDays = daysUntilAnnual(m.birthday) ?? daysUntilAnnual(m.anniversary);
+      const cakeBadge = cakeDays!==null ? `<span class="badge cake">🎂 D-${cakeDays}</span>` : '';
 
-        const cover = document.createElement('div');
-        cover.className = 'cover';
-        cover.innerHTML = `
-          <div>
-            <div class="name">${escapeHtml(m.name)}</div>
-            <div class="label">${formatPhone(m.phone)}</div>
+      art.innerHTML = `
+        <div class="head">
+          <div class="name">${escapeHtml(m.name)} <span class="suffix">고객님</span></div>
+          <div class="badges">
+            ${cakeBadge}
+            ${rightBadge}
           </div>
-          <div class="bottom">
-            <span class="badge">잔여 ${m.remainingSessions ?? 0}회</span>
-            ${
-              (d=>d!==null && d<=7 ? `<span class="badge exp">만료 D-${Math.max(0,d)}</span>` :
-                 (isRecent(m.lastLog) ? `<span class="badge recent">최근 ${m.lastLog}</span>` :
-                  `<span class="badge ok">정상</span>`))(daysUntil(m.expireAt))
-            }
-          </div>`;
-        book.appendChild(cover);
+        </div>
 
-        const info = document.createElement('div');
-        info.className = 'info';
-        info.innerHTML = `
-          <div class="rows">
-            <div class="row"><span class="k">연락처</span><span class="v">${formatPhone(m.phone)}</span></div>
-            <div class="row"><span class="k">담당</span><span class="v">${escapeHtml(m.trainer||"-")}</span></div>
-            <div class="row"><span class="k">최초 등록</span><span class="v">${m.first||"-"}</span></div>
-            <div class="row"><span class="k">최근 작성</span><span class="v">${m.lastLog||"-"}</span></div>
-            <div class="row"><span class="k">만료일</span><span class="v">${m.expireAt||"-"}</span></div>
-            <div class="row"><span class="k">일지 수</span><span class="v">${m.logCount||0}회</span></div>
+        <div class="panel">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <div class="ring ${lowRemain?'low':''}" style="--pct:${Math.max(0,Math.min(100, Math.round(((m.remaining||0)/(m.total||1))*100)))}">
+              <div class="ring-label">${m.remaining||0}/${m.total||0}</div>
+            </div>
+            <div class="rows" style="flex:1">
+              <div class="row"><span class="label">담당</span><span class="value">${escapeHtml(m.trainer||"-")}</span></div>
+              <div class="row"><span class="label">등급</span><span class="value">${escapeHtml(m.grade||"-")}</span></div>
+              <div class="row"><span class="label">등록일</span><span class="value">${m.first||"-"}</span></div>
+              <div class="row"><span class="label">만료일</span><span class="value">${m.expireAt||"-"}</span></div>
+              <div class="row"><span class="label">작성</span><span class="value">${m.logCount||0}회</span></div>
+              <div class="row"><span class="label">다음예약</span><span class="value" id="nx-${m.id}">조회 중…</span></div>
+            </div>
           </div>
-          <div class="actions">
-            <button class="btn" data-act="log">일지 열기</button>
-            <button class="btn" data-act="sched">스케줄러</button>
-            <button class="btn" data-act="main">메인으로</button>
-          </div>`;
-        book.appendChild(info);
 
-        // 클릭 기본: 일지
-        book.addEventListener('click', ()=>{
-          location.href = `personal-training-log.html?id=${encodeURIComponent(m.id)}`;
-        });
-        // 패널 버튼
-        info.addEventListener('click', (e)=>{
-          const act = e.target?.dataset?.act;
-          if(!act) return;
-          if (act==='log')   location.href=`personal-training-log.html?id=${encodeURIComponent(m.id)}`;
-          if (act==='sched') location.href=`dashboard.html?memberId=${encodeURIComponent(m.id)}`;
-          if (act==='main')  location.href='dashboard.html';
-          e.stopPropagation();
-        });
+          <div class="stats" aria-label="세션 현황">
+            <div class="pill remain ${lowRemain?'low':''}">잔여 <strong>${m.remaining||0}</strong></div>
+            <div class="pill total">총 <strong>${m.total||0}</strong></div>
+          </div>
+        </div>
 
-        row.appendChild(file);
+        <div class="actions">
+          <button class="light" data-act="journal">일지 열기</button>
+          <button class="light" data-act="extend">연장 등록</button>
+          <button data-act="consume">소진 -1</button>
+        </div>
+
+        <div class="holes">
+          <div class="hole"></div><div class="hole"></div><div class="hole"></div>
+        </div>
+      `;
+
+      // 액션들
+      art.querySelector('[data-act="journal"]').addEventListener('click', (e)=>{
+        e.stopPropagation();
+        location.href = `personal-training-log.html?id=${encodeURIComponent(m.id)}`;
+      });
+      art.querySelector('[data-act="extend"]').addEventListener('click', (e)=>{
+        e.stopPropagation();
+        location.href = `edit-member.html?id=${encodeURIComponent(m.id)}`;
+      });
+      art.querySelector('[data-act="consume"]').addEventListener('click', async (e)=>{
+        e.stopPropagation();
+        if ((m.remaining||0) <= 0){ alert('잔여 세션이 없습니다'); return; }
+        try{
+          await updateDoc(doc(db,'members',m.id), { remainingSessions: increment(-1) });
+        }catch(err){ console.error(err); alert('소진 처리 실패'); }
       });
 
-      shelf.appendChild(row);
-    }
+      // 카드 클릭 → 일지
+      art.addEventListener('click', ()=>{
+        location.href = `personal-training-log.html?id=${encodeURIComponent(m.id)}`;
+      });
+
+      // 다음 예약 비동기 로드 (호버할 때만 조회 → 가볍게)
+      let fetched = false;
+      const ensureNext = async ()=>{
+        if (fetched) return;
+        fetched = true;
+        const nx = await fetchNextSchedule(m.id);
+        const tgt = art.querySelector(`#nx-${m.id}`);
+        if (tgt) tgt.textContent = nx || '-';
+      };
+      art.addEventListener('mouseenter', ensureNext, {passive:true});
+      art.addEventListener('focus', ensureNext, {passive:true});
+
+      shelf.appendChild(art);
+    });
   }
 
-  function filteredAndSorted(){
-    const keyword = (q.value||"").trim().toLowerCase();
-    const norm = s => String(s||"").toLowerCase();
-    const dir  = state.dir === 'asc' ? 1 : -1;
+  function filterSort(){
+    const kw = (qEl.value||'').trim().toLowerCase();
+    const norm = s => String(s||'').toLowerCase();
 
-    const list = state.members.filter(m=>{
-      const phoneMatch = formatPhone(m.phone).replace(/\D/g,'').includes(keyword.replace(/\D/g,''));
-      const match = !keyword
-        || norm(m.name).includes(keyword)
-        || phoneMatch
-        || norm(m.trainer).includes(keyword)
-        || norm(m.memo).includes(keyword);
-      const recentOK = !onlyRecent.checked || isRecent(m.lastLog);
-      return match && recentOK;
+    let list = state.members.filter(m=>{
+      return !kw
+        || norm(m.name).includes(kw)
+        || norm(m.trainer).includes(kw)
+        || norm(m.grade).includes(kw);
     });
 
     const by = sortSel.value;
+    const dir = state.orderAsc ? 1 : -1;
+
     list.sort((a,b)=>{
-      if (by==='recent') return dir * cmpDateAsc(b.lastLog||"", a.lastLog||"");
-      if (by==='first')  return dir * cmpDateAsc(a.first||"", b.first||"");
-      if (by==='expire') return dir * cmpDateAsc(a.expireAt||"", b.expireAt||"");
-      if (by==='name'){
-        const ga=nameGroup(a.name), gb=nameGroup(b.name);
-        if (ga !== gb) return dir * (ga - gb);  // 가나다(0) → 영문(1) → 숫자(2)
-        return dir * a.name.localeCompare(b.name,'ko',{numeric:true,sensitivity:'base'});
-      }
+      if(by==='name')   return dir * collator.compare(a.name, b.name);
+      if(by==='recent') return dir * ( (b.lastLog||'').localeCompare(a.lastLog||'') );
+      if(by==='remain') return dir * ( (a.remaining||0) - (b.remaining||0) );
+      if(by==='first')  return dir * ( (a.first||'').localeCompare(b.first||'') );
+      if(by==='expire') return dir * ( (a.expireAt||'').localeCompare(b.expireAt||'') );
       return 0;
     });
-    return list;
-  }
-  const rerender = ()=> render(filteredAndSorted());
 
-  /* ===== Firestore 구독 ===== */
-  function startSubscription(){
-    onSnapshot(collection(db, "members"), (snap)=>{
-      const list=[];
-      snap.forEach(docSnap=>{
-        const d = docSnap.data();
-        const createdAt = d.createdAt?.toDate ? d.createdAt.toDate() : null;
-        const first     = d.startDate || (createdAt ? dateToISO(createdAt) : "");
-        const expireAt  = d.expireAt?.toDate ? dateToISO(d.expireAt.toDate()) : (d.expireAt || "");
-        const lastLog   = d.lastLogAt?.toDate
-                          ? dateToISO(d.lastLogAt.toDate())
-                          : (d.lastPurchaseAt?.toDate ? dateToISO(d.lastPurchaseAt.toDate()) : "");
-        list.push({
-          id: docSnap.id,
-          name: d.name || "",
-          phone: d.phone || d.phoneDisplay || "",
-          trainer: d.trainer || "",
-          memo: d.memo || "",
-          first,
-          expireAt,
-          lastLog,
-          logCount: d.logCount || 0,
-          remainingSessions: d.remainingSessions ?? 0
-        });
-      });
-      state.members = list;
-      rerender();
-    }, (err)=> showStatus('Firestore 오류: '+(err?.code||err?.message||'알 수 없음'), false));
+    render(list);
   }
 
-  /* ===== UI 이벤트 ===== */
-  q.addEventListener('input', rerender);
-  sortSel.addEventListener('change', rerender);
-  onlyRecent.addEventListener('change', rerender);
-  dirToggle.addEventListener('click', (e)=>{
-    const btn=e.target.closest('button'); if(!btn) return;
-    state.dir = btn.dataset.dir;
-    [...dirToggle.children].forEach(x=>x.classList.toggle('active', x===btn));
-    rerender();
+  orderBtn.addEventListener('click', ()=>{
+    state.orderAsc = !state.orderAsc;
+    orderBtn.textContent = state.orderAsc ? '오름차순 ↑' : '내림차순 ↓';
+    orderBtn.setAttribute('aria-pressed', String(!state.orderAsc));
+    filterSort();
   });
+  qEl.addEventListener('input', filterSort);
+  sortSel.addEventListener('change', filterSort);
+
+  /* ===== Subscribe members ===== */
+  onSnapshot(collection(db,'members'), (snap)=>{
+    const list = [];
+    snap.forEach(ds=>{
+      const d = ds.data();
+      const createdAt = toISO(d.createdAt);
+      const expireAt  = toISO(d.expireAt);
+      const lastLog   = toISO(d.lastLogAt) || toISO(d.lastPurchaseAt);
+      list.push({
+        id: ds.id,
+        name: d.name || "",
+        trainer: d.trainer || "",
+        grade: d.level || d.grade || "",
+        first: d.startDate || createdAt || "",
+        expireAt,
+        lastLog,
+        logCount: d.logCount || 0,
+        remaining: d.remainingSessions ?? 0,
+        total: d.totalSessionsPurchased ?? d.totalSessions ?? 0,
+        birthday: d.birthday ? toISO(d.birthday) : (typeof d.birthday==='string'? d.birthday : ""),
+        anniversary: d.anniversary ? toISO(d.anniversary) : (typeof d.anniversary==='string'? d.anniversary : "")
+      });
+    });
+    state.members = list;
+    filterSort();
+  });
+
   </script>
 </body>
 </html>
