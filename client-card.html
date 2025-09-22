@@ -96,6 +96,11 @@
     background:linear-gradient(160deg, #9ec5ff 0%, #6aa0ff 55%, #3a6ddf 100%);
     border:1px solid rgba(0,0,0,.06); color:#0b1220; scroll-snap-align:start;
   }
+  .cFemale  { background:linear-gradient(160deg,#a7f3d0,#34d399,#059669);}  /* 연두 */
+.cMale    { background:linear-gradient(160deg,#bfdbfe,#60a5fa,#2563eb);}  /* 하늘 */
+.cMale50  { background:linear-gradient(160deg,#1e293b,#0f172a,#0b1e3a);}  /* 네이비 */
+.cFemale50{ background:linear-gradient(160deg,#fbcfe8,#f472b6,#db2777);}  /* 분홍 */
+.cDefault { background:linear-gradient(160deg,#ddd6fe,#a78bfa,#7c3aed);}  /* 보라 기본 */
   .binder:first-child{ margin-left:8px; }
   .binder:hover, .binder:focus-visible{
     z-index:9; transform:translateY(-14px) rotateY(-2deg) scale(1.04);
@@ -354,9 +359,20 @@
     const diff = Math.ceil((tgt - now)/86400000);
     return diff<=30 ? diff : null;
   }
-  const COLORS = ['c1','c2','c3','c4','c5','c6','c7'];
-  const colorClass = name => COLORS[Math.abs([...String(name||'')].reduce((a,c)=> (a*31 + c.charCodeAt(0))|0,7)) % COLORS.length];
+    function colorClass(member){
+  const now = new Date().getFullYear();
+  const age = member.birthYear ? now - member.birthYear : null;
 
+  if(member.gender === 'female'){
+    if(age !== null && age >= 50) return 'cFemale50'; // 분홍
+    return 'cFemale'; // 연두
+  }
+  if(member.gender === 'male'){
+    if(age !== null && age >= 50) return 'cMale50'; // 네이비
+    return 'cMale'; // 하늘
+  }
+  return 'cDefault'; // 성별정보 없을 때 기본
+}
   /* 다음 예약 캐시 */
   const nextScheduleCache = new Map(); // id -> "YYYY-MM-DD HH:MM" | '-' (없음)
 
@@ -576,13 +592,6 @@
   qEl.addEventListener('input', filterSort);
   sortSel.addEventListener('change', filterSort);
 
-  // 빠른정렬 1~5
-  document.querySelectorAll('.qbtn').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      sortSel.value = btn.dataset.s || 'name';
-      filterSort();
-    });
-  });
 
   // 만료 회원 토글
   expiredToggleBtn.addEventListener('click', ()=>{
