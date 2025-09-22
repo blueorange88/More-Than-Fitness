@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>고객 카드 – 바인더 선반</title>
 <style>
   :root{
     --navy:#0B1E3A; --gold:#C8A848; --ink:#0b1220; --muted:#6b7280;
-    --line:#e5e7eb; --card:#ffffff; --danger:#ef4444; --danger-bg:#fee2e2;
+    --line:#e5e7eb; --danger:#ef4444; --danger-bg:#fee2e2;
     --ok:#2563eb; --track:#e5e7eb;
     --shelf:#f3f4f6; --shelf-edge:#e5e7eb;
 
-    /* 크기/겹침(반응형에서 바뀜) */
+    /* 크기/겹침 */
     --binder-w: 320px;
     --binder-h: 520px;
     --binder-overlap: -180px;
@@ -40,34 +40,37 @@
     border:1px solid var(--line); border-radius:10px; padding:8px 10px; background:#fff; font-size:13px; cursor:pointer;
   }
   .tools button.tgl{min-width:92px}
-  .back{
-    margin-left:auto; border-color:#cbd5e1; background:#0B1E3A; color:#fff; font-weight:700;
+  .back{ margin-left:auto; background:#0B1E3A; color:#fff; font-weight:700; }
+
+  /* 빠른정렬 번호 버튼 */
+  .qs{display:flex; gap:6px; align-items:center}
+  .qs small{color:#475569}
+  .qbtn{
+    width:34px; height:34px; border-radius:8px; border:1px solid var(--line); background:#fff; cursor:pointer; font-weight:800;
+  }
+  .qbtn:hover{box-shadow:0 4px 10px rgba(0,0,0,.08)}
+  .expired-toggle{
+    border:1px solid var(--line); border-radius:999px; padding:8px 12px; background:#fff; font-weight:800;
   }
 
-  /* ===== Shelf ===== */
+  /* ===== Shelf + 바닥 그림자 ===== */
   .shelf-wrap{position:relative; padding:18px 0 28px}
-  /* 선반 위/아래 실제 그림자 (바닥에 드리운 느낌) */
   .shelf-wrap::before{
     content:""; position:absolute; left:0; right:0; top:6px; height:18px; pointer-events:none;
-    background:
-      radial-gradient(80% 14px at 50% 0, rgba(0,0,0,.18), rgba(0,0,0,0) 70%);
+    background:radial-gradient(80% 14px at 50% 0, rgba(0,0,0,.18), rgba(0,0,0,0) 70%);
     filter: blur(2px);
   }
   .shelf-wrap::after{
     content:""; position:absolute; left:0; right:0; bottom:2px; height:24px; pointer-events:none;
-    background:
-      radial-gradient(70% 18px at 50% 100%, rgba(0,0,0,.22), rgba(0,0,0,0) 70%);
+    background:radial-gradient(70% 18px at 50% 100%, rgba(0,0,0,.22), rgba(0,0,0,0) 70%);
     filter: blur(2px);
   }
-
   .shelf{
     position:relative; display:flex; gap:0; padding:26px 22px;
     overflow-x:auto; overflow-y:visible; scrollbar-width:thin;
-    perspective:1200px; background:
-      linear-gradient(180deg, rgba(0,0,0,0.04), rgba(0,0,0,0.02)) padding-box,
-      linear-gradient(#fff, #fff) border-box;
+    perspective:1200px;
     border-top:1px solid var(--shelf-edge); border-bottom:1px solid var(--shelf-edge);
-    background-color:var(--shelf);
+    background:var(--shelf);
     scroll-snap-type:x proximity;
   }
   .shelf::before, .shelf::after{
@@ -76,115 +79,86 @@
   }
   .shelf::after{ left:auto; right:0; background:linear-gradient(270deg,#f9fafb,rgba(249,250,251,0)); }
 
-  /* ===== Binder (big, overlapped, 3D) ===== */
-  @keyframes breathe {
-    0%,100% { filter:saturate(1.0) brightness(1.00); }
-    50%     { filter:saturate(1.10) brightness(1.06); }
-  }
+  /* ===== Binder ===== */
+  @keyframes breathe { 0%,100%{filter:saturate(1) brightness(1)} 50%{filter:saturate(1.08) brightness(1.05)} }
   @keyframes glowPulse {
     0%,100%{ box-shadow:-10px 0 0 rgba(255,255,255,.18) inset, 0 22px 40px rgba(0,0,0,.22); }
-    50%    { box-shadow:-12px 0 0 rgba(255,255,255,.25) inset, 0 28px 60px rgba(0,0,0,.28); }
+    50%    { box-shadow:-12px 0 0 rgba(255,255,255,.24) inset, 0 28px 60px rgba(0,0,0,.28); }
   }
-
   .binder{
     position:relative;
-    width:var(--binder-w);
-    height:var(--binder-h);
-    margin-left:var(--binder-overlap);
-    border-radius:14px; cursor:pointer; user-select:none; outline:0;
+    width:var(--binder-w); height:var(--binder-h); margin-left:var(--binder-overlap);
+    border-radius:16px; cursor:pointer; user-select:none; outline:0;
     transform:translateZ(0) rotateY(-12deg) translateY(6px);
     transform-origin:left center; will-change:transform, filter;
     box-shadow:-8px 0 0 rgba(0,0,0,.06) inset, 0 8px 20px rgba(0,0,0,.08);
     transition:transform .28s cubic-bezier(.2,.8,.2,1), box-shadow .28s, filter .28s, z-index .28s;
     background:linear-gradient(160deg, #9ec5ff 0%, #6aa0ff 55%, #3a6ddf 100%);
-    border:1px solid rgba(0,0,0,.06);
-    color:#0b1220;
-    scroll-snap-align:start;
+    border:1px solid rgba(0,0,0,.06); color:#0b1220; scroll-snap-align:start;
   }
   .binder:first-child{ margin-left:8px; }
-  .binder:hover,
-  .binder:focus-visible{
-    z-index:9;
-    transform:translateY(-14px) rotateY(-2deg) scale(1.04);
+  .binder:hover, .binder:focus-visible{
+    z-index:9; transform:translateY(-14px) rotateY(-2deg) scale(1.04);
     box-shadow:-10px 0 0 rgba(255,255,255,.18) inset, 0 22px 40px rgba(0,0,0,.22);
-    filter:saturate(1.05);
     animation:breathe 2.6s ease-in-out infinite;
   }
-  /* 스파인(책등) */
+  .binder.expired{
+    filter:grayscale(.2) saturate(.9);
+  }
   .binder::before{
-    content:""; position:absolute; left:0; top:0; bottom:0; width:24px; border-radius:14px 0 0 14px;
+    content:""; position:absolute; left:0; top:0; bottom:0; width:24px; border-radius:16px 0 0 16px;
     background:linear-gradient(180deg, rgba(255,255,255,.22), rgba(0,0,0,.1));
     box-shadow:2px 0 6px rgba(0,0,0,.12) inset;
   }
-  /* 모서리 반짝(코너 하이라이트 + 대각선 스윕용 레이어) */
-  .binder::after{
-    content:""; position:absolute; inset:0; pointer-events:none; border-radius:14px;
+  .binder::after{ /* 코너 하이라이트 */
+    content:""; position:absolute; inset:0; pointer-events:none; border-radius:16px;
     background:
-      radial-gradient(28px 28px at calc(100% - 10px) 10px, rgba(255,255,255,.65), rgba(255,255,255,0) 70%) top right / 40% 40% no-repeat,
+      radial-gradient(28px 28px at calc(100% - 10px) 10px, rgba(255,255,255,.6), rgba(255,255,255,0) 70%) top right / 40% 40% no-repeat,
       radial-gradient(22px 22px at 12px calc(100% - 12px), rgba(255,255,255,.35), rgba(255,255,255,0) 70%) bottom left / 35% 35% no-repeat;
     opacity:.0; transition:opacity .25s ease;
   }
-  .binder:hover::after,
-  .binder:focus-visible::after{ opacity:1; }
-
-  /* 대각선 광택 스윕 */
+  .binder:hover::after, .binder:focus-visible::after{ opacity:1; }
   .shine{
-    position:absolute; inset:-2px; border-radius:14px; pointer-events:none;
+    position:absolute; inset:-2px; border-radius:16px; pointer-events:none;
     background:linear-gradient(120deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.28) 30%, rgba(255,255,255,0) 60%);
-    transform: translateX(-130%);
-    filter: blur(.2px);
-    transition: transform .9s ease;
-    mix-blend-mode: screen;
+    transform: translateX(-130%); transition: transform .9s ease; mix-blend-mode: screen;
   }
-  .binder:hover .shine,
-  .binder:focus-visible .shine{ transform: translateX(130%); }
-
-  /* 바닥 접점 그림자(실제 물체 같은 느낌) */
+  .binder:hover .shine, .binder:focus-visible .shine{ transform: translateX(130%); }
   .under{
     position:absolute; left:18%; right:12px; bottom:-10px; height:20px; pointer-events:none;
     background:radial-gradient(60% 100% at 50% 0, rgba(0,0,0,.28), rgba(0,0,0,0));
-    filter: blur(3px);
-    opacity:.65; transition:opacity .25s, transform .25s;
+    filter: blur(3px); opacity:.65; transition:opacity .25s, transform .25s;
   }
-  .binder:hover .under,
-  .binder:focus-visible .under{ opacity:.9; transform: translateY(2px) scale(1.06); }
+  .binder:hover .under, .binder:focus-visible .under{ opacity:.9; transform: translateY(2px) scale(1.06); }
+  .binder.pulse{ animation:glowPulse 1.1s ease-in-out 1; }
 
-  /* 눌렀을 때 한 번 튀는 글로우 */
-  .binder.pulse{
-    animation: glowPulse 1.1s ease-in-out 1;
-  }
-
-  .holes{position:absolute; left:8px; bottom:18px; display:grid; gap:8px}
-  .hole{width:8px; height:8px; border-radius:50%; background:rgba(0,0,0,.22); box-shadow:0 1px 0 rgba(255,255,255,.5) inset}
-
-  /* 상단 이름/배지 */
-  .head{display:flex; align-items:flex-start; justify-content:space-between; padding:16px 16px 8px 36px}
-  .name{font-weight:900; font-size:19px; color:#0b1220; text-shadow:0 1px 0 rgba(255,255,255,.35)}
+  /* 상단 영역 */
+  .head{position:relative; display:flex; align-items:flex-start; justify-content:space-between; padding:16px 16px 8px 36px}
+  .name{font-weight:900; font-size:20px; color:#0b1220; text-shadow:0 1px 0 rgba(255,255,255,.35)}
   .name .suffix{margin-left:4px; font-weight:800; color:#1f2937; font-size:15px}
   .name-wrap{display:flex; flex-direction:column; gap:2px}
   .sub-sessions{font-size:12px; font-weight:800; color:#334155; opacity:.9}
 
-  .badges{display:flex; gap:6px; align-items:center}
-  .badge{
-    font-size:11px; padding:3px 8px; border-radius:999px; background:rgba(255,255,255,.65);
-    border:1px solid rgba(0,0,0,.08); color:#1f2937; backdrop-filter:blur(2px);
+  /* 상단 오른쪽 스티커(tag) */
+  .stickers{position:absolute; top:10px; right:10px; display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end}
+  .sticker{
+    font-size:11px; padding:4px 8px; border-radius:10px;
+    background:rgba(255,255,255,.75); color:#1f2937;
+    border:1px solid rgba(0,0,0,.08); backdrop-filter:blur(3px);
   }
-  .badge.danger{background:var(--danger-bg); border-color:var(--danger); color:#991b1b}
-  .badge.cake{display:inline-flex; align-items:center; gap:4px}
+  .sticker.recent{ background:#ecfeff; border-color:#a5f3fc; color:#0e7490; }
+  .sticker.expire{ background:var(--danger-bg); border-color:var(--danger); color:#991b1b; }
 
-  /* 내용 패널 (호버 시 앞으로 슬라이드) */
+  /* 내용 패널 */
   .panel{
     position:absolute; right:10px; top:70px; bottom:12px; left:36px;
     background:rgba(255,255,255,.78); border:1px solid rgba(0,0,0,.08);
     border-radius:12px; padding:12px; overflow:hidden;
     box-shadow:0 6px 14px rgba(0,0,0,.08);
     transform:translateZ(30px) translateX(8px) rotateY(6deg); opacity:.0;
-    transition:opacity .25s, transform .28s;
-    backdrop-filter: blur(6px);
+    transition:opacity .25s, transform .28s; backdrop-filter: blur(6px);
   }
-  .binder:hover .panel, .binder:focus-visible .panel{
-    opacity:1; transform:translateZ(60px) translateX(0) rotateY(0deg);
-  }
+  .binder:hover .panel, .binder:focus-visible .panel{ opacity:1; transform:translateZ(60px) translateX(0) rotateY(0); }
   .rows{font-size:13px; color:#374151; display:grid; gap:6px; margin-top:10px}
   .row{display:flex; gap:6px}
   .row .label{width:66px; color:#334155; font-weight:700}
@@ -208,30 +182,50 @@
   .pill.remain.low{border-color:#ef4444; background:#fee2e2; color:#991b1b}
   .pill.total{border-color:#d1d5db; background:#f9fafb}
 
-  /* 잔여 0 강조 + 전체 카드 경고 */
-  .binder.zero{
-    box-shadow:-12px 0 0 rgba(239,68,68,.15) inset, 0 22px 40px rgba(239,68,68,.25);
-    filter:saturate(1.05) contrast(1.03);
+  /* 빠른 액션: 유리 느낌 pill */
+  .actions{
+    position:absolute; left:36px; right:10px; bottom:14px;
+    display:flex; gap:10px; opacity:0; transform:translateY(6px);
+    transition:opacity .2s, transform .2s;
   }
+  .binder:hover .actions, .binder:focus-visible .actions{ opacity:1; transform:translateY(0); }
+  .btn{
+    flex:1; padding:10px 12px; border-radius:999px;
+    background:rgba(255,255,255,.78); border:1px solid rgba(0,0,0,.08);
+    backdrop-filter: blur(6px); color:#0B1E3A; font-weight:800; font-size:13px;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    box-shadow:0 8px 18px rgba(11,30,58,.18); cursor:pointer;
+  }
+  .btn.strong{ background:#0B1E3A; color:#fff; }
+  .btn:active{ transform:translateY(1px); }
 
-  /* 색상 파레트 (이름 해시로 바인더 색 바뀜) */
-  .c1{background:linear-gradient(160deg,#a7f3d0,#34d399,#059669)}
-  .c2{background:linear-gradient(160deg,#fde68a,#fbbf24,#d97706)}
-  .c3{background:linear-gradient(160deg,#bfdbfe,#60a5fa,#2563eb)}
-  .c4{background:linear-gradient(160deg,#fbcfe8,#f472b6,#db2777)}
-  .c5{background:linear-gradient(160deg,#ddd6fe,#a78bfa,#7c3aed)}
-  .c6{background:linear-gradient(160deg,#fecaca,#f87171,#ef4444)}
-  .c7{background:linear-gradient(160deg,#c7d2fe,#818cf8,#4f46e5)}
-
-  /* 빈 표시 */
+  /* Empty */
   .empty{padding:40px 16px; text-align:center; color:var(--muted)}
+
+  /* 오버레이 & 액션시트 */
+  .overlay{
+    position:fixed; inset:0; background:rgba(0,0,0,.35); display:none; z-index:40;
+  }
+  .sheet{
+    position:fixed; left:50%; top:50%; transform:translate(-50%,-50%);
+    width:320px; max-width:90%; background:#fff; border-radius:14px; padding:16px;
+    box-shadow:0 18px 48px rgba(0,0,0,.35); z-index:41; display:none;
+  }
+  .sheet h3{margin:0 0 8px; font-size:16px; color:#0b1220}
+  .sheet p{margin:0 0 12px; color:#475569; font-size:13px}
+  .sheet .rowbtns{display:flex; gap:8px}
+  .sheet .rowbtns button{flex:1; padding:10px; border-radius:10px; border:1px solid var(--line); cursor:pointer}
+  .sheet .danger{background:#ef4444; color:#fff; border-color:#ef4444}
+  .sheet .cancel{background:#fff}
 
   /* 반응형 */
   @media (max-width: 860px){
     :root{ --binder-w: 260px; --binder-h: 440px; --binder-overlap: -120px; }
+    .btn{font-size:12px}
   }
   @media (max-width: 540px){
     :root{ --binder-w: 200px; --binder-h: 360px; --binder-overlap: -90px; }
+    .btn{padding:12px 14px}
   }
   @media (max-width: 420px){
     :root{ --binder-w: 170px; --binder-h: 300px; --binder-overlap: -70px; }
@@ -239,31 +233,25 @@
     .binder::before{width:22px}
   }
 
-  /* 다크 모드 파스텔 */
+  /* 다크 모드 */
   @media (prefers-color-scheme: dark){
     body{ background:linear-gradient(#0b1220,#101826); color:#e5e7eb; }
     header{ background:linear-gradient(#0f172a,#0b1220); border-bottom-color:#475569; }
-    .tools input[type="search"], .tools select, .tools button{
+    .tools input[type="search"], .tools select, .tools button, .expired-toggle{
       background:#0f172a; color:#e5e7eb; border-color:#374151;
     }
-    .shelf{
-      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.02));
-      border-top-color:#374151; border-bottom-color:#374151;
-    }
+    .qbtn{background:#0f172a; color:#e5e7eb; border-color:#374151}
+    .shelf{ background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.02));
+            border-top-color:#374151; border-bottom-color:#374151; }
     .binder{ color:#eef2ff; border-color:rgba(255,255,255,.06);
              box-shadow:-8px 0 0 rgba(0,0,0,.45) inset, 0 12px 28px rgba(0,0,0,.65); }
     .panel{ background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.1); }
-    .badge{ background:rgba(255,255,255,.1); border-color:rgba(255,255,255,.16); color:#e5e7eb; }
+    .sticker{ background:rgba(255,255,255,.14); border-color:rgba(255,255,255,.2); color:#e5e7eb; }
+    .sticker.recent{ background:rgba(14,116,144,.22); border-color:rgba(14,116,144,.45); color:#d1faff; }
+    .btn{ background:rgba(255,255,255,.12); border-color:rgba(255,255,255,.18); color:#e5e7eb; }
+    .btn.strong{ background:#0B1E3A; }
     .row .label{ color:#cbd5e1; }
     .sub-sessions{ color:#cbd5e1; }
-
-    .c1{background:linear-gradient(160deg,#baf7d6,#84e8ba,#4fc79a)}
-    .c2{background:linear-gradient(160deg,#fde6a6,#f8cf7a,#e8b15a)}
-    .c3{background:linear-gradient(160deg,#cfe1ff,#9cc0ff,#6a99ff)}
-    .c4{background:linear-gradient(160deg,#f6d1ea,#efa6cd,#e07fb6)}
-    .c5{background:linear-gradient(160deg,#e3d9ff,#c8beff,#a79eff)}
-    .c6{background:linear-gradient(160deg,#ffcfd1,#ff9fb0,#ff7a8a)}
-    .c7{background:linear-gradient(160deg,#d5dbff,#b6c0ff,#8e9aff)}
   }
 </style>
 </head>
@@ -283,6 +271,17 @@
         </select>
         <button id="orderBtn" class="tgl" aria-pressed="false">오름차순 ↑</button>
       </div>
+
+      <div class="qs" title="빠른 정렬">
+        <small>빠른정렬:</small>
+        <button class="qbtn" data-s="name"   title="1: 이름">1</button>
+        <button class="qbtn" data-s="recent" title="2: 최근">2</button>
+        <button class="qbtn" data-s="remain" title="3: 잔여">3</button>
+        <button class="qbtn" data-s="first"  title="4: 최초">4</button>
+        <button class="qbtn" data-s="expire" title="5: 만료">5</button>
+      </div>
+
+      <button id="expiredToggle" class="expired-toggle" aria-pressed="false">만료 회원만 보기 (0)</button>
       <button id="btnDash" class="back" onclick="location.href='dashboard.html'">대시보드로</button>
     </div>
   </header>
@@ -292,13 +291,24 @@
     <div id="empty" class="empty" hidden>검색 결과가 없어요.</div>
   </section>
 
+  <!-- 롱프레스 액션시트 -->
+  <div id="overlay" class="overlay"></div>
+  <div id="sheet" class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <h3 id="sheetTitle">만료 고객 분류</h3>
+    <p id="sheetDesc">이 고객을 만료 고객으로 분류할까요?</p>
+    <div class="rowbtns">
+      <button id="btnExpire" class="danger">만료로 분류</button>
+      <button id="btnCancel" class="cancel">취소</button>
+    </div>
+  </div>
+
   <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
   import { getFirestore, collection, onSnapshot, doc, updateDoc, increment,
-           query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+           query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
   import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
 
-  /* ===== Firestore ===== */
+  /* Firestore */
   const firebaseConfig = {
     apiKey:"AIzaSyCjdyveDx0qFPUzmaChnEy9Ni0VjTysYnM",
     authDomain:"more-than-fitness-f6adb.firebaseapp.com",
@@ -311,20 +321,29 @@
   const app = initializeApp(firebaseConfig);
   const db  = getFirestore(app);
 
-  /* ===== DOM ===== */
-  const shelf   = document.getElementById('shelf');
-  const empty   = document.getElementById('empty');
-  const qEl     = document.getElementById('q');
-  const sortSel = document.getElementById('sortBy');
-  const orderBtn= document.getElementById('orderBtn');
+  /* DOM */
+  const shelf    = document.getElementById('shelf');
+  const empty    = document.getElementById('empty');
+  const qEl      = document.getElementById('q');
+  const sortSel  = document.getElementById('sortBy');
+  const orderBtn = document.getElementById('orderBtn');
+  const expiredToggleBtn = document.getElementById('expiredToggle');
 
-  /* ===== Utils ===== */
+  const overlay  = document.getElementById('overlay');
+  const sheet    = document.getElementById('sheet');
+  const btnExpire= document.getElementById('btnExpire');
+  const btnCancel= document.getElementById('btnCancel');
+  const sheetTitle = document.getElementById('sheetTitle');
+  const sheetDesc  = document.getElementById('sheetDesc');
+
+  /* Utils */
   const collator = new Intl.Collator('ko-KR',{numeric:true,sensitivity:'base'});
   const escapeHtml = s => String(s ?? "").replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' }[m]));
   const p2 = n => String(n).padStart(2,'0');
   const todayISO = () => { const d = new Date(); return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`; };
   const nowHM = () => { const d=new Date(); return `${p2(d.getHours())}:${p2(d.getMinutes())}`; };
   const toISO = ts => ts?.toDate ? ts.toDate().toISOString().slice(0,10) : (typeof ts==='string' ? ts : "");
+  const toTime = (str)=> (str ? new Date(str).getTime() : NaN);
 
   function daysUntilAnnual(dateStr){
     if(!dateStr) return null;
@@ -338,8 +357,11 @@
   const COLORS = ['c1','c2','c3','c4','c5','c6','c7'];
   const colorClass = name => COLORS[Math.abs([...String(name||'')].reduce((a,c)=> (a*31 + c.charCodeAt(0))|0,7)) % COLORS.length];
 
-  // 다음 예약 조회 (memberId 기준)
+  /* 다음 예약 캐시 */
+  const nextScheduleCache = new Map(); // id -> "YYYY-MM-DD HH:MM" | '-' (없음)
+
   async function fetchNextSchedule(memberId){
+    if (nextScheduleCache.has(memberId)) return nextScheduleCache.get(memberId);
     try{
       const qy = query(collection(db,'schedules'), where('memberId','==', memberId));
       const snap = await getDocs(qy);
@@ -351,26 +373,40 @@
         if (d > today || (d===today && st >= now)) list.push({date:d,start:st});
       });
       list.sort((a,b)=> (a.date===b.date ? a.start.localeCompare(b.start) : a.date.localeCompare(b.date)));
-      return list[0] ? `${list[0].date} ${list[0].start}` : '-';
-    }catch(e){
-      console.error(e);
-      return '-';
-    }
+      const val = list[0] ? `${list[0].date} ${list[0].start}` : '-';
+      nextScheduleCache.set(memberId, val);
+      return val;
+    }catch(e){ console.error(e); nextScheduleCache.set(memberId,'-'); return '-'; }
   }
 
-  /* ===== State ===== */
-  let state = { orderAsc: true, members: [] };
+  /* State */
+  let state = {
+    orderAsc: true,
+    showExpiredOnly: false,
+    members: [],
+  };
+  let currentMemberForSheet = null;
+  let longPressTimer = null;
+  let longFired = false;
 
-  /* ===== Render ===== */
+  /* Render */
+  function isExpired(m){
+    const today = new Date(todayISO()).getTime();
+    const expT  = toTime(m.expireAt);
+    return Boolean(m.expiredFlag) || (Number.isFinite(expT) && expT < today);
+  }
+
   function render(list){
     shelf.innerHTML = '';
     if(!list.length){ empty.hidden = false; return; }
     empty.hidden = true;
 
     list.forEach(m=>{
+      const expired = isExpired(m);
       const cls = ['binder', colorClass(m.name)];
       const lowRemain = (m.remaining ?? 0) <= 3;
       if ((m.remaining ?? 0) <= 0) cls.push('zero');
+      if (expired) cls.push('expired');
 
       const art = document.createElement('article');
       art.className = cls.join(' ');
@@ -378,13 +414,11 @@
       art.setAttribute('role','button');
       art.setAttribute('aria-label', `${m.name} 고객 카드`);
 
+      // 스티커(최근/만료/등급)
       const dLeft = m.expireAt ? Math.ceil((new Date(m.expireAt) - new Date(todayISO()))/86400000) : null;
-      let rightBadge = `<span class="badge">${escapeHtml(m.grade||"")}</span>`;
-      if (m.lastLog) rightBadge = `<span class="badge">최근 ${m.lastLog}</span>`;
-      if (dLeft !== null && dLeft <= 7) rightBadge = `<span class="badge danger">만료 D-${Math.max(dLeft,0)}</span>`;
-
-      const cakeDays = daysUntilAnnual(m.birthday) ?? daysUntilAnnual(m.anniversary);
-      const cakeBadge = cakeDays!==null ? `<span class="badge cake">🎂 D-${cakeDays}</span>` : '';
+      let stickerHtml = m.grade ? `<span class="sticker">${escapeHtml(m.grade)}</span>` : '';
+      if (m.lastLog) stickerHtml = `<span class="sticker recent">최근 ${m.lastLog}</span>`;
+      if (expired || (dLeft !== null && dLeft <= 7)) stickerHtml = `<span class="sticker expire">만료 D-${Math.max(dLeft??0,0)}</span>`;
 
       art.innerHTML = `
         <span class="shine" aria-hidden="true"></span>
@@ -395,9 +429,12 @@
             <div class="name">${escapeHtml(m.name)} <span class="suffix">고객님</span></div>
             <div class="sub-sessions">(${m.total||0}/${m.remaining||0})</div>
           </div>
-          <div class="badges">
-            ${cakeBadge}
-            ${rightBadge}
+
+          <div class="stickers">${stickerHtml}
+            ${(() => {
+              const cakeDays = (daysUntilAnnual(m.birthday) ?? daysUntilAnnual(m.anniversary));
+              return cakeDays!==null ? `<span class="sticker">🎂 D-${cakeDays}</span>` : '';
+            })()}
           </div>
         </div>
 
@@ -422,40 +459,36 @@
           </div>
         </div>
 
-        <div class="actions">
-          <button class="light" data-act="journal">일지 열기</button>
-          <button class="light" data-act="extend">연장 등록</button>
-          <button data-act="consume">소진 -1</button>
+        <div class="actions" aria-label="빠른 작업">
+          <button class="btn" aria-label="일지 열기" data-act="journal">📓 일지 열기</button>
+          <button class="btn" aria-label="연장 등록" data-act="extend">➕ 연장 등록</button>
+          <button class="btn strong" aria-label="세션 소진" data-act="consume">–1 소진</button>
         </div>
 
-        <div class="holes">
-          <div class="hole"></div><div class="hole"></div><div class="hole"></div>
-        </div>
+        <div class="holes"><div class="hole"></div><div class="hole"></div><div class="hole"></div></div>
       `;
 
-      // 액션들
+      // 액션
       art.querySelector('[data-act="journal"]').addEventListener('click', (e)=>{
-        e.stopPropagation();
-        location.href = `personal-training-log.html?id=${encodeURIComponent(m.id)}`;
+        e.stopPropagation(); location.href = `personal-training-log.html?id=${encodeURIComponent(m.id)}`;
       });
       art.querySelector('[data-act="extend"]').addEventListener('click', (e)=>{
-        e.stopPropagation();
-        location.href = `edit-member.html?id=${encodeURIComponent(m.id)}`;
+        e.stopPropagation(); location.href = `edit-member.html?id=${encodeURIComponent(m.id)}`;
       });
       art.querySelector('[data-act="consume"]').addEventListener('click', async (e)=>{
         e.stopPropagation();
         if ((m.remaining||0) <= 0){ alert('잔여 세션이 없습니다'); return; }
-        try{
-          await updateDoc(doc(db,'members',m.id), { remainingSessions: increment(-1) });
-        }catch(err){ console.error(err); alert('소진 처리 실패'); }
+        try{ await updateDoc(doc(db,'members',m.id), { remainingSessions: increment(-1) }); }
+        catch(err){ console.error(err); alert('소진 처리 실패'); }
       });
 
-      // 카드 클릭 → 일지
+      // 카드 클릭 → 일지 (롱프레스 직후 클릭 방지)
       art.addEventListener('click', ()=>{
+        if (longFired){ longFired=false; return; }
         location.href = `personal-training-log.html?id=${encodeURIComponent(m.id)}`;
       });
 
-      // 눌렀을 때(터치/마우스) 반짝 펄스
+      // 클릭 반짝
       const addPulse = ()=> art.classList.add('pulse');
       const removePulse = ()=> art.classList.remove('pulse');
       art.addEventListener('pointerdown', addPulse);
@@ -463,17 +496,30 @@
       art.addEventListener('pointerleave', removePulse);
       art.addEventListener('animationend', (e)=>{ if(e.animationName==='glowPulse') removePulse(); });
 
-      // 다음 예약 비동기 로드 (호버/포커스 시점)
+      // 다음 예약은 호버/포커스 시 계산 (캐시 사용)
       let fetched = false;
       const ensureNext = async ()=>{
-        if (fetched) return;
-        fetched = true;
+        if (fetched) return; fetched = true;
         const nx = await fetchNextSchedule(m.id);
         const tgt = art.querySelector(`#nx-${m.id}`);
         if (tgt) tgt.textContent = nx;
       };
       art.addEventListener('mouseenter', ensureNext, {passive:true});
       art.addEventListener('focus', ensureNext, {passive:true});
+
+      // 롱프레스 → 만료 분류 시트
+      art.addEventListener('pointerdown', (ev)=>{
+        longFired=false;
+        longPressTimer = setTimeout(()=>{
+          longFired=true;
+          openExpireSheet(m);
+        }, 600);
+      }, {passive:true});
+      ['pointerup','pointerleave','pointercancel'].forEach(evName=>{
+        art.addEventListener(evName, ()=>{
+          clearTimeout(longPressTimer); longPressTimer=null;
+        }, {passive:true});
+      });
 
       shelf.appendChild(art);
     });
@@ -484,10 +530,10 @@
     const norm = s => String(s||'').toLowerCase();
 
     let list = state.members.filter(m=>{
-      return !kw
-        || norm(m.name).includes(kw)
-        || norm(m.trainer).includes(kw)
-        || norm(m.grade).includes(kw);
+      const match = !kw || norm(m.name).includes(kw) || norm(m.trainer).includes(kw) || norm(m.grade).includes(kw);
+      const expired = isExpired(m);
+      const pass = state.showExpiredOnly ? expired : true;
+      return match && pass;
     });
 
     const by = sortSel.value;
@@ -495,14 +541,30 @@
 
     list.sort((a,b)=>{
       if(by==='name')   return dir * collator.compare(a.name, b.name);
-      if(by==='recent') return dir * ((b.lastLog||'').localeCompare(a.lastLog||''));
+      if(by==='recent'){
+        const A = toTime(a.lastLog) || 0;
+        const B = toTime(b.lastLog) || 0;
+        return dir * (A - B);
+      }
       if(by==='remain') return dir * ((a.remaining||0) - (b.remaining||0));
-      if(by==='first')  return dir * ((a.first||'').localeCompare(b.first||''));
-      if(by==='expire') return dir * ((a.expireAt||'').localeCompare(b.expireAt||''));
+      if(by==='first'){
+        const A = toTime(a.first) || 0;
+        const B = toTime(b.first) || 0;
+        return dir * (A - B);
+      }
+      if(by==='expire'){
+        const A = toTime(a.expireAt) || Infinity;
+        const B = toTime(b.expireAt) || Infinity;
+        return dir * (A - B);
+      }
       return 0;
     });
 
     render(list);
+
+    // 만료 수 카운트 업데이트
+    const expiredCount = state.members.filter(m=>isExpired(m)).length;
+    expiredToggleBtn.textContent = `${state.showExpiredOnly ? '전체 보기' : '만료 회원만 보기'} (${expiredCount})`;
   }
 
   orderBtn.addEventListener('click', ()=>{
@@ -514,14 +576,56 @@
   qEl.addEventListener('input', filterSort);
   sortSel.addEventListener('change', filterSort);
 
-  /* ===== Subscribe members (익명 로그인 후) ===== */
+  // 빠른정렬 1~5
+  document.querySelectorAll('.qbtn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      sortSel.value = btn.dataset.s || 'name';
+      filterSort();
+    });
+  });
+
+  // 만료 회원 토글
+  expiredToggleBtn.addEventListener('click', ()=>{
+    state.showExpiredOnly = !state.showExpiredOnly;
+    expiredToggleBtn.setAttribute('aria-pressed', String(state.showExpiredOnly));
+    filterSort();
+  });
+
+  /* 액션시트 열기/닫기/처리 */
+  function openExpireSheet(member){
+    currentMemberForSheet = member;
+    const expired = isExpired(member);
+    sheetTitle.textContent = expired ? '만료 표시 해제' : '만료 고객 분류';
+    sheetDesc.textContent  = expired ? '이 고객의 만료 표시를 해제할까요?' : '이 고객을 만료 고객으로 분류할까요?';
+    btnExpire.textContent  = expired ? '만료 표시 해제' : '만료로 분류';
+    overlay.style.display = 'block';
+    sheet.style.display   = 'block';
+  }
+  function closeSheet(){
+    overlay.style.display = 'none';
+    sheet.style.display   = 'none';
+    currentMemberForSheet = null;
+  }
+  overlay.addEventListener('click', closeSheet);
+  btnCancel.addEventListener('click', closeSheet);
+
+  btnExpire.addEventListener('click', async ()=>{
+    if(!currentMemberForSheet) return;
+    try{
+      const willUnset = isExpired(currentMemberForSheet);
+      await updateDoc(doc(db,'members', currentMemberForSheet.id), {
+        expiredFlag: willUnset ? false : true,
+        expiredFlagAt: willUnset ? null : serverTimestamp()
+      });
+    }catch(e){ console.error(e); alert('처리 실패'); }
+    closeSheet();
+  });
+
+  /* 구독 */
   const auth = getAuth(app);
   onAuthStateChanged(auth, (u)=>{
     if (u) startMembers();
-    else signInAnonymously(auth).catch((e)=>{
-      console.error(e);
-      empty.textContent='로그인 실패로 데이터를 볼 수 없어요.'; empty.hidden=false;
-    });
+    else signInAnonymously(auth).catch((e)=>{ console.error(e); empty.textContent='로그인 실패로 데이터를 볼 수 없어요.'; empty.hidden=false; });
   });
 
   function startMembers(){
@@ -543,16 +647,17 @@
             remaining: d.remainingSessions ?? 0,
             total: d.totalSessionsPurchased ?? d.totalSessions ?? 0,
             birthday: toISO(d.birthday),
-            anniversary: toISO(d.anniversary)
+            anniversary: toISO(d.anniversary),
+            expiredFlag: Boolean(d.expiredFlag)
           });
         });
         state.members=list;
+        // 만료 버튼 카운트 초기 업데이트
+        const expiredCount = state.members.filter(m=>isExpired(m)).length;
+        expiredToggleBtn.textContent = `${state.showExpiredOnly ? '전체 보기' : '만료 회원만 보기'} (${expiredCount})`;
         filterSort();
       },
-      (err)=>{
-        console.error(err);
-        empty.textContent = '데이터를 불러오지 못했어요. (권한/네트워크 확인)'; empty.hidden = false;
-      }
+      (err)=>{ console.error(err); empty.textContent = '데이터를 불러오지 못했어요. (권한/네트워크 확인)'; empty.hidden = false; }
     );
   }
   </script>
