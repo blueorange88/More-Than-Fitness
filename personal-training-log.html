@@ -122,46 +122,40 @@
     .msearch-item{padding:10px;border-bottom:1px solid var(--line);cursor:pointer}
     .msearch-item:hover{background:#f9fafb}
 
-/* ===== 모바일 초압축 레이아웃 (<=700px) ===== */
+/* ===== 모바일: 날짜/시간 입력 셀 넘침 방지 ===== */
 @media (max-width:700px){
-  body{margin:12px}
-  .sheet{padding:12px}
+  table{ table-layout:fixed; }           /* 칼럼폭 고정 */
+  td{ overflow:hidden; }                 /* 셀 바깥으로 못나가게 */
 
-  /* 메타: 진짜 한 줄(가로 스크롤 없이 최대한 줄이고 넘치면 살짝 스크롤) */
-  .meta{
-    display:flex; align-items:center; gap:6px;
-    flex-wrap:nowrap; overflow-x:auto; /* 한 줄 유지 */
-    padding-bottom:4px;
+  /* 테이블 안 입력류는 무조건 셀 너비에 맞춤 */
+  td input[type="date"],
+  td input[type="time"],
+  td textarea{
+    display:block;
+    width:100%;
+    max-width:100%;
+    min-width:0;
+    box-sizing:border-box;
+    padding:4px 6px;
+    height:30px;
+    font-size:12px;
+    -webkit-appearance:none;
+            appearance:none;
   }
-  .meta label, .meta .chip{flex:0 0 auto; padding:6px}
-  .meta input, .meta select{width:auto; min-width:0; padding:6px 4px; font-size:13px}
 
-  /* 이름 밑 공지 */
-  .sign-mini{
-    display:block; margin-top:2px; font-size:12px; font-weight:700; color:var(--danger);
-    white-space:nowrap;
+  /* iOS WebKit이 내부를 크게 그리는 문제 보정 */
+  input[type="time"]::-webkit-date-and-time-value,
+  input[type="date"]::-webkit-date-and-time-value{ min-height:0; }
+
+  input[type="time"]::-webkit-calendar-picker-indicator,
+  input[type="date"]::-webkit-calendar-picker-indicator{
+    margin:0; padding:0;
   }
 
-  /* 각 필드 폭을 공격적으로 축소 */
-  .w-name   input{width:6.2em}     /* 예: '홍길동' 정도 */
-  .w-birth  input{width:7.0em}
-  .w-gender select{width:4.2em}
-  .w-phone  input{width:9.5em}     /* 연락처는 좀 더 길게 */
-  .w-lesson input{width:6.0em}
-  .w-trainer input{width:4.5em}
-  .w-start  input{width:7.2em}
-  .w-page   input{width:3.0em; text-align:center}
-  #btnMemberSearch{padding:6px 10px; white-space:nowrap}
-
-  /* 표: 시간~고객서명까지 한 화면에 들어오도록 더 줄임 */
-  .table-wrap{overflow-x:hidden}
-  table{width:100%; min-width:0; table-layout:fixed}
-  th,td{padding:4px 6px; font-size:12px}
-
-  .num{width:22px}     /* No */
-  .date{width:74px}    /* 서비스일자 */
-  .time{width:58px}    /* 시간 더 줄임 */
-  .sign-cell{width:56px}  /* 서명칸도 타이트 */
+  /* 시간/날짜 칼럼 폭도 더 타이트하게 */
+  .date{ width:72px; }
+  .time{ width:58px; }
+}
 
   /* 노트는 기본 1줄, 포커스 때만 확장 */
   .note textarea{
@@ -252,7 +246,7 @@
         <thead>
           <tr>
             <th class="num">No</th>
-            <th class="date">서비스일자</th>
+            <th class="date">레슨일자</th>
             <th class="time">시간</th>
             <th>
               <div class="modebar">
