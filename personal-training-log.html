@@ -15,6 +15,33 @@
     h1{margin:0 0 8px;font-size:20px}
     .sheet{max-width:1100px;margin:0 auto;border:1px solid var(--line);padding:16px;border-radius:10px;box-shadow:0 2px 14px rgba(0,0,0,.06)}
 
+    @media (max-width: 900px) and (orientation: landscape){
+  body{ margin:8px; }
+  .sheet{ padding:10px; margin:0 auto; border-radius:8px; }
+  h1{ font-size:16px; margin-bottom:6px; }
+
+  .meta{ grid-template-columns:repeat(4,1fr); gap:6px 6px; margin-bottom:10px; }
+  .meta label{ padding:4px 6px; font-size:12px; }
+  .meta input{ font-size:12px; }
+
+  .toolbar button,.footer-actions button,.sig-tools button,.modal-foot button,.tabbar button{
+    padding:7px 9px; font-size:12px; border-radius:8px;
+  }
+
+  table{ min-width:680px; }
+  th,td{ padding:4px 6px; font-size:12px; }
+  .num{ width:32px; }
+  .date{ width:96px; }
+  .time{ width:74px; }
+  .sign-cell{ width:140px; }
+  .signature img{ height:40px; max-width:100px; }
+
+  .table-wrap{ overflow-x:visible; }
+}
+@media (max-width: 720px) and (orientation: landscape){
+  .sheet{ transform: scale(.92); transform-origin: top left; width:109%; }
+}
+
     /* 상단 메타 */
     .meta{display:grid;gap:6px 8px;margin-bottom:12px;grid-template-columns:repeat(12,1fr);font-size:13px;align-items:center}
     .meta label{display:flex;align-items:center;gap:6px;border:1px solid var(--line);padding:6px 8px;border-radius:8px;background:#fff}
@@ -757,65 +784,19 @@
     function goDashboard(){ location.href = DASHBOARD_URL; }
 
     /* ===== Canvas 서명 ===== */
-    function initCanvas(){
-      cvs = document.getElementById('sigCanvas');
-      ctx = cvs.getContext('2d', { willReadFrequently: true });
-      resizeCanvas();
+   <script>
+// ===== Canvas 서명 (정리본) =====
+let cvs, ctx, dpr = 1, drawing = false, lastX = 0, lastY = 0;
 
-      const supportsPointer = 'PointerEvent' in window;
-      if (supportsPointer){
-        cvs.addEventListener('pointerdown', startDraw, {passive:false});
-        cvs.addEventListener('pointermove', moveDraw,   {passive:false});
-        window.addEventListener('pointerup', endDraw);
-        cvs.addEventListener('pointerleave', endDraw);
-      } else {
-        cvs.addEventListener('mousedown', mouseDown);
-        window.addEventListener('mousemove', mouseMove);
-        window.addEventListener('mouseup', mouseUp);
-        cvs.addEventListener('touchstart', touchStart, {passive:false});
-        cvs.addEventListener('touchmove',  touchMove,  {passive:false});
-        window.addEventListener('touchend', touchEnd);
-        cvs.addEventListener('touchcancel', touchEnd);
-      }
-      window.addEventListener('resize', resizeCanvas);
-    }
-    function resizeCanvas(){
-      const rect = cvs.getBoundingClientRect();
-      dpr = Math.max(1, window.devicePixelRatio || 1);
-      const w = rect.width > 0 ? rect.width : 600;
-      cvs.width  = Math.floor(w * dpr);
-      cvs.height = Math.floor(180 * dpr);
-      ctx.setTransform(dpr,0,0,dpr,0,0);
-     // === 교체: 완전 초기화형 clear ===
-function clearCanvas(){
-  if(!cvs || !ctx) return;
-  drawing = false;
-  // 비트맵 전체 초기화 (스케일 무시)
-  const w = cvs.width, h = cvs.height;
-  ctx.save();
-  ctx.setTransform(1,0,0,1,0,0);   // dpr 무시하고 원 비트맵 좌표계로
-  ctx.clearRect(0,0,w,h);
-  // 흰 배경 다시 칠해 캔버스가 '빈' 투명 상태가 되지 않도록
-  ctx.fillStyle = '#fff';
-  ctx.fillRect(0,0,w,h);
-  ctx.restore();
-  // 선 그리기 상태 리셋
-  ctx.beginPath();
-  lastX = 0; lastY = 0;
-}
-
-// === initCanvas() 내부에 추가: 버튼 바인딩 ===
 function initCanvas(){
   cvs = document.getElementById('sigCanvas');
   ctx = cvs.getContext('2d', { willReadFrequently: true });
   resizeCanvas();
 
+  // 지우기 버튼 바인딩 (inline 핸들러 사용 X)
   const clrBtn = document.getElementById('sigClear');
   if (clrBtn) {
-    clrBtn.addEventListener('click', (e)=>{
-      e.preventDefault();
-      clearCanvas();
-    });
+    clrBtn.addEventListener('click', (e)=>{ e.preventDefault(); clearCanvas(); });
   }
 
   const supportsPointer = 'PointerEvent' in window;
@@ -833,68 +814,88 @@ function initCanvas(){
     window.addEventListener('touchend', touchEnd);
     cvs.addEventListener('touchcancel', touchEnd);
   }
-  window.addEventListener('resize', ()=>{ resizeCanvas(); });
+  window.addEventListener('resize', resizeCanvas);
 }
-    }
-    function beginStroke(x,y){ drawing = true; lastX=x; lastY=y; }
-    function drawTo(x,y){
-      if (!drawing) return;
-      ctx.lineWidth = 2.5; ctx.lineCap='round'; ctx.lineJoin='round'; ctx.strokeStyle='#111';
-      ctx.beginPath(); ctx.moveTo(lastX,lastY); ctx.lineTo(x,y); ctx.stroke();
-      lastX=x; lastY=y;
-    }
-    function endStroke(){ drawing = false; }
-    function startDraw(e){ e.preventDefault(); if (e.pointerId && cvs.setPointerCapture) { try{ cvs.setPointerCapture(e.pointerId); }catch{} } const p=getPos(e); beginStroke(p.x,p.y); }
-    function moveDraw(e){ if(!drawing) return; e.preventDefault(); const p=getPos(e); drawTo(p.x,p.y); }
-    function endDraw(){ endStroke(); }
-    function mouseDown(e){ const p=getMousePos(e); beginStroke(p.x,p.y); }
-    function mouseMove(e){ const p=getMousePos(e); drawTo(p.x,p.y); }
-    function mouseUp(){ endStroke(); }
-    function touchStart(e){ if(!e.touches[0]) return; const p=getTouchPos(e.touches[0]); beginStroke(p.x,p.y); e.preventDefault(); }
-    function touchMove(e){ if(!drawing || !e.touches[0]) return; const p=getTouchPos(e.touches[0]); drawTo(p.x,p.y); e.preventDefault(); }
-    function touchEnd(){ endStroke(); }
-    function getPos(e){ const r = cvs.getBoundingClientRect(); return { x:(e.clientX||0)-r.left, y:(e.clientY||0)-r.top }; }
-    function getMousePos(e){ const r=cvs.getBoundingClientRect(); return { x:e.clientX-r.left, y:e.clientY-r.top }; }
-    function getTouchPos(t){ const r=cvs.getBoundingClientRect(); return { x:t.clientX-r.left, y:t.clientY-r.top }; }
-    function clearCanvas(){ ctx.save(); ctx.setTransform(1,0,0,1,0,0); ctx.clearRect(0,0,cvs.width,cvs.height); ctx.restore(); ctx.fillStyle='#fff'; ctx.fillRect(0,0,cvs.width,cvs.height); }
-    function isCanvasBlank(){ const { data } = ctx.getImageData(0,0,cvs.width,cvs.height); for (let i=0;i<data.length;i+=4){ const r=data[i], g=data[i+1], b=data[i+2], a=data[i+3]; if (!(r===255 && g===255 && b===255 && a===255)) return false; } return true; }
-    function exportCanvas(){ return isCanvasBlank() ? null : cvs.toDataURL('image/png'); }
 
-    function openSignModal(btn, role){
-      const cell = btn.closest('td');
-      if (cell.classList.contains('signed')) return;
-      currentSign = { cell, role };
+function resizeCanvas(){
+  const rect = cvs.getBoundingClientRect();
+  dpr = Math.max(1, window.devicePixelRatio || 1);
+  const w = rect.width > 0 ? rect.width : 600;
+  cvs.width  = Math.floor(w * dpr);
+  cvs.height = Math.floor(180 * dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  clearCanvas(); // 리사이즈 시 항상 초기화
+}
 
-      document.getElementById('signTitle').textContent = (role==='trainer'?'트레이너':'고객') + ' 서명 입력';
-      document.getElementById('typedName').value = role==='trainer' ? lastTrainerTyped : lastCustomerTyped;
+// 완전 초기화형 클리어(비트맵/배경 흰색)
+function clearCanvas(){
+  if(!cvs || !ctx) return;
+  drawing = false;
+  const w = cvs.width, h = cvs.height;
+  ctx.save();
+  ctx.setTransform(1,0,0,1,0,0); // dpr 무시하고 원 비트맵 좌표계
+  ctx.clearRect(0,0,w,h);
+  ctx.fillStyle = '#fff'; // 흰배경 유지(투명 제거)
+  ctx.fillRect(0,0,w,h);
+  ctx.restore();
+  ctx.beginPath();
+  lastX = 0; lastY = 0;
+}
 
-      switchTab('typed');
+function beginStroke(x,y){ drawing = true; lastX=x; lastY=y; }
+function drawTo(x,y){
+  if (!drawing) return;
+  ctx.lineWidth = 2.5; ctx.lineCap='round'; ctx.lineJoin='round'; ctx.strokeStyle='#111';
+  ctx.beginPath(); ctx.moveTo(lastX,lastY); ctx.lineTo(x,y); ctx.stroke();
+  lastX=x; lastY=y;
+}
+function endStroke(){ drawing = false; }
 
-      const modal = document.getElementById('signModal');
-      modal.classList.remove('hidden');
-      requestAnimationFrame(()=>resizeCanvas());
-    }
-    function closeSignModal(){ currentSign = null; document.getElementById('signModal').classList.add('hidden'); }
-   function switchTab(which){
+function startDraw(e){ e.preventDefault(); if (e.pointerId && cvs.setPointerCapture) { try{ cvs.setPointerCapture(e.pointerId); }catch{} } const p=getPos(e); beginStroke(p.x,p.y); }
+function moveDraw(e){ if(!drawing) return; e.preventDefault(); const p=getPos(e); drawTo(p.x,p.y); }
+function mouseDown(e){ const p=getMousePos(e); beginStroke(p.x,p.y); }
+function mouseMove(e){ const p=getMousePos(e); drawTo(p.x,p.y); }
+function mouseUp(){ endStroke(); }
+function touchStart(e){ if(!e.touches[0]) return; const p=getTouchPos(e.touches[0]); beginStroke(p.x,p.y); e.preventDefault(); }
+function touchMove(e){ if(!drawing || !e.touches[0]) return; const p=getTouchPos(e.touches[0]); drawTo(p.x,p.y); e.preventDefault(); }
+function touchEnd(){ endStroke(); }
+
+function getPos(e){ const r = cvs.getBoundingClientRect(); return { x:(e.clientX||0)-r.left, y:(e.clientY||0)-r.top }; }
+function getMousePos(e){ const r=cvs.getBoundingClientRect(); return { x:e.clientX-r.left, y:e.clientY-r.top }; }
+function getTouchPos(t){ const r=cvs.getBoundingClientRect(); return { x:t.clientX-r.left, y:t.clientY-r.top }; }
+
+// 빈 캔버스 검출/내보내기
+function isCanvasBlank(){
+  const { data } = ctx.getImageData(0,0,cvs.width,cvs.height);
+  for (let i=0;i<data.length;i+=4){
+    const r=data[i], g=data[i+1], b=data[i+2], a=data[i+3];
+    if (!(r===255 && g===255 && b===255 && a===255)) return false;
+  }
+  return true;
+}
+function exportCanvas(){ return isCanvasBlank() ? null : cvs.toDataURL('image/png'); }
+
+// 모달 & 탭에서 항상 정렬/초기화
+function switchTab(which){
   document.getElementById('tabTyped').classList.toggle('active', which==='typed');
   document.getElementById('tabDrawn').classList.toggle('active', which==='drawn');
   document.getElementById('paneTyped').classList.toggle('active', which==='typed');
   document.getElementById('paneDrawn').classList.toggle('active', which==='drawn');
   if (which==='drawn') requestAnimationFrame(()=>{ resizeCanvas(); clearCanvas(); });
 }
-
 function openSignModal(btn, role){
   const cell = btn.closest('td');
   if (cell.classList.contains('signed')) return; // 서명 적용 후는 수정불가
   currentSign = { cell, role };
   document.getElementById('signTitle').textContent = (role==='trainer'?'트레이너':'고객') + ' 서명 입력';
   document.getElementById('typedName').value = role==='trainer' ? lastTrainerTyped : lastCustomerTyped;
-
+ 
   switchTab('typed');
   const modal = document.getElementById('signModal');
   modal.classList.remove('hidden');
   requestAnimationFrame(()=>{ resizeCanvas(); clearCanvas(); });
 }
+    
     function applySignature(){
       if (!currentSign) return;
       const { cell, role } = currentSign;
