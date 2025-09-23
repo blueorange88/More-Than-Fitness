@@ -122,33 +122,61 @@
     .msearch-item{padding:10px;border-bottom:1px solid var(--line);cursor:pointer}
     .msearch-item:hover{background:#f9fafb}
 
-    /* 모바일: 테이블 압축 보기 + 메타 1열 */
-    @media (max-width:700px){
-      body{margin:12px}
-      .sheet{padding:12px}
-      .meta{grid-template-columns:1fr} /* 한 줄씩 */
-      .meta label{padding:6px}
-      .sign-note{justify-self:start}
+ /* ===== 모바일 레이아웃 (<=700px) ===== */
+@media (max-width:700px){
+  body{margin:12px}
+  .sheet{padding:12px}
 
-      /* 헤더 라벨 줄여 공간 확보 */
-      .modebar .label{display:none}
-      /* 표 전체 여백/글자 축소 */
-      th,td{padding:4px 6px;font-size:12px}
-      /* 각 열 폭 타이트하게 */
-      .num{width:28px}
-      .date{width:96px}
-      .time{width:80px}
-      .sign-cell{width:100px}
+  /* 메타: 한 줄(가로)로 배치 + 필요한 칸 폭 지정 */
+  .meta{
+    display:flex;
+    gap:6px;
+    align-items:stretch;
+    overflow-x:auto;          /* 칸이 많아도 한 줄 유지 */
+    white-space:nowrap;
+    padding-bottom:4px;
+  }
+  .meta label, .meta .chip, .meta .sign-note{flex:0 0 auto}
+  .meta label{padding:6px}
+  .sign-note{
+    flex-basis:100%;          /* 이름 바로 아래 한 줄 차지 */
+    white-space:normal;
+    order:1;                  /* 이름 다음 */
+    font-size:12px;
+  }
+  /* 각 필드 최소폭(요청: 연락처 넓게, 레슨/담당자 짧게) */
+  .meta .w-name   {min-width:180px}
+  .meta .w-birth  {min-width:135px}
+  .meta .w-gender {min-width:88px}
+  .meta .w-phone  {min-width:170px}
+  .meta .w-lesson {min-width:110px}
+  .meta .w-trainer{min-width:100px}
+  .meta .w-start  {min-width:150px}
+  .meta .w-page   {min-width:78px}
+  #btnMemberSearch{min-width:100px}
 
-      /* 텍스트영역: 기본 1줄, 포커스 시 확장 */
-      .note textarea{
-        min-height:32px; height:32px; line-height:1.25;
-        overflow:hidden;
-      }
-      .note textarea:focus{
-        min-height:120px; height:120px; overflow:auto;
-      }
+  /* 표: 한 화면에 시간~서명까지 들어오게 압축 */
+  .table-wrap{overflow-x:hidden}
+  table{width:100%; min-width:0; table-layout:fixed}
+  th,td{padding:4px 6px; font-size:12px}
+  .num{width:24px}
+  .date{width:82px}
+  .time{width:66px}          /* 시간칸 더 줄임 */
+  .sign-cell{width:74px}
 
+  /* 모드 버튼: 가로 한 줄 유지 + 필요 시 가로 스크롤 */
+  .modebar{gap:4px; flex-wrap:nowrap; overflow-x:auto; white-space:nowrap}
+  .modebar .label{display:none}
+  .modebar .mbtn{padding:4px 8px; font-size:11px; border-radius:999px}
+
+  /* 노트: 기본 1줄, 포커스 시만 키움 */
+  .note textarea{
+    min-height:32px; height:32px; line-height:1.25; overflow:hidden;
+  }
+  .note textarea:focus{
+    min-height:120px; height:120px; overflow:auto;
+  }
+}
       /* 표가 너무 커서 튀어나가면 최소폭만 살짝 유지 */
       table{min-width:600px}
     }
@@ -163,35 +191,54 @@
 </head>
 <body>
   <div class="sheet">
+    
     <h1>개인 / 트레이닝 일지 (통합)</h1>
 
     <!-- 메타 영역 -->
     <div class="meta" aria-label="상단 정보">
-      <label class="span3">이름
-        <input id="m-name" placeholder="회원명" list="namesList" autocomplete="off">
-        <datalist id="namesList"></datalist>
-      </label>
-      <button id="btnMemberSearch" class="chip" title="회원 찾기">회원찾기</button>
+  <label class="w-name">이름
+    <input id="m-name" placeholder="회원명" list="namesList" autocomplete="off">
+    <datalist id="namesList"></datalist>
+  </label>
 
-      <label>생년월일 <input id="m-birth" inputmode="numeric" pattern="[0-9\-]*" maxlength="10" placeholder="YYYY-MM-DD"></label>
-      <label class="span2">성별
-        <select id="m-gender">
-          <option value="">선택</option>
-          <option value="남">남</option>
-          <option value="여">여</option>
-        </select>
-      </label>
-      <label>연락처   <input id="m-phone" inputmode="numeric" pattern="[0-9\-]*" maxlength="13" placeholder="010-0000-0000"></label>
-      <label class="span2">레슨종류 <input id="m-lesson" placeholder="예: PT 50분"></label>
-      <label class="span2">담당자   <input id="m-trainer" placeholder="트레이너명"></label>
-      <label>시작일   <input id="m-start" type="date"></label>
-      <label>페이지   <input id="m-page" placeholder="1"></label>
-      <span class="sign-note">* 서명 후 수정 불가</span>
-    </div>
+  <!-- 이름 바로 아래 공지 -->
+  <span class="sign-note">* 서명 후 수정 불가</span>
 
-    <div class="toolbar">
-      <button type="button" onclick="window.print()">인쇄</button>
-    </div>
+  <label class="w-birth">생년월일
+    <input id="m-birth" inputmode="numeric" pattern="[0-9\-]*" maxlength="10" placeholder="YYYY-MM-DD">
+  </label>
+
+  <label class="w-gender">성별
+    <select id="m-gender">
+      <option value="">선택</option>
+      <option value="남">남</option>
+      <option value="여">여</option>
+    </select>
+  </label>
+
+  <label class="w-phone">연락처
+    <input id="m-phone" inputmode="numeric" pattern="[0-9\-]*" maxlength="13" placeholder="010-0000-0000">
+  </label>
+
+  <label class="w-lesson">레슨종류
+    <input id="m-lesson" placeholder="예: PT 50분">
+  </label>
+
+  <label class="w-trainer">담당자
+    <input id="m-trainer" placeholder="트레이너명">
+  </label>
+
+  <label class="w-start">시작일
+    <input id="m-start" type="date">
+  </label>
+
+  <label class="w-page">페이지
+    <input id="m-page" placeholder="1">
+  </label>
+
+  <!-- 회원찾기 버튼을 페이지 뒤로 이동 -->
+  <button id="btnMemberSearch" class="chip" title="회원 찾기">회원찾기</button>
+</div>
 
     <!-- 표 -->
     <div class="table-wrap">
