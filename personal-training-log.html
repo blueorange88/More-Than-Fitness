@@ -13,15 +13,24 @@
     *{box-sizing:border-box}
     body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,sans-serif;color:var(--ink);margin:24px;background:#fff}
     h1{margin:0 0 8px;font-size:20px}
-    .sheet{max-width:1100px;margin:0 auto;border:1px solid var(--line);padding:16px;border-radius:10px;box-shadow:0 2px 14px rgba(0,0,0,.06)}
+    .sheet{max-width:960px;margin:0 auto;border:1px solid var(--line);padding:16px;border-radius:10px;box-shadow:0 2px 14px rgba(0,0,0,.06)}
 
-    /* 상단 메타 */
-    .meta{display:grid;gap:6px 8px;margin-bottom:12px;grid-template-columns:repeat(12,1fr);font-size:13px;align-items:center}
+    /* ============ 상단 메타: 한 줄 배치 + 유연 폭 ============ */
+    .meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px;font-size:13px}
     .meta label{display:flex;align-items:center;gap:6px;border:1px solid var(--line);padding:6px 8px;border-radius:8px;background:#fff}
     .meta input{border:none;outline:none;width:100%;font-size:13px;background:transparent}
-    .meta .span2{grid-column:span 2}.meta .span3{grid-column:span 3}.meta .span4{grid-column:span 4}
-    .sign-note{grid-column:span 2;justify-self:end;font-size:14px;font-weight:700;color:var(--danger)}
     .chip{border:1px solid var(--line);background:var(--chip);border-radius:999px;padding:7px 10px;cursor:pointer}
+
+    /* 각 항목 폭 – 글씨 안 짤리게 최소/최대 가드 */
+    .w-name   {flex:0 0 clamp(220px,34vw,360px)}
+    .w-birth  {flex:0 0 clamp(120px,14vw,160px)}
+    .w-phone  {flex:0 0 clamp(160px,18vw,220px)}
+    .w-lesson {flex:0 0 clamp(110px,12vw,150px)}
+    .w-trainer{flex:0 0 clamp(90px,10vw,130px)}
+    .w-start  {flex:0 0 clamp(160px,16vw,200px)}
+    .w-page   {flex:0 0 clamp(80px,  8vw,100px)}
+    /* ‘서명 후 수정 불가’는 이름 바로 밑 한 줄 전체 사용 */
+    .sign-note{flex:1 0 100%; margin-left:6px; font-size:14px; font-weight:700; color:var(--danger)}
 
     /* 툴바 */
     .toolbar{display:flex;gap:8px;justify-content:flex-end;margin:10px 0}
@@ -29,37 +38,52 @@
       border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 12px;font-size:13px;cursor:pointer
     }
 
-    /* 표 */
+    /* ============ 표 ============ */
     .table-wrap{overflow-x:auto}
-    table{width:100%;border-collapse:collapse;min-width:900px}
-    th,td{border:1px solid var(--line);padding:6px 8px;font-size:13px;vertical-align:top}
+    table{width:100%;border-collapse:collapse;table-layout:fixed}
+    th,td{border:1px solid var(--line);padding:6px 8px;font-size:13px;vertical-align:middle}
     thead th{background:#f8fafc}
-    .num{width:44px;text-align:center}.date{width:110px}.time{width:90px}
-    .note textarea{width:100%;min-height:38px;border:none;resize:vertical;font-size:13px;line-height:1.35;outline:none}
 
-    /* 입력방식 버튼(헤더) */
-    .modebar{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+    /* 폭 고정: 좁게 — 나머지는 Teaching Point가 가져감 */
+    .num{width:40px;text-align:center}
+    .date{width:112px}
+    .time{width:80px}
+    .sign-cell{width:96px;text-align:center}
+    td{overflow:hidden}
+
+    /* 입력 요소는 셀 너비를 넘지 않게 */
+    td input[type="date"],
+    td input[type="time"],
+    td textarea{width:100%;max-width:100%;min-width:0;box-sizing:border-box}
+
+    /* 웹킷 기본 내부 최소높이 보정 */
+    input[type="time"]::-webkit-date-and-time-value,
+    input[type="date"]::-webkit-date-and-time-value{min-height:0}
+    input[type="time"]::-webkit-calendar-picker-indicator,
+    input[type="date"]::-webkit-calendar-picker-indicator{margin:0;padding:0}
+
+    /* 메모 영역 */
+    .note textarea{min-height:38px;border:none;resize:vertical;font-size:13px;line-height:1.35;outline:none}
+
+    /* 입력방식 버튼(헤더) – 항상 한 줄 */
+    .modebar{display:flex;gap:8px;align-items:center;white-space:nowrap}
     .modebar .label{font-weight:700;margin-right:6px}
-    .modebar .mbtn{border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 10px;font-size:12px;cursor:pointer}
+    .modebar .mbtn{border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 10px;font-size:12px;cursor:pointer;flex:0 0 auto}
     .modebar .mbtn.active{border-color:#111;background:#fff}
+    /* 모바일에서는 라벨 숨겨 세 버튼을 한 줄 유지 */
+    @media (max-width:700px){ .modebar .label{display:none} }
 
     /* 서명 칸 */
-    .sign-cell{position:relative;text-align:center;width:180px}
-    .sign-btn{padding:4px 8px;font-size:12px;border:1px solid var(--line);background:#fff;border-radius:8px;cursor:pointer}
-    .signature{display:inline-flex;align-items:center;gap:6px;font-weight:600}
-    .signature .pen{font-size:14px}
     .signed{position:relative;pointer-events:none}
     .signed::before{content:"";position:absolute;inset:0;background:rgba(0,0,0,.06);border-radius:2px}
     .signed::after{content:"수정불가";position:absolute;right:6px;bottom:4px;font-size:12px;font-weight:700;color:var(--danger);background:rgba(255,255,255,.9);padding:2px 8px;border-radius:999px;border:1px solid var(--danger)}
+    .signature{display:inline-flex;align-items:center;gap:6px;font-weight:600}
+    .signature .pen{font-size:14px}
 
-    /* 노쇼 */
+    /* 노쇼 표시 */
     .ns-badge{position:absolute; left:6px; bottom:4px; font-size:12px; font-weight:700; color:#991b1b; background:#ffe4e6; border:1px solid #fda4af; border-radius:999px; padding:2px 8px}
     tr.row-locked{background:var(--accent)}
-    tr.row-noshow{background:#fff2f2}
-
-    /* 줄 구분 */
-    tr[data-row="10"] td{border-bottom:2px solid var(--hl)}
-    tr[data-row="20"] td{border-bottom:2px solid var(--hl)}
+    tr[data-row="10"] td, tr[data-row="20"] td{border-bottom:2px solid var(--hl)}
 
     .footer-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
 
@@ -76,20 +100,16 @@
     .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:rgba(17,17,17,.92);color:#fff;padding:10px 14px;border-radius:10px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .25s}
     .toast.show{opacity:1}
 
-    /* 카탈로그(카트리지) */
+    /* 카탈로그/아나토미 모달 간단 스타일 */
     .cat-grid{display:grid;gap:10px;grid-template-columns:200px 1fr}
     .cat-list{border:1px solid var(--line);border-radius:10px;overflow:auto;max-height:360px}
     .cat-list button{display:block;width:100%;text-align:left;padding:10px;border:none;background:#fff;border-bottom:1px solid var(--line);cursor:pointer}
-    .cat-list button:hover{background:#f9fafb}
     .cat-pane{border:1px solid var(--line);border-radius:10px;padding:10px}
     .chips{display:flex;flex-wrap:wrap;gap:8px}
     .chip-btn{border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 10px;font-size:12px;cursor:pointer}
-    .chip-btn:hover{background:#f9fafb}
 
-    /* 아나토미 간이표 */
     .anat-grid{display:grid;gap:10px;grid-template-columns:220px 1fr}
     .anat-list{border:1px solid var(--line);border-radius:10px;overflow:auto;max-height:360px}
-    .anat-list button{display:block;width:100%;text-align:left;padding:8px 10px;border:none;background:#fff;border-bottom:1px solid var(--line);cursor:pointer}
     .anat-pnl{border:1px solid var(--line);border-radius:10px;padding:10px}
     .set-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
     .set-row input{width:60px;border:1px solid var(--line);border-radius:8px;padding:6px}
@@ -106,30 +126,15 @@
     .sig-tools{display:flex;gap:8px;justify-content:space-between;margin:8px 0}
     .sig-tools .hint{font-size:12px;color:var(--muted);align-self:center}
 
-    /* 드로어(노쇼) */
-    .drawer{position:fixed;inset:0;z-index:9998;display:none}
-    .drawer.show{display:block}
-    .drawer-dim{position:absolute;inset:0;background:rgba(0,0,0,.35)}
-    .drawer-panel{position:absolute;right:0;top:0;height:100%;width:min(320px,90vw);background:#fff;border-left:1px solid var(--line);box-shadow:0 10px 30px rgba(0,0,0,.2);display:flex;flex-direction:column}
-    .drawer-head{display:flex;justify-content:space-between;align-items:center;padding:12px;border-bottom:1px solid var(--line)}
-    .drawer-body{padding:12px;display:flex;flex-direction:column;gap:10px}
-    .drawer .btn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px;cursor:pointer;text-align:left;font-size:14px}
-
-    /* 회원 찾기 모달 */
-    .msearch-head{display:flex;gap:8px;margin-bottom:8px}
-    .msearch-head input{flex:1;border:1px solid var(--line);border-radius:8px;padding:8px}
-    .msearch-list{max-height:360px;overflow:auto;border:1px solid var(--line);border-radius:10px}
-    .msearch-item{padding:10px;border-bottom:1px solid var(--line);cursor:pointer}
-    .msearch-item:hover{background:#f9fafb}
-
-    /* 반응형 */
-    @media (max-width: 1024px){ .meta{grid-template-columns:repeat(8,1fr)} }
-    @media (max-width: 700px){
+    /* 반응형 소폭 조정 */
+    @media (max-width:700px){
       body{margin:12px}
       .sheet{padding:12px}
-      .meta{grid-template-columns:repeat(2,1fr)}
-      .meta label{padding:6px}
+      .date{width:108px}
+      .time{width:72px}
+      .sign-cell{width:88px}
     }
+
     @media print{
       body{margin:0}
       .sheet{box-shadow:none;border:none;padding:0}
@@ -144,19 +149,26 @@
 
     <!-- 메타 영역 -->
     <div class="meta" aria-label="상단 정보">
-      <label class="span3">이름
+      <label class="w-name">이름
         <input id="m-name" placeholder="회원명" list="namesList" autocomplete="off">
         <datalist id="namesList"></datalist>
       </label>
-      <button id="btnMemberSearch" class="chip" title="회원 찾기">회원찾기</button>
-
-      <label>생년월일 <input id="m-birth" inputmode="numeric" pattern="[0-9\-]*" maxlength="10" placeholder="YYYY-MM-DD"></label>
-      <label>연락처   <input id="m-phone" inputmode="numeric" pattern="[0-9\-]*" maxlength="13" placeholder="010-0000-0000"></label>
-      <label class="span2">레슨종류 <input id="m-lesson" placeholder="예: PT 50분"></label>
-      <label class="span2">담당자   <input id="m-trainer" placeholder="트레이너명"></label>
-      <label>시작일   <input id="m-start" type="date"></label>
-      <label>페이지   <input id="m-page" placeholder="1"></label>
+      <!-- 이름 바로 아래로 떨어지는 주의 문구 -->
       <span class="sign-note">* 서명 후 수정 불가</span>
+
+      <label class="w-birth">생년월일
+        <input id="m-birth" inputmode="numeric" pattern="[0-9\-]*" maxlength="10" placeholder="YYYY-MM-DD">
+      </label>
+      <label class="w-phone">연락처
+        <input id="m-phone" inputmode="numeric" pattern="[0-9\-]*" maxlength="13" placeholder="010-0000-0000">
+      </label>
+      <label class="w-lesson">레슨종류 <input id="m-lesson" placeholder="예: PT 50분"></label>
+      <label class="w-trainer">담당자   <input id="m-trainer" placeholder="트레이너명"></label>
+      <label class="w-start">시작일   <input id="m-start" type="date"></label>
+      <label class="w-page">페이지   <input id="m-page" placeholder="1"></label>
+
+      <!-- 회원찾기 버튼은 페이지 뒤로 -->
+      <button id="btnMemberSearch" class="chip" title="회원 찾기">회원찾기</button>
     </div>
 
     <div class="toolbar">
@@ -169,7 +181,7 @@
         <thead>
           <tr>
             <th class="num">No</th>
-            <th class="date">서비스일자</th>
+            <th class="date">레슨일자</th>
             <th class="time">시간</th>
             <th>
               <div class="modebar">
@@ -193,7 +205,7 @@
     </div>
   </div>
 
-  <!-- ===== 카탈로그(카트리지) 모달 ===== -->
+  <!-- ===== 카탈로그 모달 ===== -->
   <div id="catalogModal" class="modal hidden" role="dialog" aria-modal="true" aria-label="운동 카달로그">
     <div class="modal-dim" onclick="closeCatalog()"></div>
     <div class="modal-card">
@@ -217,7 +229,7 @@
     </div>
   </div>
 
-  <!-- ===== 아나토미(간이 세분화표) 모달 ===== -->
+  <!-- ===== 아나토미 모달 ===== -->
   <div id="anatModal" class="modal hidden" role="dialog" aria-modal="true" aria-label="아나토미 로그">
     <div class="modal-dim" onclick="closeAnat()"></div>
     <div class="modal-card">
@@ -233,7 +245,7 @@
             <input id="anatMove" placeholder="예: 랫풀다운">
             <label>세트</label>
             <input id="anatSets" placeholder="3">
-            <label>횟수</label>
+            <label>획수</label>
             <input id="anatReps" placeholder="12">
           </div>
           <button id="anatApply" class="chip-btn">현재 행에 적용</button>
@@ -328,39 +340,19 @@
     let cvs, ctx, dpr=1, drawing=false, lastX=0, lastY=0;
     let longTimer = null, nsDrawer, currentActionRow = null;
 
-    // 간단 카탈로그(요청 포맷 기반)
     const CATALOG = {
-      "스트레칭": {
-        "상체스트레칭": ["목/승모근", "흉근", "광배", "삼두"],
-        "하체스트레칭": ["둔근", "햄스트링", "대퇴사두", "종아리"],
-        "셀프메뉴얼": ["상체 폼롤러", "하체 폼롤러"]
-      },
-      "근력운동": {
-        "상체운동": ["흉근", "등", "어깨", "팔"],
-        "하체운동": ["스쿼트", "런지", "데드리프트"]
-      },
-      "기능성운동": {
-        "하지관련": ["발목/무릎 안정화", "힙힌지 교정"],
-        "코어": ["플랭크", "데드버그"]
-      },
-      "교정재활": {
-        "자세교정": ["거북목", "골반전/후방경사"]
-      },
-      "리커버리": {
-        "P스트레칭": ["상체", "하체", "전신"]
-      }
+      "스트레칭": { "상체스트레칭": ["목/승모근","흉근","광배","삼두"], "하체스트레칭": ["둔근","햄스트링","대퇴사두","종아리"], "셀프메뉴얼": ["상체 폼롤러","하체 폼롤러"] },
+      "근력운동": { "상체운동": ["흉근","등","어깨","팔"], "하체운동": ["스쿼트","런지","데드리프트"] },
+      "기능성운동": { "하지관련": ["발목/무릎 안정화","힙힌지 교정"], "코어": ["플랭크","데드버그"] },
+      "교정재활": { "자세교정": ["거북목","골반전/후방경사"] },
+      "리커버리": { "P스트레칭": ["상체","하체","전신"] }
     };
-
-    const ANATOMY = [
-      "가슴","등","어깨","이두","삼두","전완","복근",
-      "둔근","대퇴사두","햄스트링","내전근","종아리","코어"
-    ];
+    const ANATOMY = ["가슴","등","어깨","이두","삼두","전완","복근","둔근","대퇴사두","햄스트링","내전근","종아리","코어"];
 
     window.addEventListener('DOMContentLoaded', () => {
       tbody = document.getElementById('tbody');
       nsDrawer = document.getElementById('nsDrawer');
 
-      // 행 생성
       for (let i=1;i<=30;i++) tbody.appendChild(buildRow(i));
 
       loadFromStorage();
@@ -372,8 +364,10 @@
       initModes();
       buildCatalogUI();
       buildAnatomyUI();
-
       initNoShowDrawer();
+
+      // 회원찾기 버튼
+      document.getElementById('btnMemberSearch').addEventListener('click', openMemberModal);
     });
 
     /* ===== 표/행 ===== */
@@ -382,19 +376,17 @@
       tr.dataset.row = String(n);
       tr.innerHTML = `
         <td class="num">${n}</td>
-        <td><input type="date" aria-label="날짜"></td>
+        <td><input type="date" aria-label="레슨일자"></td>
         <td><input type="time" aria-label="시간" value="08:00"></td>
         <td class="note"><textarea placeholder="운동내용 / Teaching points"></textarea></td>
         <td class="sign-cell"><button type="button" class="sign-btn" data-role="trainer">서명</button></td>
         <td class="sign-cell"><button type="button" class="sign-btn" data-role="customer">서명</button></td>
       `;
 
-      // textarea 포커스 → 현재 행 설정 + 모드에 따라 보조 UI
       const ta = tr.querySelector('textarea');
       ta.addEventListener('focus', ()=>{ currentEditRow = tr; maybeOpenAssist(); });
-      ta.addEventListener('click', ()=>{ currentEditRow = tr; maybeOpenAssist(); });
+      ta.addEventListener('click',  ()=>{ currentEditRow = tr; maybeOpenAssist(); });
 
-      // 서명 버튼
       tr.addEventListener('click', (e)=>{
         const btn = e.target.closest('.sign-btn');
         if (!btn) return;
@@ -434,7 +426,6 @@
       if (!currentEditRow) return;
       if (entryMode==='catalog') openCatalog();
       else if (entryMode==='anatomy') openAnat();
-      // typing은 보조 UI 없음
     }
 
     /* ===== 카탈로그 UI ===== */
@@ -507,7 +498,7 @@
     function openAnat(){ document.getElementById('anatModal').classList.remove('hidden'); }
     function closeAnat(){ document.getElementById('anatModal').classList.add('hidden'); }
 
-    /* ===== 노쇼 드로어(고객 서명칸 롱프레스) ===== */
+    /* ===== 노쇼 드로어 ===== */
     function initNoShowDrawer(){
       nsDrawer.addEventListener('click', (e)=>{
         if (e.target.dataset.dim !== undefined || e.target.dataset.close !== undefined) closeNsDrawer();
@@ -708,7 +699,7 @@
       return last;
     }
 
-    /* ===== 입력 보조 유틸 ===== */
+    /* ===== 유틸 ===== */
     function val(sel){const el=document.querySelector(sel);return el?el.value:"";}
     function setVal(sel,v){const el=document.querySelector(sel); if(el) el.value=v||"";}
     function escapeHtml(str){return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");}
@@ -756,12 +747,17 @@
     }
     function goDashboard(){ location.href = DASHBOARD_URL; }
 
-    /* ===== Canvas 서명 ===== */
+    /* ===== Canvas & Signature (정리본) ===== */
     function initCanvas(){
       cvs = document.getElementById('sigCanvas');
       ctx = cvs.getContext('2d', { willReadFrequently: true });
       resizeCanvas();
 
+      // 지우기 버튼 바인딩 (작동안 되던 문제 해결)
+      const clrBtn = document.getElementById('sigClear');
+      if (clrBtn) clrBtn.addEventListener('click', (e)=>{ e.preventDefault(); clearCanvas(); });
+
+      // 포인터 입력
       const supportsPointer = 'PointerEvent' in window;
       if (supportsPointer){
         cvs.addEventListener('pointerdown', startDraw, {passive:false});
@@ -779,6 +775,7 @@
       }
       window.addEventListener('resize', resizeCanvas);
     }
+
     function resizeCanvas(){
       const rect = cvs.getBoundingClientRect();
       dpr = Math.max(1, window.devicePixelRatio || 1);
@@ -786,56 +783,23 @@
       cvs.width  = Math.floor(w * dpr);
       cvs.height = Math.floor(180 * dpr);
       ctx.setTransform(dpr,0,0,dpr,0,0);
-     // === 교체: 완전 초기화형 clear ===
-function clearCanvas(){
-  if(!cvs || !ctx) return;
-  drawing = false;
-  // 비트맵 전체 초기화 (스케일 무시)
-  const w = cvs.width, h = cvs.height;
-  ctx.save();
-  ctx.setTransform(1,0,0,1,0,0);   // dpr 무시하고 원 비트맵 좌표계로
-  ctx.clearRect(0,0,w,h);
-  // 흰 배경 다시 칠해 캔버스가 '빈' 투명 상태가 되지 않도록
-  ctx.fillStyle = '#fff';
-  ctx.fillRect(0,0,w,h);
-  ctx.restore();
-  // 선 그리기 상태 리셋
-  ctx.beginPath();
-  lastX = 0; lastY = 0;
-}
-
-// === initCanvas() 내부에 추가: 버튼 바인딩 ===
-function initCanvas(){
-  cvs = document.getElementById('sigCanvas');
-  ctx = cvs.getContext('2d', { willReadFrequently: true });
-  resizeCanvas();
-
-  const clrBtn = document.getElementById('sigClear');
-  if (clrBtn) {
-    clrBtn.addEventListener('click', (e)=>{
-      e.preventDefault();
-      clearCanvas();
-    });
-  }
-
-  const supportsPointer = 'PointerEvent' in window;
-  if (supportsPointer){
-    cvs.addEventListener('pointerdown', startDraw, {passive:false});
-    cvs.addEventListener('pointermove', moveDraw,   {passive:false});
-    window.addEventListener('pointerup', endDraw);
-    cvs.addEventListener('pointerleave', endDraw);
-  } else {
-    cvs.addEventListener('mousedown', mouseDown);
-    window.addEventListener('mousemove', mouseMove);
-    window.addEventListener('mouseup', mouseUp);
-    cvs.addEventListener('touchstart', touchStart, {passive:false});
-    cvs.addEventListener('touchmove',  touchMove,  {passive:false});
-    window.addEventListener('touchend', touchEnd);
-    cvs.addEventListener('touchcancel', touchEnd);
-  }
-  window.addEventListener('resize', ()=>{ resizeCanvas(); });
-}
+      clearCanvas(); // 항상 흰 배경으로 초기화
     }
+
+    function clearCanvas(){
+      if(!cvs || !ctx) return;
+      drawing = false;
+      const w = cvs.width, h = cvs.height;
+      ctx.save();
+      ctx.setTransform(1,0,0,1,0,0);
+      ctx.clearRect(0,0,w,h);
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0,0,w,h);
+      ctx.restore();
+      ctx.beginPath();
+      lastX = 0; lastY = 0;
+    }
+
     function beginStroke(x,y){ drawing = true; lastX=x; lastY=y; }
     function drawTo(x,y){
       if (!drawing) return;
@@ -844,57 +808,50 @@ function initCanvas(){
       lastX=x; lastY=y;
     }
     function endStroke(){ drawing = false; }
+
     function startDraw(e){ e.preventDefault(); if (e.pointerId && cvs.setPointerCapture) { try{ cvs.setPointerCapture(e.pointerId); }catch{} } const p=getPos(e); beginStroke(p.x,p.y); }
     function moveDraw(e){ if(!drawing) return; e.preventDefault(); const p=getPos(e); drawTo(p.x,p.y); }
-    function endDraw(){ endStroke(); }
     function mouseDown(e){ const p=getMousePos(e); beginStroke(p.x,p.y); }
     function mouseMove(e){ const p=getMousePos(e); drawTo(p.x,p.y); }
     function mouseUp(){ endStroke(); }
     function touchStart(e){ if(!e.touches[0]) return; const p=getTouchPos(e.touches[0]); beginStroke(p.x,p.y); e.preventDefault(); }
     function touchMove(e){ if(!drawing || !e.touches[0]) return; const p=getTouchPos(e.touches[0]); drawTo(p.x,p.y); e.preventDefault(); }
     function touchEnd(){ endStroke(); }
+
     function getPos(e){ const r = cvs.getBoundingClientRect(); return { x:(e.clientX||0)-r.left, y:(e.clientY||0)-r.top }; }
     function getMousePos(e){ const r=cvs.getBoundingClientRect(); return { x:e.clientX-r.left, y:e.clientY-r.top }; }
     function getTouchPos(t){ const r=cvs.getBoundingClientRect(); return { x:t.clientX-r.left, y:t.clientY-r.top }; }
-    function clearCanvas(){ ctx.save(); ctx.setTransform(1,0,0,1,0,0); ctx.clearRect(0,0,cvs.width,cvs.height); ctx.restore(); ctx.fillStyle='#fff'; ctx.fillRect(0,0,cvs.width,cvs.height); }
-    function isCanvasBlank(){ const { data } = ctx.getImageData(0,0,cvs.width,cvs.height); for (let i=0;i<data.length;i+=4){ const r=data[i], g=data[i+1], b=data[i+2], a=data[i+3]; if (!(r===255 && g===255 && b===255 && a===255)) return false; } return true; }
+
+    function isCanvasBlank(){
+      const { data } = ctx.getImageData(0,0,cvs.width,cvs.height);
+      for (let i=0;i<data.length;i+=4){
+        const r=data[i], g=data[i+1], b=data[i+2], a=data[i+3];
+        if (!(r===255 && g===255 && b===255 && a===255)) return false;
+      }
+      return true;
+    }
     function exportCanvas(){ return isCanvasBlank() ? null : cvs.toDataURL('image/png'); }
+
+    function switchTab(which){
+      document.getElementById('tabTyped').classList.toggle('active', which==='typed');
+      document.getElementById('tabDrawn').classList.toggle('active', which==='drawn');
+      document.getElementById('paneTyped').classList.toggle('active', which==='typed');
+      document.getElementById('paneDrawn').classList.toggle('active', which==='drawn');
+      if (which==='drawn') requestAnimationFrame(()=>{ resizeCanvas(); });
+    }
 
     function openSignModal(btn, role){
       const cell = btn.closest('td');
       if (cell.classList.contains('signed')) return;
       currentSign = { cell, role };
-
       document.getElementById('signTitle').textContent = (role==='trainer'?'트레이너':'고객') + ' 서명 입력';
       document.getElementById('typedName').value = role==='trainer' ? lastTrainerTyped : lastCustomerTyped;
-
       switchTab('typed');
-
-      const modal = document.getElementById('signModal');
-      modal.classList.remove('hidden');
-      requestAnimationFrame(()=>resizeCanvas());
+      document.getElementById('signModal').classList.remove('hidden');
+      requestAnimationFrame(()=>{ resizeCanvas(); });
     }
     function closeSignModal(){ currentSign = null; document.getElementById('signModal').classList.add('hidden'); }
-   function switchTab(which){
-  document.getElementById('tabTyped').classList.toggle('active', which==='typed');
-  document.getElementById('tabDrawn').classList.toggle('active', which==='drawn');
-  document.getElementById('paneTyped').classList.toggle('active', which==='typed');
-  document.getElementById('paneDrawn').classList.toggle('active', which==='drawn');
-  if (which==='drawn') requestAnimationFrame(()=>{ resizeCanvas(); clearCanvas(); });
-}
 
-function openSignModal(btn, role){
-  const cell = btn.closest('td');
-  if (cell.classList.contains('signed')) return; // 서명 적용 후는 수정불가
-  currentSign = { cell, role };
-  document.getElementById('signTitle').textContent = (role==='trainer'?'트레이너':'고객') + ' 서명 입력';
-  document.getElementById('typedName').value = role==='trainer' ? lastTrainerTyped : lastCustomerTyped;
-
-  switchTab('typed');
-  const modal = document.getElementById('signModal');
-  modal.classList.remove('hidden');
-  requestAnimationFrame(()=>{ resizeCanvas(); clearCanvas(); });
-}
     function applySignature(){
       if (!currentSign) return;
       const { cell, role } = currentSign;
@@ -940,8 +897,6 @@ function openSignModal(btn, role){
     /* ===== 회원 찾기 모달 ===== */
     function openMemberModal(){ document.getElementById('memberModal').classList.remove('hidden'); }
     function closeMemberModal(){ document.getElementById('memberModal').classList.add('hidden'); }
-
-    document.getElementById('btnMemberSearch').addEventListener('click', openMemberModal);
   </script>
 
   <!-- ===== Firebase: 회원 불러오기/노쇼 집계 ===== -->
@@ -1006,16 +961,14 @@ function openSignModal(btn, role){
           const x = docSnap.data();
           const name  = x.name || "(무명)";
           const phone = x.phoneDisplay || formatPhone(x.phone||"");
-          // datalist
           const opt = document.createElement("option");
-          opt.value = name;
+          opt.value = name;                // datalist 자동완성
           namesList.appendChild(opt);
           indexMap.set(name, docSnap.id);
-          // modal list
+          // 모달 리스트
           items.push({id:docSnap.id, label:`${name} · ${phone}`, name, x});
         });
         renderSearch(items);
-        // filter
         searchBox.addEventListener('input', ()=>{
           const kw = (searchBox.value||'').toLowerCase();
           renderSearch(items.filter(it=> it.label.toLowerCase().includes(kw)));
@@ -1039,7 +992,7 @@ function openSignModal(btn, role){
       });
     }
 
-    // datalist로 선택했을 때도 채움
+    // datalist 선택 시 자동 채움
     nameInput.addEventListener('change', async ()=>{
       const id = indexMap.get(nameInput.value);
       if (!id) return;
@@ -1108,10 +1061,7 @@ function openSignModal(btn, role){
       const id = window.currentMemberId;
       if (!id) return { ok:false, reason:'no-member' };
 
-      const payload = {
-        updatedAt: serverTimestamp(),
-        lastLogAt: meta?.jsDate || new Date()
-      };
+      const payload = { updatedAt: serverTimestamp(), lastLogAt: meta?.jsDate || new Date() };
       if (mode==='deduct'){
         payload.noShowDeducted    = increment(1);
         payload.remainingSessions = increment(-1);
