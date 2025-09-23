@@ -121,74 +121,84 @@
     .msearch-list{max-height:360px;overflow:auto;border:1px solid var(--line);border-radius:10px}
     .msearch-item{padding:10px;border-bottom:1px solid var(--line);cursor:pointer}
     .msearch-item:hover{background:#f9fafb}
+/* 시트 폭: 스샷 비슷한 폭(탭 기준) */
+.sheet{max-width: 960px}
 
-/* ===== 모바일: 날짜/시간 입력 셀 넘침 방지 ===== */
+/* ===== 메타행: 한 줄(overflow 없게) ===== */
+.meta-row{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;              /* 공간 부족하면 아주 살짝만 줄바꿈 */
+}
+
+/* 라벨 공통 */
+.meta-row label{flex:0 0 auto}
+.meta-row input{width:100%}
+
+/* 각 항목 폭 – clamp로 단말 폭에 맞춰 유연 수축/확장 */
+.w-name   {flex-basis: clamp(220px, 34vw, 360px);} /* 이름 더 길게 */
+.w-birth  {flex-basis: clamp(110px, 14vw, 150px);}
+.w-phone  {flex-basis: clamp(160px, 18vw, 220px);}
+.w-lesson {flex-basis: clamp(110px, 12vw, 150px);}
+.w-trainer{flex-basis: clamp(90px,  10vw, 130px);}
+.w-start  {flex-basis: clamp(160px, 16vw, 200px);}
+.w-page   {flex-basis: clamp(80px,   8vw, 100px);}
+
+/* 회원찾기 버튼은 페이지 뒤로 */
+#btnMemberSearch{order: 20}
+
+/* 서명 후 수정불가는 '이름' 바로 밑 라인으로 떨어뜨림 */
+.sign-note{
+  order: 5;            /* 이름 다음으로 배치 */
+  flex: 0 0 100%;      /* 줄 바꿈해서 전체 폭 사용 */
+  margin-left: 6px;    /* 시각적으로 이름 밑 들여쓰기 느낌 */
+}
+
+/* ===== 테이블: 칼럼 튀어나옴 방지 & 버튼 가로 배치 고정 ===== */
+.table-wrap table{table-layout: fixed;}  /* 칼럼폭 고정 */
+th,td{vertical-align:middle}
+
+/* 숫자/날짜/시간/사인 폭 고정, 컨텐츠가 넘치면 잘라냄 */
+.num{width:44px}
+.date{width:120px}
+.time{width:86px}
+.sign-cell{width:96px}
+td{overflow:hidden}
+
+td input[type="date"],
+td input[type="time"],
+td textarea{
+  width:100%;
+  max-width:100%;
+  min-width:0;
+  box-sizing:border-box;
+}
+
+/* 크롬/사파리의 time/date 내부 최소높이 보정 */
+input[type="time"]::-webkit-date-and-time-value,
+input[type="date"]::-webkit-date-and-time-value{min-height:0}
+input[type="time"]::-webkit-calendar-picker-indicator,
+input[type="date"]::-webkit-calendar-picker-indicator{margin:0;padding:0}
+
+/* Teaching 버튼들이 세로로 안부서지게 */
+.modebar{display:flex; gap:8px; align-items:center; white-space:nowrap}
+.modebar .mbtn{flex:0 0 auto}
+
+/* 모바일(<=700px): 조금 더 압축 */
 @media (max-width:700px){
-  table{ table-layout:fixed; }           /* 칼럼폭 고정 */
-  td{ overflow:hidden; }                 /* 셀 바깥으로 못나가게 */
-
-  /* 테이블 안 입력류는 무조건 셀 너비에 맞춤 */
-  td input[type="date"],
-  td input[type="time"],
-  td textarea{
-    display:block;
-    width:100%;
-    max-width:100%;
-    min-width:0;
-    box-sizing:border-box;
-    padding:4px 6px;
-    height:30px;
-    font-size:12px;
-    -webkit-appearance:none;
-            appearance:none;
-  }
-
-  /* iOS WebKit이 내부를 크게 그리는 문제 보정 */
-  input[type="time"]::-webkit-date-and-time-value,
-  input[type="date"]::-webkit-date-and-time-value{ min-height:0; }
-
-  input[type="time"]::-webkit-calendar-picker-indicator,
-  input[type="date"]::-webkit-calendar-picker-indicator{
-    margin:0; padding:0;
-  }
-
-  /* 시간/날짜 칼럼 폭도 더 타이트하게 */
-  .date{ width:72px; }
-  .time{ width:58px; }
+  .sheet{max-width: 100%}
+  .w-name   {flex-basis: clamp(200px, 55vw, 300px);}
+  .w-birth  {flex-basis: 120px}
+  .w-phone  {flex-basis: 170px}
+  .w-lesson {flex-basis: 110px}
+  .w-trainer{flex-basis: 90px}
+  .w-start  {flex-basis: 170px}
+  .w-page   {flex-basis: 80px}
+  .date{width:108px}
+  .time{width:72px}
+  .sign-cell{width:88px}
 }
-
-  /* 노트는 기본 1줄, 포커스 때만 확장 */
-  .note textarea{
-    min-height:32px; height:32px; line-height:1.25; overflow:hidden;
-  }
-  .note textarea:focus{
-    min-height:120px; height:120px; overflow:auto;
-  }
-
-  /* 모드 버튼(운동카달로그/직접작성/아나토미)은 가로 한 줄 고정 */
-  .modebar{gap:4px; flex-wrap:nowrap; overflow-x:auto; white-space:nowrap}
-  .modebar .label{display:none}
-  .modebar .mbtn{padding:4px 8px; font-size:11px; border-radius:999px}
-}
-
-  /* 노트: 기본 1줄, 포커스 시만 키움 */
-  .note textarea{
-    min-height:32px; height:32px; line-height:1.25; overflow:hidden;
-  }
-  .note textarea:focus{
-    min-height:120px; height:120px; overflow:auto;
-  }
-}
-      /* 표가 너무 커서 튀어나가면 최소폭만 살짝 유지 */
-      table{min-width:600px}
-    }
-
-    @media print{
-      body{margin:0}
-      .sheet{box-shadow:none;border:none;padding:0}
-      .toolbar,.footer-actions,.modal,.toast,.drawer,.chip{display:none !important}
-      th,td{padding:4px 6px}
-    }
   </style>
 </head>
 <body>
@@ -196,47 +206,27 @@
     
     <h1>개인 / 트레이닝 일지 (통합)</h1>
 
-    <div class="meta" aria-label="상단 정보">
+  <div class="meta meta-row" aria-label="상단 정보">
   <label class="w-name">이름
     <input id="m-name" placeholder="회원명" list="namesList" autocomplete="off">
     <datalist id="namesList"></datalist>
-    <!-- 이름 밑 공지(모바일에서도 같은 라벨 안에 표시) -->
-    <small class="sign-mini">* 서명 후 수정 불가</small>
   </label>
+
+  <span class="sign-note">* 서명 후 수정 불가</span>
 
   <label class="w-birth">생년월일
     <input id="m-birth" inputmode="numeric" pattern="[0-9\-]*" maxlength="10" placeholder="YYYY-MM-DD">
-  </label>
-
-  <label class="w-gender">성별
-    <select id="m-gender">
-      <option value="">선택</option>
-      <option value="남">남</option>
-      <option value="여">여</option>
-    </select>
   </label>
 
   <label class="w-phone">연락처
     <input id="m-phone" inputmode="numeric" pattern="[0-9\-]*" maxlength="13" placeholder="010-0000-0000">
   </label>
 
-  <label class="w-lesson">레슨종류
-    <input id="m-lesson" placeholder="예: PT 50분">
-  </label>
+  <label class="w-lesson">레슨종류 <input id="m-lesson" placeholder="예: PT 50분"></label>
+  <label class="w-trainer">담당자   <input id="m-trainer" placeholder="트레이너명"></label>
+  <label class="w-start">시작일   <input id="m-start" type="date"></label>
+  <label class="w-page">페이지   <input id="m-page" placeholder="1"></label>
 
-  <label class="w-trainer">담당자
-    <input id="m-trainer" placeholder="트레이너명">
-  </label>
-
-  <label class="w-start">시작일
-    <input id="m-start" type="date">
-  </label>
-
-  <label class="w-page">페이지
-    <input id="m-page" placeholder="1">
-  </label>
-
-  <!-- 회원찾기 버튼은 가장 뒤 -->
   <button id="btnMemberSearch" class="chip" title="회원 찾기">회원찾기</button>
 </div>
 
@@ -246,7 +236,7 @@
         <thead>
           <tr>
             <th class="num">No</th>
-            <th class="date">레슨일자</th>
+            <th class="date">서비스일자</th>
             <th class="time">시간</th>
             <th>
               <div class="modebar">
