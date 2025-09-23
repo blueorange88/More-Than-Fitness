@@ -783,159 +783,159 @@
     }
     function goDashboard(){ location.href = DASHBOARD_URL; }
 
-// ===== Canvas 서명 (정리본) =====
-let cvs, ctx, dpr = 1, drawing = false, lastX = 0, lastY = 0;
+<!-- ===== Canvas & Signature (정리본) ===== -->
+  
+  /* ==== 서명 캔버스 초기화 ==== */
+  function initCanvas(){
+    cvs = document.getElementById('sigCanvas');
+    ctx = cvs.getContext('2d', { willReadFrequently: true });
+    resizeCanvas();
 
-function initCanvas(){
-  cvs = document.getElementById('sigCanvas');
-  ctx = cvs.getContext('2d', { willReadFrequently: true });
-  resizeCanvas();
+    // 지우기 버튼
+    const clrBtn = document.getElementById('sigClear');
+    if (clrBtn) clrBtn.addEventListener('click', (e)=>{ e.preventDefault(); clearCanvas(); });
 
-  // 지우기 버튼 바인딩 (inline 핸들러 사용 X)
-  const clrBtn = document.getElementById('sigClear');
-  if (clrBtn) {
-    clrBtn.addEventListener('click', (e)=>{ e.preventDefault(); clearCanvas(); });
+    // 포인터/마우스/터치 입력
+    const supportsPointer = 'PointerEvent' in window;
+    if (supportsPointer){
+      cvs.addEventListener('pointerdown', startDraw, {passive:false});
+      cvs.addEventListener('pointermove', moveDraw,   {passive:false});
+      window.addEventListener('pointerup', endDraw);
+      cvs.addEventListener('pointerleave', endDraw);
+    } else {
+      cvs.addEventListener('mousedown', mouseDown);
+      window.addEventListener('mousemove', mouseMove);
+      window.addEventListener('mouseup', mouseUp);
+      cvs.addEventListener('touchstart', touchStart, {passive:false});
+      cvs.addEventListener('touchmove',  touchMove,  {passive:false});
+      window.addEventListener('touchend', touchEnd);
+      cvs.addEventListener('touchcancel', touchEnd);
+    }
+    window.addEventListener('resize', resizeCanvas);
   }
 
-  const supportsPointer = 'PointerEvent' in window;
-  if (supportsPointer){
-    cvs.addEventListener('pointerdown', startDraw, {passive:false});
-    cvs.addEventListener('pointermove', moveDraw,   {passive:false});
-    window.addEventListener('pointerup', endDraw);
-    cvs.addEventListener('pointerleave', endDraw);
-  } else {
-    cvs.addEventListener('mousedown', mouseDown);
-    window.addEventListener('mousemove', mouseMove);
-    window.addEventListener('mouseup', mouseUp);
-    cvs.addEventListener('touchstart', touchStart, {passive:false});
-    cvs.addEventListener('touchmove',  touchMove,  {passive:false});
-    window.addEventListener('touchend', touchEnd);
-    cvs.addEventListener('touchcancel', touchEnd);
+  function resizeCanvas(){
+    const rect = cvs.getBoundingClientRect();
+    dpr = Math.max(1, window.devicePixelRatio || 1);
+    const w = rect.width > 0 ? rect.width : 600;
+    cvs.width  = Math.floor(w * dpr);
+    cvs.height = Math.floor(180 * dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    clearCanvas(); // 리사이즈 시 항상 초기화(흰 배경)
   }
-  window.addEventListener('resize', resizeCanvas);
-}
 
-function resizeCanvas(){
-  const rect = cvs.getBoundingClientRect();
-  dpr = Math.max(1, window.devicePixelRatio || 1);
-  const w = rect.width > 0 ? rect.width : 600;
-  cvs.width  = Math.floor(w * dpr);
-  cvs.height = Math.floor(180 * dpr);
-  ctx.setTransform(dpr,0,0,dpr,0,0);
-  clearCanvas(); // 리사이즈 시 항상 초기화
-}
-
-// 완전 초기화형 클리어(비트맵/배경 흰색)
-function clearCanvas(){
-  if(!cvs || !ctx) return;
-  drawing = false;
-  const w = cvs.width, h = cvs.height;
-  ctx.save();
-  ctx.setTransform(1,0,0,1,0,0); // dpr 무시하고 원 비트맵 좌표계
-  ctx.clearRect(0,0,w,h);
-  ctx.fillStyle = '#fff'; // 흰배경 유지(투명 제거)
-  ctx.fillRect(0,0,w,h);
-  ctx.restore();
-  ctx.beginPath();
-  lastX = 0; lastY = 0;
-}
-
-function beginStroke(x,y){ drawing = true; lastX=x; lastY=y; }
-function drawTo(x,y){
-  if (!drawing) return;
-  ctx.lineWidth = 2.5; ctx.lineCap='round'; ctx.lineJoin='round'; ctx.strokeStyle='#111';
-  ctx.beginPath(); ctx.moveTo(lastX,lastY); ctx.lineTo(x,y); ctx.stroke();
-  lastX=x; lastY=y;
-}
-function endStroke(){ drawing = false; }
-
-function startDraw(e){ e.preventDefault(); if (e.pointerId && cvs.setPointerCapture) { try{ cvs.setPointerCapture(e.pointerId); }catch{} } const p=getPos(e); beginStroke(p.x,p.y); }
-function moveDraw(e){ if(!drawing) return; e.preventDefault(); const p=getPos(e); drawTo(p.x,p.y); }
-function mouseDown(e){ const p=getMousePos(e); beginStroke(p.x,p.y); }
-function mouseMove(e){ const p=getMousePos(e); drawTo(p.x,p.y); }
-function mouseUp(){ endStroke(); }
-function touchStart(e){ if(!e.touches[0]) return; const p=getTouchPos(e.touches[0]); beginStroke(p.x,p.y); e.preventDefault(); }
-function touchMove(e){ if(!drawing || !e.touches[0]) return; const p=getTouchPos(e.touches[0]); drawTo(p.x,p.y); e.preventDefault(); }
-function touchEnd(){ endStroke(); }
-
-function getPos(e){ const r = cvs.getBoundingClientRect(); return { x:(e.clientX||0)-r.left, y:(e.clientY||0)-r.top }; }
-function getMousePos(e){ const r=cvs.getBoundingClientRect(); return { x:e.clientX-r.left, y:e.clientY-r.top }; }
-function getTouchPos(t){ const r=cvs.getBoundingClientRect(); return { x:t.clientX-r.left, y:t.clientY-r.top }; }
-
-// 빈 캔버스 검출/내보내기
-function isCanvasBlank(){
-  const { data } = ctx.getImageData(0,0,cvs.width,cvs.height);
-  for (let i=0;i<data.length;i+=4){
-    const r=data[i], g=data[i+1], b=data[i+2], a=data[i+3];
-    if (!(r===255 && g===255 && b===255 && a===255)) return false;
+  // 완전 초기화: 비트맵 클리어 + 흰 배경
+  function clearCanvas(){
+    if(!cvs || !ctx) return;
+    drawing = false;
+    const w = cvs.width, h = cvs.height;
+    ctx.save();
+    ctx.setTransform(1,0,0,1,0,0);
+    ctx.clearRect(0,0,w,h);
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0,0,w,h);
+    ctx.restore();
+    ctx.beginPath();
+    lastX = 0; lastY = 0;
   }
-  return true;
-}
-function exportCanvas(){ return isCanvasBlank() ? null : cvs.toDataURL('image/png'); }
 
-// 모달 & 탭에서 항상 정렬/초기화
-function switchTab(which){
-  document.getElementById('tabTyped').classList.toggle('active', which==='typed');
-  document.getElementById('tabDrawn').classList.toggle('active', which==='drawn');
-  document.getElementById('paneTyped').classList.toggle('active', which==='typed');
-  document.getElementById('paneDrawn').classList.toggle('active', which==='drawn');
-  if (which==='drawn') requestAnimationFrame(()=>{ resizeCanvas(); clearCanvas(); });
-}
-function openSignModal(btn, role){
-  const cell = btn.closest('td');
-  if (cell.classList.contains('signed')) return; // 서명 적용 후는 수정불가
-  currentSign = { cell, role };
-  document.getElementById('signTitle').textContent = (role==='trainer'?'트레이너':'고객') + ' 서명 입력';
-  document.getElementById('typedName').value = role==='trainer' ? lastTrainerTyped : lastCustomerTyped;
- 
-  switchTab('typed');
-  const modal = document.getElementById('signModal');
-  modal.classList.remove('hidden');
-  requestAnimationFrame(()=>{ resizeCanvas(); clearCanvas(); });
-}
+  /* ==== 그리기 핸들러 ==== */
+  function beginStroke(x,y){ drawing = true; lastX=x; lastY=y; }
+  function drawTo(x,y){
+    if (!drawing) return;
+    ctx.lineWidth = 2.5; ctx.lineCap='round'; ctx.lineJoin='round'; ctx.strokeStyle='#111';
+    ctx.beginPath(); ctx.moveTo(lastX,lastY); ctx.lineTo(x,y); ctx.stroke();
+    lastX=x; lastY=y;
+  }
+  function endStroke(){ drawing = false; }
+
+  function startDraw(e){ e.preventDefault(); if (e.pointerId && cvs.setPointerCapture) { try{ cvs.setPointerCapture(e.pointerId); }catch{} } const p=getPos(e); beginStroke(p.x,p.y); }
+  function moveDraw(e){ if(!drawing) return; e.preventDefault(); const p=getPos(e); drawTo(p.x,p.y); }
+  function mouseDown(e){ const p=getMousePos(e); beginStroke(p.x,p.y); }
+  function mouseMove(e){ const p=getMousePos(e); drawTo(p.x,p.y); }
+  function mouseUp(){ endStroke(); }
+  function touchStart(e){ if(!e.touches[0]) return; const p=getTouchPos(e.touches[0]); beginStroke(p.x,p.y); e.preventDefault(); }
+  function touchMove(e){ if(!drawing || !e.touches[0]) return; const p=getTouchPos(e.touches[0]); drawTo(p.x,p.y); e.preventDefault(); }
+  function touchEnd(){ endStroke(); }
+
+  function getPos(e){ const r = cvs.getBoundingClientRect(); return { x:(e.clientX||0)-r.left, y:(e.clientY||0)-r.top }; }
+  function getMousePos(e){ const r=cvs.getBoundingClientRect(); return { x:e.clientX-r.left, y:e.clientY-r.top }; }
+  function getTouchPos(t){ const r=cvs.getBoundingClientRect(); return { x:t.clientX-r.left, y:t.clientY-r.top }; }
+
+  function isCanvasBlank(){
+    const { data } = ctx.getImageData(0,0,cvs.width,cvs.height);
+    for (let i=0;i<data.length;i+=4){
+      const r=data[i], g=data[i+1], b=data[i+2], a=data[i+3];
+      if (!(r===255 && g===255 && b===255 && a===255)) return false;
+    }
+    return true;
+  }
+  function exportCanvas(){ return isCanvasBlank() ? null : cvs.toDataURL('image/png'); }
+
+  /* ==== 서명 모달/탭 ==== */
+  function switchTab(which){
+    document.getElementById('tabTyped').classList.toggle('active', which==='typed');
+    document.getElementById('tabDrawn').classList.toggle('active', which==='drawn');
+    document.getElementById('paneTyped').classList.toggle('active', which==='typed');
+    document.getElementById('paneDrawn').classList.toggle('active', which==='drawn');
+    if (which==='drawn') requestAnimationFrame(()=>{ resizeCanvas(); clearCanvas(); });
+  }
+
+  function openSignModal(btn, role){
+    const cell = btn.closest('td');
+    if (cell.classList.contains('signed')) return; // 서명 적용 후 수정불가
+    currentSign = { cell, role };
+    document.getElementById('signTitle').textContent = (role==='trainer'?'트레이너':'고객') + ' 서명 입력';
+    document.getElementById('typedName').value = role==='trainer' ? lastTrainerTyped : lastCustomerTyped;
+    switchTab('typed');
+    document.getElementById('signModal').classList.remove('hidden');
+    requestAnimationFrame(()=>{ resizeCanvas(); clearCanvas(); });
+  }
+  function closeSignModal(){ currentSign = null; document.getElementById('signModal').classList.add('hidden'); }
+
+  function applySignature(){
+    if (!currentSign) return;
+    const { cell, role } = currentSign;
+    const usingTypedTab = document.getElementById('paneTyped').classList.contains('active');
+
+    if (usingTypedTab){
+      const name = (document.getElementById('typedName').value || "").trim();
+      if (!name) return showToast('이름을 입력하세요');
+      const prev = role==='trainer' ? lastTrainerTyped : lastCustomerTyped;
+      if (prev && prev !== name) showToast('이 전 서명과 다릅니다');
+      if (role==='trainer') lastTrainerTyped = name; else lastCustomerTyped = name;
+      cell.innerHTML = `<div class="signature"><span class="pen">✍</span>${escapeHtml(name)}</div>`;
+      cell.dataset.sigType = 'typed';
+      cell.dataset.sigValue = name;
+    } else {
+      const dataURL = exportCanvas();
+      if (!dataURL) return showToast('서명을 먼저 입력하세요');
+      cell.innerHTML = `<div class="signature" style="flex-direction:column;gap:4px">
+        <img src="${dataURL}" alt="서명 이미지" style="height:48px;max-width:120px;object-fit:contain"/>
+        <small class="muted">손서명</small>
+      </div>`;
+      cell.dataset.sigType = 'drawn';
+      cell.dataset.sigValue = dataURL;
+    }
+
+    cell.classList.add('signed'); // 적용 후 수정 불가
+
+    const tr = cell.parentElement;
+    const both = [...tr.querySelectorAll('.sign-cell')].every(td=>td.classList.contains('signed'));
+    if (both) lockRow(tr);
+
+    saveToStorage();
+    closeSignModal();
+  }
+
+  function lockRow(tr){
+    tr.classList.add('row-locked');
+    tr.querySelectorAll('input, textarea, button.sign-btn').forEach(el=>{
+      if (el.tagName === 'BUTTON') el.disabled = true;
+      else { el.readOnly = true; el.disabled = true; }
+    });
+  }
     
-    function applySignature(){
-      if (!currentSign) return;
-      const { cell, role } = currentSign;
-      const usingTypedTab = document.getElementById('paneTyped').classList.contains('active');
-
-      if (usingTypedTab){
-        const name = (document.getElementById('typedName').value || "").trim();
-        if (!name) return showToast('이름을 입력하세요');
-        const prev = role==='trainer' ? lastTrainerTyped : lastCustomerTyped;
-        if (prev && prev !== name) showToast('이 전 서명과 다릅니다');
-        if (role==='trainer') lastTrainerTyped = name; else lastCustomerTyped = name;
-        cell.innerHTML = `<div class="signature"><span class="pen">✍</span>${escapeHtml(name)}</div>`;
-        cell.dataset.sigType = 'typed';
-        cell.dataset.sigValue = name;
-      } else {
-        const dataURL = exportCanvas();
-        if (!dataURL) return showToast('서명을 먼저 입력하세요');
-        cell.innerHTML = `<div class="signature" style="flex-direction:column;gap:4px">
-          <img src="${dataURL}" alt="서명 이미지" style="height:48px;max-width:120px;object-fit:contain"/>
-          <small class="muted">손서명</small>
-        </div>`;
-        cell.dataset.sigType = 'drawn';
-        cell.dataset.sigValue = dataURL;
-      }
-
-      cell.classList.add('signed'); // 적용 후 수정 불가
-
-      const tr = cell.parentElement;
-      const both = [...tr.querySelectorAll('.sign-cell')].every(td=>td.classList.contains('signed'));
-      if (both) lockRow(tr);
-
-      saveToStorage();
-      closeSignModal();
-    }
-    function lockRow(tr){
-      tr.classList.add('row-locked');
-      tr.querySelectorAll('input, textarea, button.sign-btn').forEach(el=>{
-        if (el.tagName === 'BUTTON') el.disabled = true;
-        else { el.readOnly = true; el.disabled = true; }
-      });
-    }
-
     /* ===== 회원 찾기 모달 ===== */
     function openMemberModal(){ document.getElementById('memberModal').classList.remove('hidden'); }
     function closeMemberModal(){ document.getElementById('memberModal').classList.add('hidden'); }
