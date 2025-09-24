@@ -17,10 +17,10 @@
     /* 상단 메타 */
     .meta{display:grid;gap:6px 8px;margin-bottom:12px;grid-template-columns:repeat(12,1fr);font-size:13px;align-items:center}
     .meta label{display:flex;align-items:center;gap:6px;border:1px solid var(--line);padding:6px 8px;border-radius:8px;background:#fff}
+    .meta label.stack{flex-direction:column; align-items:flex-start; gap:4px;}  /* 이름칸만 세로쌓기 */
     .meta input{border:none;outline:none;width:100%;font-size:13px;background:transparent}
     .meta .span2{grid-column:span 2}.meta .span3{grid-column:span 3}.meta .span4{grid-column:span 4}
-    .sign-note{grid-column:1 / span 3; /* 이름 아래 고정 */
-               font-size:14px;font-weight:700;color:var(--danger)}
+    .sign-note-inline{font-size:12px;font-weight:700;color:var(--danger)}
     .chip{border:1px solid var(--line);background:var(--chip);border-radius:999px;padding:7px 10px;cursor:pointer}
 
     /* 툴바 */
@@ -35,12 +35,10 @@
     th,td{border:1px solid var(--line);padding:6px 8px;font-size:13px;vertical-align:top}
     thead th{background:#f8fafc}
     .num{width:44px;text-align:center}
-    .date{width:96px}
-    .time{width:74px}
-    .sign-cell{position:relative;text-align:center;width:100px}/* 서명칸 더 좁게 */
-    /* 셀 내부 인풋이 넘치지 않도록 */
+    .date{width:104px}
+    .time{width:132px}              /* 오전 00:00까지 보이도록 여유폭 */
+    .sign-cell{position:relative;text-align:center;width:100px}
     td>input[type="date"], td>input[type="time"]{width:100%;min-width:0}
-
     .note textarea{width:100%;min-height:38px;border:none;resize:vertical;font-size:13px;line-height:1.35;outline:none}
 
     /* 입력방식 버튼(헤더) */
@@ -135,7 +133,7 @@
       .meta label{padding:6px}
       .modebar .label{display:none} /* 모바일에서 라벨 숨김 → 버튼 한 줄 유지 */
       th,td{font-size:12px;padding:4px 6px}
-      .num{width:36px}.date{width:92px}.time{width:70px}.sign-cell{width:92px}
+      .num{width:36px}.date{width:100px}.time{width:120px}.sign-cell{width:92px}
     }
     @media print{
       body{margin:0}
@@ -151,12 +149,11 @@
 
     <!-- 메타 영역 -->
     <div class="meta" aria-label="상단 정보">
-      <label class="span3">이름
-        <input id="m-name" placeholder="회원명 /*서명 후 수정 불가" list="namesList" autocomplete="off">
+      <label class="span3 stack">이름
+        <input id="m-name" placeholder="회원명" list="namesList" autocomplete="off">
         <datalist id="namesList"></datalist>
+        <small class="sign-note-inline">* 서명 후 수정 불가</small>
       </label>
-
-      
 
       <label>생년월일 <input id="m-birth" inputmode="numeric" pattern="[0-9\-]*" maxlength="10" placeholder="YYYY-MM-DD"></label>
       <label>연락처   <input id="m-phone" inputmode="numeric" pattern="[0-9\-]*" maxlength="13" placeholder="010-0000-0000"></label>
@@ -172,7 +169,6 @@
     </div>
 
     <!-- 표 -->
-    <span class="sign-note">* 서명 후 수정 불가</span>
     <div class="table-wrap">
       <table id="log">
         <thead>
@@ -260,7 +256,7 @@
     <div class="modal-card">
       <div class="modal-head">
         <h3 id="signTitle">서명 입력</h3>
-        <button type="button" class="close-btn" onclick="closeSignModal()">닫기</button>
+      <button type="button" class="close-btn" onclick="closeSignModal()">닫기</button>
       </div>
 
       <div class="tabbar">
@@ -369,7 +365,6 @@
       tbody = document.getElementById('tbody');
       nsDrawer = document.getElementById('nsDrawer');
 
-      // 행 생성
       for (let i=1;i<=30;i++) tbody.appendChild(buildRow(i));
 
       loadFromStorage();
@@ -398,12 +393,10 @@
         <td class="sign-cell"><button type="button" class="sign-btn" data-role="customer">서명</button></td>
       `;
 
-      // textarea 포커스 → 현재 행 설정 + 모드에 따라 보조 UI
       const ta = tr.querySelector('textarea');
       ta.addEventListener('focus', ()=>{ currentEditRow = tr; maybeOpenAssist(); });
-      ta.addEventListener('click', ()=>{ currentEditRow = tr; maybeOpenAssist(); });
+      ta.addEventListener('click',  ()=>{ currentEditRow = tr; maybeOpenAssist(); });
 
-      // 서명 버튼
       tr.addEventListener('click', (e)=>{
         const btn = e.target.closest('.sign-btn');
         if (!btn) return;
@@ -413,7 +406,6 @@
         openSignModal(btn, role);
       });
 
-      // 고객 서명칸 롱프레스 → 드로어
       const customerCell = tr.children[5];
       customerCell.addEventListener('pointerdown', (ev)=>{
         if (ev.target.closest('.sign-btn')) return;
@@ -516,7 +508,7 @@
     function openAnat(){ document.getElementById('anatModal').classList.remove('hidden'); }
     function closeAnat(){ document.getElementById('anatModal').classList.add('hidden'); }
 
-    /* ===== 노쇼 드로어(고객 서명칸 롱프레스) ===== */
+    /* ===== 노쇼 드로어 ===== */
     function initNoShowDrawer(){
       nsDrawer.addEventListener('click', (e)=>{
         if (e.target.dataset.dim !== undefined || e.target.dataset.close !== undefined) closeNsDrawer();
@@ -774,7 +766,6 @@
       const clrBtn = document.getElementById('sigClear');
       if (clrBtn) clrBtn.addEventListener('click', (e)=>{ e.preventDefault(); clearCanvas(); endStroke(); });
 
-      // Pointer 기반: 클릭/탭 후 계속 그려지는 현상 방지
       cvs.addEventListener('pointerdown', (e)=>{ e.preventDefault(); if (e.pointerId && cvs.setPointerCapture) { try{ cvs.setPointerCapture(e.pointerId); }catch{} } const p=getPos(e); beginStroke(p.x,p.y); }, {passive:false});
       cvs.addEventListener('pointermove', (e)=>{ if(!drawing) return; e.preventDefault(); const p=getPos(e); drawTo(p.x,p.y); }, {passive:false});
       window.addEventListener('pointerup', endStroke, {passive:true});
@@ -862,7 +853,7 @@
         cell.dataset.sigValue = dataURL;
       }
 
-      cell.classList.add('signed'); // 적용 후 수정 불가
+      cell.classList.add('signed');
       const tr = cell.parentElement;
       const both = [...tr.querySelectorAll('.sign-cell')].every(td=>td.classList.contains('signed'));
       if (both) lockRow(tr);
@@ -885,7 +876,7 @@
     document.getElementById('btnMemberSearch').addEventListener('click', openMemberModal);
   </script>
 
-  <!-- ===== Firebase: 회원 불러오기/노쇼 집계 (원본 유지) ===== -->
+  <!-- ===== Firebase: 회원 불러오기/노쇼 집계 ===== -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
     import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
@@ -923,7 +914,6 @@
     const indexMap = new Map();
     window.currentMemberId = null;
 
-    // ?id= 진입 시 자동 채움
     (async function initByQuery(){
       const id = new URLSearchParams(location.search).get("id");
       if (!id) return;
@@ -938,7 +928,6 @@
       }catch(e){ console.warn(e); }
     })();
 
-    // 전체 목록 로드 → datalist + 모달 리스트
     (async function loadMemberOptions(){
       try{
         const snap = await getDocs(collection(db, "members"));
@@ -947,16 +936,13 @@
           const x = docSnap.data();
           const name  = x.name || "(무명)";
           const phone = x.phoneDisplay || formatPhone(x.phone||"");
-          // datalist
           const opt = document.createElement("option");
           opt.value = name;
           namesList.appendChild(opt);
           indexMap.set(name, docSnap.id);
-          // modal list
           items.push({id:docSnap.id, label:`${name} · ${phone}`, name, x});
         });
         renderSearch(items);
-        // filter
         searchBox.addEventListener('input', ()=>{
           const kw = (searchBox.value||'').toLowerCase();
           renderSearch(items.filter(it=> it.label.toLowerCase().includes(kw)));
@@ -980,7 +966,6 @@
       });
     }
 
-    // datalist로 선택했을 때도 채움
     nameInput.addEventListener('change', async ()=>{
       const id = indexMap.get(nameInput.value);
       if (!id) return;
@@ -1044,7 +1029,6 @@
       return v.slice(0,3)+'-'+v.slice(3,7)+'-'+v.slice(7);
     }
 
-    /* ===== 노쇼 집계: 전역 함수 ===== */
     window.applyNoShowToMember = async (mode, meta)=>{
       const id = window.currentMemberId;
       if (!id) return { ok:false, reason:'no-member' };
