@@ -36,7 +36,7 @@
     thead th{background:#f8fafc}
     .num{width:44px;text-align:center}
     .date{width:96px}
-    .time{width:120px}   /* 필요하면 130~140px로 더 키워도 OK */
+    .time{width:74px}
     .sign-cell{position:relative;text-align:center;width:100px}/* 서명칸 더 좁게 */
     /* 셀 내부 인풋이 넘치지 않도록 */
     td>input[type="date"], td>input[type="time"]{width:100%;min-width:0}
@@ -129,7 +129,6 @@
     /* 반응형 */
     @media (max-width: 1024px){ .meta{grid-template-columns:repeat(8,1fr)} }
     @media (max-width: 700px){
-  .num{width:36px}.date{width:92px}.time{width:110px}.sign-cell{width:92px} }
       body{margin:12px}
       .sheet{padding:12px}
       .meta{grid-template-columns:repeat(2,1fr)}
@@ -153,9 +152,11 @@
     <!-- 메타 영역 -->
     <div class="meta" aria-label="상단 정보">
       <label class="span3">이름
-        <input id="m-name" placeholder="회원명 /* 서명 후 수정 불가" list="namesList" autocomplete="off">
+        <input id="m-name" placeholder="회원명" list="namesList" autocomplete="off">
         <datalist id="namesList"></datalist>
       </label>
+
+      <span class="sign-note">* 서명 후 수정 불가</span>
 
       <label>생년월일 <input id="m-birth" inputmode="numeric" pattern="[0-9\-]*" maxlength="10" placeholder="YYYY-MM-DD"></label>
       <label>연락처   <input id="m-phone" inputmode="numeric" pattern="[0-9\-]*" maxlength="13" placeholder="010-0000-0000"></label>
