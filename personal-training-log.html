@@ -15,14 +15,53 @@
     .sheet{max-width:1100px;margin:0 auto;border:1px solid var(--line);padding:16px;border-radius:10px;box-shadow:0 2px 14px rgba(0,0,0,.06)}
 
     /* 상단 메타 */
-    .meta{display:grid;gap:6px 8px;margin-bottom:12px;grid-template-columns:repeat(12,1fr);font-size:13px;align-items:center}
-    .meta label{display:flex;align-items:center;gap:6px;border:1px solid var(--line);padding:6px 8px;border-radius:8px;background:#fff}
-    .meta label.stack{flex-direction:column; align-items:flex-start; gap:4px;}  /* 이름칸만 세로쌓기 */
-    .meta input{border:none;outline:none;width:100%;font-size:13px;background:transparent}
-    .meta .span2{grid-column:span 2}.meta .span3{grid-column:span 3}.meta .span4{grid-column:span 4}
-    .sign-note-inline{font-size:12px;font-weight:700;color:var(--danger)}
-    .chip{border:1px solid var(--line);background:var(--chip);border-radius:999px;padding:7px 10px;cursor:pointer}
+  /* === 메타 한 줄 유지 & 모바일 대응 === */
+.meta{
+  display:flex;
+  gap:8px;
+  align-items:flex-end;
+  flex-wrap:nowrap;            /* 줄바꿈 금지: 한 줄 고정 */
+  overflow-x:auto;             /* 화면이 너무 좁을 때 메타 '만' 가로 스크롤 */
+  -ms-overflow-style:none; scrollbar-width:none;
+}
+.meta::-webkit-scrollbar{display:none}  /* 모바일에서 스크롤바 숨김 */
 
+.meta label{
+  display:flex; flex-direction:column; gap:4px;
+  border:1px solid var(--line); background:#fff;
+  border-radius:8px; padding:6px 8px;
+  min-width:0; flex:0 0 auto;      /* 폭이 너무 줄어 깨지지 않게 */
+}
+.meta input{
+  border:1px solid var(--line);
+  border-radius:6px;
+  padding:6px 8px;
+  font-size:13px; min-width:0;
+}
+.meta .cap{font-size:11px;color:var(--muted);line-height:1}
+
+/* 필드 폭(모바일에서도 한 줄로 들어가도록 최소폭만 지정) */
+.field--name{min-width:160px}
+.field--birth{min-width:120px}
+.field--phone{min-width:140px}
+.field--lesson{min-width:130px}
+.field--trainer{min-width:120px}
+.field--start{min-width:130px}
+.field--page{min-width:80px}
+
+/* 회원찾기 버튼은 줄어들지 않게 */
+#btnMemberSearch{flex:0 0 auto;height:100%;align-self:stretch}
+
+/* === 표만 세로 스크롤 되게 === */
+.sheet{
+  display:flex; flex-direction:column;
+  height:calc(100vh - 48px);        /* 화면 꽉 채움(위아래 24px 마진 보정) */
+}
+.table-wrap{flex:1; min-height:0; overflow:auto} /* 표 영역만 스크롤 */
+
+/* 시간칸 00:00 다 보이도록 살짝 넓게 */
+.time{width:90px}
+    
     /* 툴바 */
     .toolbar{display:flex;gap:8px;justify-content:flex-end;margin:10px 0}
     .toolbar button,.footer-actions button,.sig-tools button,.modal-foot button,.tabbar button{
@@ -148,21 +187,48 @@
     <h1>개인 / 트레이닝 일지 (통합)</h1>
 
     <!-- 메타 영역 -->
-    <div class="meta" aria-label="상단 정보">
-      <label class="span3 stack">이름
-        <input id="m-name" placeholder="회원명" list="namesList" autocomplete="off">
-        <datalist id="namesList"></datalist>
-        <small class="sign-note-inline">* 서명 후 수정 불가</small>
-      </label>
-
-      <label>생년월일 <input id="m-birth" inputmode="numeric" pattern="[0-9\-]*" maxlength="10" placeholder="YYYY-MM-DD"></label>
-      <label>연락처   <input id="m-phone" inputmode="numeric" pattern="[0-9\-]*" maxlength="13" placeholder="010-0000-0000"></label>
-      <label class="span2">레슨종류 <input id="m-lesson" placeholder="예: PT 50분"></label>
-      <label class="span2">담당자   <input id="m-trainer" placeholder="트레이너명"></label>
-      <label>시작일   <input id="m-start" type="date"></label>
-      <label>페이지   <input id="m-page" placeholder="1"></label>
-      <button id="btnMemberSearch" class="chip" title="회원 찾기">회원찾기</button>
+ <div class="meta" aria-label="상단 정보">
+  <label class="field--name">
+    <span class="cap">이름</span>
+    <input id="m-name" placeholder="회원명" list="namesList" autocomplete="off">
+    <datalist id="namesList"></datalist>
+    <div class="sign-note" style="margin-top:2px;font-size:12px;color:#dc2626;font-weight:700">
+      * 서명 후 수정 불가
     </div>
+  </label>
+
+  <label class="field--birth">
+    <span class="cap">생년월일</span>
+    <input id="m-birth" inputmode="numeric" maxlength="10" placeholder="YYYY-MM-DD">
+  </label>
+
+  <label class="field--phone">
+    <span class="cap">연락처</span>
+    <input id="m-phone" inputmode="numeric" maxlength="13" placeholder="010-0000-0000">
+  </label>
+
+  <label class="field--lesson">
+    <span class="cap">레슨종류</span>
+    <input id="m-lesson" placeholder="예: PT 50분">
+  </label>
+
+  <label class="field--trainer">
+    <span class="cap">담당자</span>
+    <input id="m-trainer" placeholder="트레이너명">
+  </label>
+
+  <label class="field--start">
+    <span class="cap">시작일</span>
+    <input id="m-start" type="date">
+  </label>
+
+  <label class="field--page">
+    <span class="cap">페이지</span>
+    <input id="m-page" placeholder="1">
+  </label>
+
+  <button id="btnMemberSearch" class="chip" title="회원 찾기">회원찾기</button>
+</div>
 
     <div class="toolbar">
       <button type="button" onclick="window.print()">인쇄</button>
@@ -362,23 +428,26 @@
     ];
 
     window.addEventListener('DOMContentLoaded', () => {
-      tbody = document.getElementById('tbody');
-      nsDrawer = document.getElementById('nsDrawer');
+  tbody = document.getElementById('tbody');
+  nsDrawer = document.getElementById('nsDrawer');
 
-      for (let i=1;i<=30;i++) tbody.appendChild(buildRow(i));
+  // 행 생성
+  for (let i=1;i<=30;i++) tbody.appendChild(buildRow(i));
 
-      loadFromStorage();
-      bindAutoSave();
-      initCanvas();
-      initBirthAutoHyphen();
-      initPhoneAutoHyphen();
+  loadFromStorage();
+  bindAutoSave();
+  initCanvas();
 
-      initModes();
-      buildCatalogUI();
-      buildAnatomyUI();
+  initBirthAutoHyphen();
+  initPhoneAutoHyphen();
+  initMetaValidation();
 
-      initNoShowDrawer();
-    });
+  initModes();
+  buildCatalogUI();
+  buildAnatomyUI();
+
+  initNoShowDrawer();
+});
 
     /* ===== 표/행 ===== */
     function buildRow(n){
@@ -747,7 +816,49 @@
       if (v.length <= 6) return v.slice(0,4)+'-'+v.slice(4);
       return v.slice(0,4)+'-'+v.slice(4,6)+'-'+v.slice(6,8);
     }
+function initMetaValidation(){
+  const birth = document.getElementById('m-birth');
+  const phone = document.getElementById('m-phone');
 
+  const msgBirth = '양식에 맞지 않습니다. 예) 1993-05-09';
+  const msgPhone = '양식에 맞지 않습니다. 예) 010-1234-5678';
+
+  const isValidBirth = (v)=>{
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v);
+    if(!m) return false;
+    const y=+m[1], mo=+m[2]-1, d=+m[3];
+    const dt = new Date(y,mo,d);
+    return dt.getFullYear()===y && dt.getMonth()===mo && dt.getDate()===d;
+  };
+  
+  const isValidPhone = (v)=> /^01[016-9]-\d{3,4}-\d{4}$/.test(v);
+
+  const checkBirth = ()=>{
+    const v = (birth.value||'').trim();
+    birth.setCustomValidity('');
+    if(v && !isValidBirth(v)) birth.setCustomValidity(msgBirth);
+    birth.reportValidity();
+  };
+  const checkPhone = ()=>{
+    const v = (phone.value||'').trim();
+    phone.setCustomValidity('');
+    if(v && !isValidPhone(v)) phone.setCustomValidity(msgPhone);
+    phone.reportValidity();
+  };
+
+  birth.addEventListener('input', checkBirth);
+  birth.addEventListener('blur',  checkBirth);
+  phone.addEventListener('input', checkPhone);
+  phone.addEventListener('blur',  checkPhone);
+
+  // 숫자/하이픈 외 입력 방지
+  [birth, phone].forEach(inp=>{
+    inp.addEventListener('beforeinput',(e)=>{
+      if(e.inputType==='insertText' && /[^\d-]/.test(e.data||'')) e.preventDefault();
+    });
+  });
+}
+    
     function resetAll(){
       const pin = prompt('전체 초기화를 위해 PIN을 입력하세요 (기본 0000)');
       if (pin !== RESET_PIN){ showToast('비밀번호가 일치하지 않습니다'); return; }
