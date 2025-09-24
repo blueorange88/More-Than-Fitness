@@ -12,71 +12,40 @@
     *{box-sizing:border-box}
     body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,sans-serif;color:var(--ink);margin:24px;background:#fff}
     h1{margin:0 0 8px;font-size:20px}
-    .sheet{max-width:1100px;margin:0 auto;border:1px solid var(--line);padding:16px;border-radius:10px;box-shadow:0 2px 14px rgba(0,0,0,.06)}
+
+    /* 시트: 메타 고정, 표만 스크롤 */
+    .sheet{
+      max-width:1100px;margin:0 auto;border:1px solid var(--line);padding:16px;border-radius:10px;box-shadow:0 2px 14px rgba(0,0,0,.06);
+      display:grid; grid-template-rows:auto auto 1fr auto; gap:8px;
+      height:calc(100vh - 48px);
+    }
 
     /* 상단 메타 */
-  /* === 메타 한 줄 유지 & 모바일 대응 === */
-.meta{
-  display:flex;
-  gap:8px;
-  align-items:flex-end;
-  flex-wrap:nowrap;            /* 줄바꿈 금지: 한 줄 고정 */
-  overflow-x:auto;             /* 화면이 너무 좁을 때 메타 '만' 가로 스크롤 */
-  -ms-overflow-style:none; scrollbar-width:none;
-}
-.meta::-webkit-scrollbar{display:none}  /* 모바일에서 스크롤바 숨김 */
+    .meta{display:grid;gap:6px 8px;margin-bottom:4px;grid-template-columns:repeat(12,1fr);font-size:13px;align-items:center}
+    .meta label{display:flex;flex-direction:column;gap:4px;border:1px solid var(--line);padding:6px 8px;border-radius:8px;background:#fff;min-width:0}
+    .meta label span{font-size:11px;color:var(--muted)}
+    .meta input{border:none;outline:none;width:100%;font-size:13px;background:transparent;min-width:0}
+    .meta .span1{grid-column:span 1}.meta .span2{grid-column:span 2}.meta .span3{grid-column:span 3}
+    .chip{border:1px solid var(--line);background:var(--chip);border-radius:999px;padding:7px 10px;cursor:pointer;white-space:nowrap;justify-self:end}
 
-.meta label{
-  display:flex; flex-direction:column; gap:4px;
-  border:1px solid var(--line); background:#fff;
-  border-radius:8px; padding:6px 8px;
-  min-width:0; flex:0 0 auto;      /* 폭이 너무 줄어 깨지지 않게 */
-}
-.meta input{
-  border:1px solid var(--line);
-  border-radius:6px;
-  padding:6px 8px;
-  font-size:13px; min-width:0;
-}
-.meta .cap{font-size:11px;color:var(--muted);line-height:1}
+    .sign-note{font-size:13px;font-weight:700;color:var(--danger)}
 
-/* 필드 폭(모바일에서도 한 줄로 들어가도록 최소폭만 지정) */
-.field--name{min-width:160px}
-.field--birth{min-width:120px}
-.field--phone{min-width:140px}
-.field--lesson{min-width:130px}
-.field--trainer{min-width:120px}
-.field--start{min-width:130px}
-.field--page{min-width:80px}
-
-/* 회원찾기 버튼은 줄어들지 않게 */
-#btnMemberSearch{flex:0 0 auto;height:100%;align-self:stretch}
-
-/* === 표만 세로 스크롤 되게 === */
-.sheet{
-  display:flex; flex-direction:column;
-  height:calc(100vh - 48px);        /* 화면 꽉 채움(위아래 24px 마진 보정) */
-}
-.table-wrap{flex:1; min-height:0; overflow:auto} /* 표 영역만 스크롤 */
-
-/* 시간칸 00:00 다 보이도록 살짝 넓게 */
-.time{width:90px}
-    
     /* 툴바 */
-    .toolbar{display:flex;gap:8px;justify-content:flex-end;margin:10px 0}
+    .toolbar{display:flex;gap:8px;justify-content:flex-end;margin:0}
     .toolbar button,.footer-actions button,.sig-tools button,.modal-foot button,.tabbar button{
       border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 12px;font-size:13px;cursor:pointer
     }
 
     /* 표 */
-    .table-wrap{overflow-x:auto}
+    .table-wrap{overflow:auto;min-height:0}
     table{width:100%;border-collapse:collapse;min-width:900px;table-layout:fixed}
     th,td{border:1px solid var(--line);padding:6px 8px;font-size:13px;vertical-align:top}
     thead th{background:#f8fafc}
     .num{width:44px;text-align:center}
-    .date{width:104px}
-    .time{width:132px}              /* 오전 00:00까지 보이도록 여유폭 */
-    .sign-cell{position:relative;text-align:center;width:100px}
+    .date{width:98px}
+    .time{width:86px}
+    .time input{width:100%;font-variant-numeric:tabular-nums;letter-spacing:.2px}
+    .sign-cell{position:relative;text-align:center;width:108px}
     td>input[type="date"], td>input[type="time"]{width:100%;min-width:0}
     .note textarea{width:100%;min-height:38px;border:none;resize:vertical;font-size:13px;line-height:1.35;outline:none}
 
@@ -86,7 +55,7 @@
     .modebar .mbtn{border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 8px;font-size:12px;cursor:pointer}
     .modebar .mbtn.active{border-color:#111;background:#fff}
 
-    /* 서명 표시 */
+    /* 서명 */
     .signature{display:inline-flex;align-items:center;gap:6px;font-weight:600}
     .signature .pen{font-size:14px}
     .signed{position:relative;pointer-events:none}
@@ -102,7 +71,7 @@
     tr[data-row="10"] td{border-bottom:2px solid var(--hl)}
     tr[data-row="20"] td{border-bottom:2px solid var(--hl)}
 
-    .footer-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+    .footer-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:0}
 
     /* 공통 모달 */
     .hidden{display:none}
@@ -117,7 +86,7 @@
     .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:rgba(17,17,17,.92);color:#fff;padding:10px 14px;border-radius:10px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .25s}
     .toast.show{opacity:1}
 
-    /* 카탈로그(카트리지) */
+    /* 카탈로그 */
     .cat-grid{display:grid;gap:10px;grid-template-columns:200px 1fr}
     .cat-list{border:1px solid var(--line);border-radius:10px;overflow:auto;max-height:360px}
     .cat-list button{display:block;width:100%;text-align:left;padding:10px;border:none;background:#fff;border-bottom:1px solid var(--line);cursor:pointer}
@@ -127,7 +96,7 @@
     .chip-btn{border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 10px;font-size:12px;cursor:pointer}
     .chip-btn:hover{background:#f9fafb}
 
-    /* 아나토미 간이표 */
+    /* 아나토미 */
     .anat-grid{display:grid;gap:10px;grid-template-columns:220px 1fr}
     .anat-list{border:1px solid var(--line);border-radius:10px;overflow:auto;max-height:360px}
     .anat-list button{display:block;width:100%;text-align:left;padding:8px 10px;border:none;background:#fff;border-bottom:1px solid var(--line);cursor:pointer}
@@ -147,7 +116,7 @@
     .sig-tools{display:flex;gap:8px;justify-content:space-between;margin:8px 0}
     .sig-tools .hint{font-size:12px;color:var(--muted);align-self:center}
 
-    /* 드로어(노쇼) */
+    /* 드로어 */
     .drawer{position:fixed;inset:0;z-index:9998;display:none}
     .drawer.show{display:block}
     .drawer-dim{position:absolute;inset:0;background:rgba(0,0,0,.35)}
@@ -164,19 +133,19 @@
     .msearch-item:hover{background:#f9fafb}
 
     /* 반응형 */
-    @media (max-width: 1024px){ .meta{grid-template-columns:repeat(8,1fr)} }
+    @media (max-width: 1024px){ .meta{grid-template-columns:repeat(12,1fr)} }
     @media (max-width: 700px){
       body{margin:12px}
       .sheet{padding:12px}
-      .meta{grid-template-columns:repeat(2,1fr)}
-      .meta label{padding:6px}
-      .modebar .label{display:none} /* 모바일에서 라벨 숨김 → 버튼 한 줄 유지 */
+      .meta{grid-template-columns:repeat(12,1fr);gap:6px 6px}
+      .modebar .label{display:none}
       th,td{font-size:12px;padding:4px 6px}
-      .num{width:36px}.date{width:100px}.time{width:120px}.sign-cell{width:92px}
+      .num{width:36px}.date{width:92px}.time{width:82px}.sign-cell{width:96px}
+      .chip{justify-self:stretch}
     }
     @media print{
       body{margin:0}
-      .sheet{box-shadow:none;border:none;padding:0}
+      .sheet{box-shadow:none;border:none;padding:0;height:auto;display:block}
       .toolbar,.footer-actions,.modal,.toast,.drawer,.chip{display:none !important}
       th,td{padding:4px 6px}
     }
@@ -186,53 +155,27 @@
   <div class="sheet">
     <h1>개인 / 트레이닝 일지 (통합)</h1>
 
-    <!-- 메타 영역 -->
- <div class="meta" aria-label="상단 정보">
-  <label class="field--name">
-    <span class="cap">이름</span>
-    <input id="m-name" placeholder="회원명" list="namesList" autocomplete="off">
-    <datalist id="namesList"></datalist>
-     <div class="sign-note" style="margin-top:2px;font-size:12px;color:#dc2626;font-weight:700">
-      * 서명 후 수정 불가
+    <!-- 메타 (한 줄 배치: 합계 12칸) -->
+    <div class="meta" aria-label="상단 정보">
+      <label class="span3">
+        <span>이름</span>
+        <input id="m-name" placeholder="회원명" list="namesList" autocomplete="off">
+        <datalist id="namesList"></datalist>
+      </label>
+      <label class="span1"><span>생년월일</span><input id="m-birth" inputmode="numeric" pattern="[0-9\-]*" maxlength="10" placeholder="YYYY-MM-DD"></label>
+      <label class="span2"><span>연락처</span><input id="m-phone" inputmode="numeric" pattern="[0-9\-]*" maxlength="13" placeholder="010-0000-0000"></label>
+      <label class="span2"><span>레슨종류</span><input id="m-lesson" placeholder="예: PT 50분"></label>
+      <label class="span2"><span>담당자</span><input id="m-trainer" placeholder="트레이너명"></label>
+      <label class="span1"><span>시작일</span><input id="m-start" type="date"></label>
+      <label class="span1"><span>페이지</span><input id="m-page" placeholder="1" value="1"></label>
+      <button id="btnMemberSearch" class="chip" title="회원 찾기">회원찾기</button>
     </div>
-  </label>
 
-  <label class="field--birth">
-    <span class="cap">생년월일</span>
-    <input id="m-birth" inputmode="numeric" maxlength="10" placeholder="YYYY-MM-DD">
-  </label>
-
-  <label class="field--phone">
-    <span class="cap">연락처</span>
-    <input id="m-phone" inputmode="numeric" maxlength="13" placeholder="010-0000-0000">
-  </label>
-
-  <label class="field--lesson">
-    <span class="cap">레슨종류</span>
-    <input id="m-lesson" placeholder="예: PT 50분">
-  </label>
-
-  <label class="field--trainer">
-    <span class="cap">담당자</span>
-    <input id="m-trainer" placeholder="트레이너명">
-  </label>
-
-  <label class="field--start">
-    <span class="cap">시작일</span>
-    <input id="m-start" type="date">
-  </label>
-
-  <label class="field--page">
-    <span class="cap">페이지</span>
-    <input id="m-page" placeholder="1">
-  </label>
-
-  <button id="btnMemberSearch" class="chip" title="회원 찾기">회원찾기</button>
-</div>
-     
     <div class="toolbar">
       <button type="button" onclick="window.print()">인쇄</button>
     </div>
+
+    <span class="sign-note">* 서명 후 수정 불가</span>
 
     <!-- 표 -->
     <div class="table-wrap">
@@ -264,7 +207,7 @@
     </div>
   </div>
 
-  <!-- ===== 카탈로그(카트리지) 모달 ===== -->
+  <!-- ===== 카탈로그 모달 ===== -->
   <div id="catalogModal" class="modal hidden" role="dialog" aria-modal="true" aria-label="운동 카달로그">
     <div class="modal-dim" onclick="closeCatalog()"></div>
     <div class="modal-card">
@@ -288,7 +231,7 @@
     </div>
   </div>
 
-  <!-- ===== 아나토미(간이 세분화표) 모달 ===== -->
+  <!-- ===== 아나토미 모달 ===== -->
   <div id="anatModal" class="modal hidden" role="dialog" aria-modal="true" aria-label="아나토미 로그">
     <div class="modal-dim" onclick="closeAnat()"></div>
     <div class="modal-card">
@@ -322,7 +265,7 @@
     <div class="modal-card">
       <div class="modal-head">
         <h3 id="signTitle">서명 입력</h3>
-      <button type="button" class="close-btn" onclick="closeSignModal()">닫기</button>
+        <button type="button" class="close-btn" onclick="closeSignModal()">닫기</button>
       </div>
 
       <div class="tabbar">
@@ -386,7 +329,7 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <!-- ===== 앱 로직 ===== -->
+  <!-- ===== 앱 로직 (일반) ===== -->
   <script>
     "use strict";
 
@@ -399,7 +342,7 @@
     let cvs, ctx, dpr=1, drawing=false, lastX=0, lastY=0;
     let longTimer = null, nsDrawer, currentActionRow = null;
 
-    // 간단 카탈로그(요청 포맷 기반)
+    // 카탈로그
     const CATALOG = {
       "스트레칭": {
         "상체스트레칭": ["목/승모근", "흉근", "광배", "삼두"],
@@ -428,26 +371,24 @@
     ];
 
     window.addEventListener('DOMContentLoaded', () => {
-  tbody = document.getElementById('tbody');
-  nsDrawer = document.getElementById('nsDrawer');
+      tbody = document.getElementById('tbody');
+      nsDrawer = document.getElementById('nsDrawer');
 
-  // 행 생성
-  for (let i=1;i<=30;i++) tbody.appendChild(buildRow(i));
+      // 행 생성
+      for (let i=1;i<=30;i++) tbody.appendChild(buildRow(i));
 
-  loadFromStorage();
-  bindAutoSave();
-  initCanvas();
+      loadFromStorage();
+      bindAutoSave();
+      initCanvas();
+      initBirthAutoHyphen();
+      initPhoneAutoHyphen();
 
-  initBirthAutoHyphen();
-  initPhoneAutoHyphen();
-  initMetaValidation();
+      initModes();
+      buildCatalogUI();
+      buildAnatomyUI();
 
-  initModes();
-  buildCatalogUI();
-  buildAnatomyUI();
-
-  initNoShowDrawer();
-});
+      initNoShowDrawer();
+    });
 
     /* ===== 표/행 ===== */
     function buildRow(n){
@@ -464,7 +405,7 @@
 
       const ta = tr.querySelector('textarea');
       ta.addEventListener('focus', ()=>{ currentEditRow = tr; maybeOpenAssist(); });
-      ta.addEventListener('click',  ()=>{ currentEditRow = tr; maybeOpenAssist(); });
+      ta.addEventListener('click', ()=>{ currentEditRow = tr; maybeOpenAssist(); });
 
       tr.addEventListener('click', (e)=>{
         const btn = e.target.closest('.sign-btn');
@@ -599,7 +540,6 @@
       nsDrawer.setAttribute('aria-hidden','true');
       currentActionRow = null;
     }
-
     async function handleNsAction(mode){
       if (!currentActionRow){ closeNsDrawer(); return; }
 
@@ -639,7 +579,6 @@
 
       closeNsDrawer();
     }
-
     function verifyPin(){
       const pin = prompt('노쇼 취소 PIN을 입력하세요 (기본 0000)');
       if (pin !== RESET_PIN){ showToast('PIN이 올바르지 않습니다'); return false; }
@@ -676,7 +615,7 @@
       }
     }
 
-    /* ===== 저장/복원 ===== */
+    /* ===== 저장/복원 (로컬) ===== */
     function bindAutoSave(){
       document.querySelectorAll('input, textarea').forEach(el=>{
         el.addEventListener('input', debounce(saveToStorage, 200));
@@ -703,8 +642,6 @@
           trainerSigValue: trainerVal,
           customerSigType: customerType,
           customerSigValue: customerVal,
-          trainerSig: trainerType==='typed' ? trainerVal : "",
-          customerSig: customerType==='typed' ? customerVal : "",
           locked: tr.classList.contains('row-locked'),
           nsType: tr.dataset.nsType || ""
         };
@@ -714,6 +651,7 @@
     function saveToStorage(){
       try{ localStorage.setItem(STORE_KEY, JSON.stringify(collectData())); }
       catch(e){ showToast('저장 오류'); console.warn(e); }
+      if (window.saveLogToFirestore) window.saveLogToFirestore(); // Firestore 동시 저장
     }
     function loadFromStorage(){
       let raw; try{ raw = localStorage.getItem(STORE_KEY); }catch(e){}
@@ -727,7 +665,7 @@
       setVal('#m-lesson', meta.lesson);
       setVal('#m-trainer', meta.trainer);
       setVal('#m-start', meta.start);
-      setVal('#m-page', meta.page);
+      setVal('#m-page', meta.page || "1");
 
       rows?.forEach(r=>{
         const tr = tbody.querySelector(`tr[data-row="${r.n}"]`);
@@ -737,8 +675,8 @@
         tds[2].querySelector('input').value = r.time || "";
         tds[3].querySelector('textarea').value = r.note || "";
 
-        restoreCell(tds[4], r.trainerSigType, r.trainerSigValue, r.trainerSig);
-        restoreCell(tds[5], r.customerSigType, r.customerSigValue, r.customerSig);
+        restoreCell(tds[4], r.trainerSigType, r.trainerSigValue);
+        restoreCell(tds[5], r.customerSigType, r.customerSigValue);
 
         if (r.locked){ lockRow(tr); }
         if (r.nsType){ applyNoshowUI(tr, r.nsType); }
@@ -747,8 +685,8 @@
       lastTrainerTyped = findLastTyped('trainer');
       lastCustomerTyped = findLastTyped('customer');
     }
-    function restoreCell(td, type, value, legacyText){
-      if (!type && !legacyText) return;
+    function restoreCell(td, type, value){
+      if (!type) return;
       if (type === 'drawn' && value){
         td.innerHTML = `<div class="signature" style="flex-direction:column;gap:4px">
           <img src="${value}" alt="서명 이미지" style="height:48px;max-width:120px;object-fit:contain"/>
@@ -757,13 +695,11 @@
         td.classList.add('signed');
         td.dataset.sigType = 'drawn';
         td.dataset.sigValue = value;
-      } else {
-        const text = value || legacyText || "";
-        if (!text) return;
-        td.innerHTML = `<div class="signature"><span class="pen">✍</span>${escapeHtml(text)}</div>`;
+      } else if (type === 'typed'){
+        td.innerHTML = `<div class="signature"><span class="pen">✍</span>${escapeHtml(value||"")}</div>`;
         td.classList.add('signed');
         td.dataset.sigType = 'typed';
-        td.dataset.sigValue = text;
+        td.dataset.sigValue = value||"";
       }
     }
     function findLastTyped(role){
@@ -778,12 +714,12 @@
       return last;
     }
 
-    /* ===== 입력 보조 유틸 ===== */
+    /* ===== 유틸 ===== */
     function val(sel){const el=document.querySelector(sel);return el?el.value:"";}
     function setVal(sel,v){const el=document.querySelector(sel); if(el) el.value=v||"";}
     function escapeHtml(str){return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");}
     function debounce(fn,ms){let t;return (...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms)}}
-    function showToast(msg){ const el = document.getElementById('toast'); el.textContent = msg; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'), 2000); }
+    function showToast(msg){ const el = document.getElementById('toast'); el.textContent = msg; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'), 1600); }
 
     /* ===== 전화/생일 포맷 ===== */
     function initPhoneAutoHyphen(){
@@ -801,6 +737,7 @@
     }
     function initBirthAutoHyphen(){
       const el = document.getElementById('m-birth');
+      if(!el) return;
       el.addEventListener('input', (e)=>{
         const v = e.target.value.replace(/\D/g,'').slice(0,8);
         e.target.value = formatBirth(v);
@@ -816,49 +753,7 @@
       if (v.length <= 6) return v.slice(0,4)+'-'+v.slice(4);
       return v.slice(0,4)+'-'+v.slice(4,6)+'-'+v.slice(6,8);
     }
-function initMetaValidation(){
-  const birth = document.getElementById('m-birth');
-  const phone = document.getElementById('m-phone');
 
-  const msgBirth = '양식에 맞지 않습니다. 예) 1993-05-09';
-  const msgPhone = '양식에 맞지 않습니다. 예) 010-1234-5678';
-
-  const isValidBirth = (v)=>{
-    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v);
-    if(!m) return false;
-    const y=+m[1], mo=+m[2]-1, d=+m[3];
-    const dt = new Date(y,mo,d);
-    return dt.getFullYear()===y && dt.getMonth()===mo && dt.getDate()===d;
-  };
-  
-  const isValidPhone = (v)=> /^01[016-9]-\d{3,4}-\d{4}$/.test(v);
-
-  const checkBirth = ()=>{
-    const v = (birth.value||'').trim();
-    birth.setCustomValidity('');
-    if(v && !isValidBirth(v)) birth.setCustomValidity(msgBirth);
-    birth.reportValidity();
-  };
-  const checkPhone = ()=>{
-    const v = (phone.value||'').trim();
-    phone.setCustomValidity('');
-    if(v && !isValidPhone(v)) phone.setCustomValidity(msgPhone);
-    phone.reportValidity();
-  };
-
-  birth.addEventListener('input', checkBirth);
-  birth.addEventListener('blur',  checkBirth);
-  phone.addEventListener('input', checkPhone);
-  phone.addEventListener('blur',  checkPhone);
-
-  // 숫자/하이픈 외 입력 방지
-  [birth, phone].forEach(inp=>{
-    inp.addEventListener('beforeinput',(e)=>{
-      if(e.inputType==='insertText' && /[^\d-]/.test(e.data||'')) e.preventDefault();
-    });
-  });
-}
-    
     function resetAll(){
       const pin = prompt('전체 초기화를 위해 PIN을 입력하세요 (기본 0000)');
       if (pin !== RESET_PIN){ showToast('비밀번호가 일치하지 않습니다'); return; }
@@ -868,7 +763,7 @@ function initMetaValidation(){
     }
     function goDashboard(){ location.href = DASHBOARD_URL; }
 
-    /* ===== Canvas 서명 (정리버전) ===== */
+    /* ===== Canvas 서명 (클릭 후 잔상 방지 강화) ===== */
     function initCanvas(){
       cvs = document.getElementById('sigCanvas');
       ctx = cvs.getContext('2d', { willReadFrequently: true });
@@ -987,10 +882,10 @@ function initMetaValidation(){
     document.getElementById('btnMemberSearch').addEventListener('click', openMemberModal);
   </script>
 
-  <!-- ===== Firebase: 회원 불러오기/노쇼 집계 ===== -->
+  <!-- ===== Firebase (회원/일지 저장) ===== -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
-    import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, doc, getDoc, setDoc, updateDoc, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
     import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
 
     const firebaseConfig = {
@@ -1017,14 +912,20 @@ function initMetaValidation(){
     }
     await ensureAuthed();
 
+    const LOGS_COLL = 'ptLogsV1';
     const namesList = document.getElementById('namesList');
     const searchBox = document.getElementById('mSearchBox');
     const searchList = document.getElementById('mSearchList');
     const nameInput = document.getElementById('m-name');
+    const PAGE_INPUT = document.getElementById('m-page');
 
     const indexMap = new Map();
     window.currentMemberId = null;
 
+    const logDocRef = (memberId, pageStr) =>
+      doc(db, "members", memberId, LOGS_COLL, `page-${String(pageStr||'1')}`);
+
+    // 쿼리 id로 진입
     (async function initByQuery(){
       const id = new URLSearchParams(location.search).get("id");
       if (!id) return;
@@ -1035,10 +936,12 @@ function initMetaValidation(){
           nameInput.value = (snap.data().name||'');
           indexMap.set(snap.data().name||'', snap.id);
           window.currentMemberId = id;
+          await loadOrCreateMemberLog(id, (PAGE_INPUT?.value || '1'));
         }
       }catch(e){ console.warn(e); }
     })();
 
+    // 회원 옵션 로드
     (async function loadMemberOptions(){
       try{
         const snap = await getDocs(collection(db, "members"));
@@ -1054,24 +957,28 @@ function initMetaValidation(){
           items.push({id:docSnap.id, label:`${name} · ${phone}`, name, x});
         });
         renderSearch(items);
-        searchBox.addEventListener('input', ()=>{
-          const kw = (searchBox.value||'').toLowerCase();
-          renderSearch(items.filter(it=> it.label.toLowerCase().includes(kw)));
-        });
+        if (searchBox){
+          searchBox.addEventListener('input', ()=>{
+            const kw = (searchBox.value||'').toLowerCase();
+            renderSearch(items.filter(it=> it.label.toLowerCase().includes(kw)));
+          });
+        }
       }catch(e){ console.error(e); }
     })();
 
     function renderSearch(arr){
+      if (!searchList) return;
       searchList.innerHTML='';
       arr.forEach(it=>{
         const div = document.createElement('div');
         div.className='msearch-item';
         div.textContent = it.label;
-        div.addEventListener('click', ()=>{
+        div.addEventListener('click', async ()=>{
           prefillFromMember(it.x);
           nameInput.value = it.name;
           window.currentMemberId = it.id;
           closeMemberModal();
+          await loadOrCreateMemberLog(window.currentMemberId, (PAGE_INPUT?.value || '1'));
         });
         searchList.appendChild(div);
       });
@@ -1085,6 +992,7 @@ function initMetaValidation(){
         if (snap.exists()){
           prefillFromMember(snap.data());
           window.currentMemberId = id;
+          await loadOrCreateMemberLog(window.currentMemberId, (PAGE_INPUT?.value || '1'));
         }
       }catch(e){ console.error(e); }
     });
@@ -1127,19 +1035,83 @@ function initMetaValidation(){
           lesson: document.getElementById('m-lesson').value,
           trainer: document.getElementById('m-trainer').value,
           start: document.getElementById('m-start').value,
-          page: document.getElementById('m-page').value || ""
+          page: document.getElementById('m-page').value || "1"
         };
         localStorage.setItem("mtf_pt_log_v5", JSON.stringify(data));
       }catch(e){}
     }
 
-    function formatPhone(raw){
-      const v = String(raw||"").replace(/\D/g,'').slice(0,11);
-      if (v.length<=3) return v;
-      if (v.length<=7) return v.slice(0,3)+'-'+v.slice(3);
-      return v.slice(0,3)+'-'+v.slice(3,7)+'-'+v.slice(7);
-    }
+    // 페이지 변경 시 해당 페이지 로드/생성
+    PAGE_INPUT?.addEventListener('change', async ()=>{
+      if(!window.currentMemberId) return;
+      await loadOrCreateMemberLog(window.currentMemberId, PAGE_INPUT.value || '1');
+    });
 
+    async function loadOrCreateMemberLog(memberId, pageStr){
+      if(!memberId) return;
+      const ref = logDocRef(memberId, pageStr);
+      let snap = await getDoc(ref);
+
+      if (!snap.exists()){
+        const defaultRows = Array.from({length: 30}, (_, i) => ({
+          n: String(i + 1), date:"", time:"08:00", note:"",
+          trainerSigType:"", trainerSigValue:"",
+          customerSigType:"", customerSigValue:"",
+          locked:false, nsType:""
+        }));
+        await setDoc(ref, {
+          meta: { page: String(pageStr||'1') },
+          rows: defaultRows,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        });
+        snap = await getDoc(ref);
+      }
+
+      const data = snap.data() || { meta:{}, rows:[] };
+
+      try{
+        const merged = {
+          meta: {
+            ...data.meta,
+            name: document.getElementById('m-name').value,
+            birth: document.getElementById('m-birth').value,
+            phone: document.getElementById('m-phone').value,
+            lesson: document.getElementById('m-lesson').value,
+            trainer: document.getElementById('m-trainer').value,
+            start: document.getElementById('m-start').value,
+            page: String(pageStr||'1')
+          },
+          rows: data.rows || []
+        };
+        localStorage.setItem("mtf_pt_log_v5", JSON.stringify(merged));
+        if (window.loadFromStorage) window.loadFromStorage();
+      }catch(e){ console.warn(e); }
+    }
+    window.loadOrCreateMemberLog = loadOrCreateMemberLog;
+
+    async function saveLogToFirestore(){
+      try{
+        const memberId = window.currentMemberId;
+        if(!memberId) return;
+        const pageStr = (PAGE_INPUT?.value || '1');
+        const ref = logDocRef(memberId, pageStr);
+
+        const payload = window.collectData ? window.collectData() : null;
+        if(!payload) return;
+
+        await setDoc(ref, {
+          meta: payload.meta,
+          rows: payload.rows,
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+      }catch(e){
+        console.warn(e);
+      }
+    }
+    window.saveLogToFirestore = window.debounce(saveLogToFirestore, 600);
+
+    /* ===== 노쇼 집계: 전역 함수 (회원 문서 카운트) ===== */
     window.applyNoShowToMember = async (mode, meta)=>{
       const id = window.currentMemberId;
       if (!id) return { ok:false, reason:'no-member' };
@@ -1172,6 +1144,14 @@ function initMetaValidation(){
       await updateDoc(doc(db,"members",id), payload);
       return { ok:true };
     };
+
+    /* 포맷터(모듈 내부용) */
+    function formatPhone(raw){
+      const v = String(raw||"").replace(/\D/g,'').slice(0,11);
+      if (v.length<=3) return v;
+      if (v.length<=7) return v.slice(0,3)+'-'+v.slice(3);
+      return v.slice(0,3)+'-'+v.slice(3,7)+'-'+v.slice(7);
+    }
   </script>
 </body>
 </html>
