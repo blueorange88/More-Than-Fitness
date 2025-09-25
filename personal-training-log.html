@@ -880,13 +880,20 @@
     function closeMemberModal(){ document.getElementById('memberModal').classList.add('hidden'); }
 
     document.getElementById('btnMemberSearch').addEventListener('click', openMemberModal);
+    div.addEventListener('click', ()=>{
+  prefillFromMember(it.x);
+  nameInput.value = it.name;
+  window.currentMemberId = it.id;
+  closeMemberModal();
++ loadPtLogForMember(it.id);   // ← 추가
+});
   </script>
 
   <!-- ===== Firebase (회원/일지 저장) ===== -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
-    import { getFirestore, collection, getDocs, doc, getDoc, setDoc, updateDoc, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
-    import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
+   import { getFirestore, collection, getDocs, doc, getDoc, setDoc, updateDoc, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+   import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCjdyveDx0qFPUzmaChnEy9Ni0VjTysYnM",
@@ -924,6 +931,108 @@
 
     const logDocRef = (memberId, pageStr) =>
       doc(db, "members", memberId, LOGS_COLL, `page-${String(pageStr||'1')}`);
+    /* ========= 회원별 PT 일지: 프론트만으로 연결 ========= */
+
+let currentLogRef = null; // members/{id}/ptLogsV1/page-{n} 참조 캐시
+
+// 2-1) 문서가 없으면 기본 골격으로 만들어 주기 (무료/Spark OK)
+async function ensurePtLogDoc(memberId, page = "1") {
+  const ref = doc(db, "members", memberId, "ptLogsV1", `page-${page}`);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) {
+    const defaultRows = Array.from({ length: 30 }, (_, i) => ({
+      n: String(i + 1),
+      date: "",
+      time: "08:00",
+      note: "",
+      trainerSigType: "",
+      trainerSigValue: "",
+      customerSigType: "",
+      customerSigValue: "",
+      locked: false,
+      nsType: ""
+    }));
+    await setDoc(ref, {
+      meta: { page },
+      rows: defaultRows,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    });
+    return { ref, data: { meta: { page }, rows: defaultRows } };
+  }
+  return { ref, data: snap.data() };
+}
+
+// 2-2) Firestore에서 받아 화면에 뿌리기 (기존 렌더 함수 재사용)
+function renderPtData(data) {
+  const { meta, rows } = data || { meta: {}, rows: [] };
+  // 메타 입력칸 (문서에 값이 있으면 우선 사용)
+  setVal('#m-page', meta?.page || val('#m-page') || "1");
+
+  // 행들 채우기
+  rows?.forEach(r => {
+    const tr = tbody.querySelector(`tr[data-row="${r.n}"]`);
+    if (!tr) return;
+    const tds = tr.querySelectorAll('td');
+    tds[1].querySelector('input').value = r.date || "";
+    tds[2].querySelector('input').value = r.time || "";
+    tds[3].querySelector('textarea').value = r.note || "";
+    // 서명 복원
+    restoreCell(tds[4], r.trainerSigType, r.trainerSigValue, r.trainerSig);
+    restoreCell(tds[5], r.customerSigType, r.customerSigValue, r.customerSig);
+    // 잠금/노쇼 상태
+    if (r.locked)   { tr.classList.add('row-locked'); }
+    if (r.nsType)   { tr.dataset.nsType = r.nsType; }
+  });
+}
+
+// 2-3) 회원 선택 시 해당 회원의 페이지 로드(없으면 생성) → 렌더
+async function loadPtLogForMember(memberId) {
+  const page = (document.getElementById('m-page')?.value || "1").trim() || "1";
+  const out = await ensurePtLogDoc(memberId, page);
+  currentLogRef = out.ref;
+
+  // 새 문서라면 현재 입력칸의 메타와 합쳐 저장(이름/생년/연락처 등)
+  const metaFromUI = {
+    name: document.getElementById('m-name')?.value || "",
+    birth: document.getElementById('m-birth')?.value || "",
+    phone: document.getElementById('m-phone')?.value || "",
+    lesson: document.getElementById('m-lesson')?.value || "",
+    trainer: document.getElementById('m-trainer')?.value || "",
+    start: document.getElementById('m-start')?.value || "",
+    page
+  };
+  const merged = { ...metaFromUI, ...(out.data.meta || {}), page };
+
+  // 화면 반영
+  renderPtData({ meta: merged, rows: out.data.rows || [] });
+
+  // 메타 보정 저장(최초 생성 직후 한 번)
+  try { await updateDoc(currentLogRef, { meta: merged, updatedAt: serverTimestamp() }); } catch {}
+}
+
+// 2-4) 입력 시 Firestore로 자동 반영 (로컬스토리지와 동시)
+const pushToFirestore = (function () {
+  let t = null;
+  return function () {
+    if (!currentLogRef) return;
+    clearTimeout(t);
+    t = setTimeout(async () => {
+      try {
+        const { meta, rows } = collectData(); // 기존 함수 그대로 사용
+        await updateDoc(currentLogRef, { meta, rows, updatedAt: serverTimestamp() });
+      } catch (e) { /* 네트워크 없으면 그냥 무시 → 로컬 저장은 이미 됨 */ }
+    }, 800);
+  };
+})();
+
+// 모든 입력요소에 Firestore 자동저장 연결
+document.addEventListener('input', pushToFirestore);
+
+// 페이지 번호 바꾸면 해당 페이지 문서 로드
+document.getElementById('m-page')?.addEventListener('change', () => {
+  if (window.currentMemberId) loadPtLogForMember(window.currentMemberId);
+});
 
     // 쿼리 id로 진입
     (async function initByQuery(){
