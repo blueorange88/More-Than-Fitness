@@ -934,6 +934,54 @@
     /* ========= 회원별 PT 일지: 프론트만으로 연결 ========= */
 
 let currentLogRef = null; // members/{id}/ptLogsV1/page-{n} 참조 캐시
+    // ===== 캐시 키 (탭당 격리: sessionStorage) =====
+const NS = 'mtf_ptlog_sig';
+const sigKey = (rowIdx, who) => `${NS}:${memberId}:p${pageNo}:${rowIdx}:${who}`;
+
+// 서명 미리보기 적용 도우미
+function setSigPreview(rowIdx, who, dataURL) {
+  const img = document.querySelector(
+    `[data-row="${rowIdx}"] .${who}-sig-preview` // 각 행에 data-row, 미리보기 img에 클래스 부여
+  );
+  if (img) img.src = dataURL || '';
+}
+
+// ===== 서명 캡쳐가 끝났을 때 호출 =====
+// who: 'trainer' | 'customer', dataURL: canvas.toDataURL(...)
+async function onSignEnd(rowIdx, who, dataURL) {
+  // 1) 미리보기/UI 갱신
+  setSigPreview(rowIdx, who, dataURL);
+
+  // 2) 세션 캐시에 저장 (탭 한정, 회원/페이지/행/역할로 분리됨)
+  sessionStorage.setItem(sigKey(rowIdx, who), dataURL);
+
+  // 3) Firestore 즉시 반영 (부분 업데이트)
+  const typeField = `rows.${rowIdx}.${who}SigType`;
+  const valField  = `rows.${rowIdx}.${who}SigValue`;
+  await updateDoc(pageRef, {
+    [typeField]: 'draw',
+    [valField]: dataURL,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+// ===== 페이지 로드 시 값 채우기 =====
+async function hydrateRowFromData(rowIdx, rowData) {
+  // Firestore 우선
+  if (rowData.trainerSigValue) {
+    setSigPreview(rowIdx, 'trainer', rowData.trainerSigValue);
+  } else {
+    const c = sessionStorage.getItem(sigKey(rowIdx, 'trainer'));
+    if (c) setSigPreview(rowIdx, 'trainer', c);
+  }
+
+  if (rowData.customerSigValue) {
+    setSigPreview(rowIdx, 'customer', rowData.customerSigValue);
+  } else {
+    const c = sessionStorage.getItem(sigKey(rowIdx, 'customer'));
+    if (c) setSigPreview(rowIdx, 'customer', c);
+  }
+}
 
 // 2-1) 문서가 없으면 기본 골격으로 만들어 주기 (무료/Spark OK)
 async function ensurePtLogDoc(memberId, page = "1") {
