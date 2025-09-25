@@ -43,7 +43,8 @@
     thead th{background:#f8fafc}
     .num{width:44px;text-align:center}
     .date{width:98px}
-    .time{width:86px}
+    /* 시간 칸을 넓혀 분까지 명확히 보이게 */
+    .time{width:120px}
     .time input{width:100%;font-variant-numeric:tabular-nums;letter-spacing:.2px}
     .sign-cell{position:relative;text-align:center;width:108px}
     td>input[type="date"], td>input[type="time"]{width:100%;min-width:0}
@@ -128,7 +129,7 @@
       .meta{grid-template-columns:repeat(12,1fr);gap:6px 6px}
       .modebar .label{display:none}
       th,td{font-size:12px;padding:4px 6px}
-      .num{width:36px}.date{width:92px}.time{width:82px}.sign-cell{width:96px}
+      .num{width:36px}.date{width:92px}.time{width:120px}.sign-cell{width:96px}
     }
     @media print{
       body{margin:0}
@@ -342,12 +343,6 @@
       "스트레칭": { "상체스트레칭": ["목/승모근","흉근","광배","삼두"],
                     "하체스트레칭": ["둔근","햄스트링","대퇴사두","종아리"],
                     "셀프메뉴얼": ["상체 폼롤러","하체 폼롤러"] },
-      "근력운동": { "상체운동": ["흉근","등","어깨","팔"],
-                    "하체운동": ["스쿼트","런지","데드리프트"] },
-      "기능성운동": { "하지관련": ["발목/무릎 안정화","힙힌지 교정"],
-                      "코어": ["플랭크","데드버그"] },
-      "교정재활": { "자세교정": ["거북목","골반전/후방경사"] },
-      "리커버리": { "P스트레칭": ["상체","하체","전신"] }
     };
     const ANATOMY = ["가슴","등","어깨","이두","삼두","전완","복근","둔근","대퇴사두","햄스트링","내전근","종아리","코어"];
 
@@ -369,8 +364,22 @@
 
       initNoShowDrawer();
 
-      // 이름칸 옆 "회원찾기" 버튼
-      document.getElementById('btnMemberSearch').addEventListener('click', openMemberModal);
+      // 이름칸 옆 "회원찾기" 버튼 → 연락처와 연동된 프리필 검색
+      document.getElementById('btnMemberSearch').addEventListener('click', ()=>{
+        if (window.openMemberModalPrefilled) window.openMemberModalPrefilled();
+        else openMemberModal();
+      });
+
+      // 연락처 입력창에서 Enter → 회원찾기(전화번호 프리필)
+      const phoneInput = document.getElementById('m-phone');
+      phoneInput?.addEventListener('keydown', (e)=>{
+        if (e.key === 'Enter'){
+          e.preventDefault();
+          if (window.trySelectByPhone) { window.trySelectByPhone(__digits(phoneInput.value)); }
+          else if (window.openMemberModalPrefilled) { window.openMemberModalPrefilled(); }
+          else openMemberModal();
+        }
+      });
     });
 
     /* ===== 표/행 ===== */
@@ -456,7 +465,7 @@
         title.style.cssText = 'flex-basis:100%;font-weight:700;margin-top:2px';
         title.textContent = '• ' + g;
         wrap.appendChild(title);
-        groups[g].forEach(item=>{
+        (groups[g]||[]).forEach(item=>{
           const btn = document.createElement('button');
           btn.className='chip-btn';
           btn.textContent = item;
@@ -882,7 +891,7 @@
     Object.assign(window, {
       val, setVal, restoreCell, lockRow, loadFromStorage,
       collectData, debounce, showToast, formatPhone, formatBirth,
-      resetTableForNewMember
+      resetTableForNewMember, STORE_KEY
     });
   </script>
 
@@ -905,7 +914,7 @@
     const auth = getAuth(app);
 
     // 전역 함수 참조
-    const { val, setVal, restoreCell, collectData, debounce } = window;
+    const { val, setVal, restoreCell, collectData, debounce, STORE_KEY } = window;
 
     async function ensureAuthed(){
       return new Promise(resolve=>{
@@ -919,13 +928,16 @@
     await ensureAuthed();
 
     const LOGS_COLL = 'ptLogsV1';
-    const namesList = document.getElementById('namesList');
-    const searchBox = document.getElementById('mSearchBox');
+    const namesList  = document.getElementById('namesList');
+    const searchBox  = document.getElementById('mSearchBox');
     const searchList = document.getElementById('mSearchList');
-    const nameInput = document.getElementById('m-name');
+    const nameInput  = document.getElementById('m-name');
     const PAGE_INPUT = document.getElementById('m-page');
 
-    const indexMap = new Map();
+    const indexMap = new Map();           // name → id
+    const phoneIndex = new Map();         // digits → [ {id,name} ]
+    let   allMembers = [];                // [{id,name,phoneDigits}...]
+
     window.currentMemberId = null;
 
     const logDocRef = (memberId, pageStr) =>
@@ -969,7 +981,7 @@
           rows: data.rows || []
         };
         // ★ 회원/페이지별 키로 저장 (겹침 방지)
-        localStorage.setItem(window.STORE_KEY(), JSON.stringify(merged));
+        localStorage.setItem(STORE_KEY(), JSON.stringify(merged));
         if (window.loadFromStorage) window.loadFromStorage();
       }catch(e){ console.warn(e); }
     }
@@ -997,7 +1009,7 @@
     }
     window.saveLogToFirestore = debounce(saveLogToFirestore, 600);
 
-    /* ===== 회원 목록/검색 (표시는 이름만) ===== */
+    /* ===== 회원 목록/검색 (표시는 이름만, 검색은 이름+연락처) ===== */
     (async function loadMemberOptions(){
       try{
         const snap = await getDocs(collection(db, "members"));
@@ -1005,23 +1017,29 @@
         snap.forEach(docSnap=>{
           const x = docSnap.data();
           const name  = x.name || "(무명)";
-          const phone = (x.phoneDisplay || "");
+          const rawPhone = (x.phoneDisplay || x.phone || "");
+          const phoneDigits = String(rawPhone).replace(/\D/g,'');
           const opt = document.createElement("option");
           opt.value = name; // datalist엔 이름만
           namesList.appendChild(opt);
           indexMap.set(name, docSnap.id);
-          // 검색은 이름/연락처 둘 다 되게, 표시는 이름만
-          items.push({id:docSnap.id, name, phone});
+          items.push({id:docSnap.id, name, phoneDigits});
+          if (phoneDigits){
+            const arr = phoneIndex.get(phoneDigits) || [];
+            arr.push({id:docSnap.id, name});
+            phoneIndex.set(phoneDigits, arr);
+          }
         });
+        allMembers = items;
         renderSearch(items);
 
         if (searchBox){
           searchBox.addEventListener('input', ()=>{
-            const kw = (searchBox.value||'').toLowerCase();
-            const kwd = (searchBox.value||'').replace(/\D/g,'');
+            const kw  = (searchBox.value||'').toLowerCase();
+            const dig = (searchBox.value||'').replace(/\D/g,'');
             renderSearch(items.filter(it=>{
               return it.name.toLowerCase().includes(kw) ||
-                     (kwd && (it.phone||'').replace(/\D/g,'').includes(kwd));
+                     (dig && it.phoneDigits.includes(dig));
             }));
           });
         }
@@ -1036,7 +1054,8 @@
         div.className='msearch-item';
         div.textContent = it.name;  // ← 이름만 표시
         div.addEventListener('click', async ()=>{
-          prefillFromMember(await getMemberData(it.id));
+          const x = await getMemberData(it.id);
+          prefillFromMember(x);
           nameInput.value = it.name;
           window.currentMemberId = it.id;
           closeMemberModal();
@@ -1089,9 +1108,8 @@
       document.getElementById('m-trainer').value = x.trainer || '';
       document.getElementById('m-start').value   = x.startDate || toDateValue(x.createdAt) || '';
 
-      // 현재 회원/페이지 키에 맞춰 메타 저장
       try{
-        const raw = localStorage.getItem(window.STORE_KEY()) || localStorage.getItem("mtf_pt_log_v5");
+        const raw = localStorage.getItem(STORE_KEY()) || localStorage.getItem("mtf_pt_log_v5");
         const data = raw ? JSON.parse(raw) : {meta:{}, rows:[]};
         data.meta = {
           ...data.meta,
@@ -1103,7 +1121,7 @@
           start: document.getElementById('m-start').value,
           page: document.getElementById('m-page').value || "1"
         };
-        localStorage.setItem(window.STORE_KEY(), JSON.stringify(data));
+        localStorage.setItem(STORE_KEY(), JSON.stringify(data));
       }catch(e){}
     }
 
@@ -1112,6 +1130,36 @@
       if(!window.currentMemberId) return;
       await loadOrCreateMemberLog(window.currentMemberId, PAGE_INPUT.value || '1');
     });
+
+    /* ===== 연락처와 연동된 회원찾기 ===== */
+    window.openMemberModalPrefilled = function(){
+      const phoneDigits = (document.getElementById('m-phone')?.value || '').replace(/\D/g,'');
+      // 모달 열기
+      window.openMemberModal && window.openMemberModal();
+      // 검색창 프리필 + 필터 트리거
+      if (searchBox){
+        searchBox.value = phoneDigits || '';
+        const evt = new Event('input', {bubbles:true});
+        searchBox.dispatchEvent(evt);
+      }
+    };
+
+    // 전화번호로 바로 선택 시도(정확히 한 명일 때)
+    window.trySelectByPhone = async function(digits){
+      if (!digits) return window.openMemberModalPrefilled();
+      const matches = allMembers.filter(m => m.phoneDigits.includes(digits));
+      if (matches.length === 1){
+        const it = matches[0];
+        const x = await getMemberData(it.id);
+        prefillFromMember(x);
+        nameInput.value = it.name;
+        window.currentMemberId = it.id;
+        await loadOrCreateMemberLog(window.currentMemberId, (PAGE_INPUT?.value || '1'));
+        window.showToast && window.showToast('연락처로 회원 선택 완료');
+      }else{
+        window.openMemberModalPrefilled();
+      }
+    };
 
     /* ===== 노쇼 집계: 회원 카운트 ===== */
     window.applyNoShowToMember = async (mode, meta)=>{
