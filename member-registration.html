@@ -11,10 +11,10 @@
     }
     *{box-sizing:border-box}
     body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,sans-serif;background:var(--bg);color:var(--ink);margin:0;padding:16px}
-    .container{max-width:860px;margin:auto;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 6px 20px rgba(0,0,0,.06)}
-    .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+    .container{max-width:920px;margin:auto;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 6px 20px rgba(0,0,0,.06)}
+    .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
     .title{font-size:18px;font-weight:800}
-    /* 촘촘한 그리드: 칸 길이 자동으로 '짧게' 맞춤 */
+    .navs{display:flex;gap:8px}
     .row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:10px}
     label{display:block;font-size:12px;font-weight:700;margin:2px 0 6px}
     input,select,textarea{width:100%;padding:8px 9px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:14px}
@@ -31,7 +31,14 @@
     details.inbody{border:1px dashed var(--line);border-radius:12px;padding:10px 12px;background:#fff}
     details.inbody>summary{cursor:pointer;font-weight:800;color:var(--brand)}
     .muted{color:#6b7280}
-    /* 더 작은 모바일 최적화 */
+
+    /* 프로필 카드 */
+    .photo-card{display:flex;gap:12px;align-items:center;border:1px dashed var(--line);border-radius:12px;padding:10px}
+    .avatar{width:72px;height:72px;border-radius:50%;object-fit:cover;background:#f3f4f6;border:1px solid var(--line)}
+    .avatar.skeleton{background:linear-gradient(90deg,#f3f4f6 0%,#e5e7eb 50%,#f3f4f6 100%);animation:sh 1.2s infinite}
+    @keyframes sh{0%{background-position:-100px}100%{background-position:200px}}
+    .photo-actions{display:flex;gap:8px;align-items:center}
+
     @media (max-width:420px){
       body{padding:12px}
       .container{padding:12px}
@@ -44,27 +51,44 @@
   <div class="container">
     <div class="header">
       <div class="title">회원 신규 등록</div>
-      <button class="btn" onclick="location.href='/member-list-edit.html'">목록으로</button>
+      <div class="navs">
+        <button class="btn" onclick="location.href='/dashboard.html'">메인으로</button>
+        <button class="btn" onclick="location.href='/member-list-edit.html'">목록으로</button>
+      </div>
     </div>
 
     <div id="banner" class="banner error" role="alert"></div>
 
     <form id="regForm" autocomplete="off">
-      <!-- 등록일을 '맨 위'로 올린 첫 줄 -->
+      <!-- 등록일 / 이름 / 성별 -->
       <div class="row">
         <div>
-             <label>등록일</label>
+          <label>등록일</label>
           <input type="date" name="startDate" />
         </div>
-         <div>
+        <div>
           <label>이름</label>
           <input type="text" name="name" required />
-         </div>
+        </div>
         <div>
           <label>성별</label>
           <select name="gender">
             <option>여성</option><option>남성</option>
           </select>
+        </div>
+      </div>
+
+      <!-- 프로필 사진 -->
+      <div class="row" style="align-items:center">
+        <div style="grid-column:1 / -1">
+          <div class="photo-card">
+            <img id="avatarPreview" class="avatar" alt="profile preview">
+            <div class="photo-actions">
+              <input type="file" id="photoFile" accept="image/*">
+              <button type="button" class="btn" id="btnClearPhoto">삭제</button>
+              <div class="help">사진은 저장 시 업로드되며 Storage: <code>members/{문서ID}/profile.jpg</code> 로 저장됩니다.</div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -78,12 +102,33 @@
         <div>
           <label>휴대폰번호 (문서ID)</label>
           <input id="phone" type="tel" name="phone" inputmode="numeric" maxlength="13" placeholder="010-0000-0000" required />
-          <div class="help">숫자 10~11자리 · 자동 하이픈</div>
+          <div class="help">숫자 10~11자리 · 자동 하이픈 · 중복 즉시체크</div>
         </div>
       </div>
 
-      <!-- 보호자/가족 -->
+      <!-- 주소 / 직업 / 메모 -->
       <div class="row">
+        <div>
+          <label>주소</label>
+          <input type="text" name="address" />
+        </div>
+        <div>
+          <label>직업</label>
+          <input type="text" name="job" placeholder="예: 학생 / 사무직" />
+        </div>
+        <div>
+          <label>메모(특이사항)</label>
+          <input type="text" name="memberMemo" placeholder="예: 오전 선호, 허리 주의" />
+        </div>
+      </div>
+
+      <!-- 보호자: 토글 -->
+      <div class="row" style="margin-top:2px">
+        <div style="grid-column:1 / -1">
+          <button type="button" class="btn" id="btnToggleGuardian">➕ 보호자 등록</button>
+        </div>
+      </div>
+      <div class="row" id="guardianFields" style="display:none">
         <div>
           <label>보호자 성명</label>
           <input type="text" name="guardianName" />
@@ -122,20 +167,24 @@
         </div>
       </div>
 
+      <!-- 결제/회차(자동 남은 횟수 계산) -->
       <div class="row">
-  <div>
-    <label>주소</label>
-    <input type="text" name="address" />
-  </div>
-  <div>
-    <label>직업</label>
-    <input type="text" name="job" placeholder="예: 학생 / 사무직" />
-  </div>
-  <div>
-    <label>메모(특이사항)</label>
-    <input type="text" name="memberMemo" placeholder="예: 오전 선호, 허리 주의" />
-  </div>
-</div>
+        <div><label>등록 금액(원)</label>
+          <input type="number" name="purchaseAmount" min="0" step="1000" placeholder="0">
+        </div>
+        <div><label>등록 횟수</label>
+          <input type="number" name="totalSessionsPurchased" min="0" step="1" value="0">
+        </div>
+        <div><label>소진 횟수</label>
+          <input type="number" name="consumedSessions" min="0" step="1" value="0">
+        </div>
+        <div><label>남은 횟수</label>
+          <input type="number" name="remainingSessions" value="0" readonly>
+        </div>
+        <div><label>재등록 횟수</label>
+          <input type="number" name="renewalCount" value="0" readonly>
+        </div>
+      </div>
 
       <div class="row">
         <div style="grid-column:1 / -1">
@@ -168,9 +217,15 @@
     <div id="loading" class="muted" style="display:none;margin-top:6px">저장 중…</div>
   </div>
 
+  <!-- Firebase (app, firestore, storage) -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
-    import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+    import {
+      getFirestore, doc, getDoc, setDoc, updateDoc, runTransaction, serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+    import {
+      getStorage, ref as sRef, uploadBytes, getDownloadURL
+    } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-storage.js";
 
     /* ===== Firebase ===== */
     const firebaseConfig = {
@@ -184,6 +239,7 @@
     };
     const app = initializeApp(firebaseConfig);
     const db  = getFirestore(app);
+    const storage = getStorage(app);
     const COL = "members";
 
     /* ===== DOM/UTIL ===== */
@@ -191,6 +247,15 @@
     const form = $("#regForm");
     const banner = $("#banner");
     const loading = $("#loading");
+    const phoneEl = $("#phone");
+    const guardianPhoneEl = $("#guardianPhone");
+    const birthEl = $("#birth");
+
+    const photoFile = $("#photoFile");
+    const avatarPreview = $("#avatarPreview");
+    const btnClearPhoto = $("#btnClearPhoto");
+
+    const DRAFT_KEY='member_reg_draft_v2';
 
     const onlyDigits = (s)=> String(s||"").replace(/\D/g,"");
     const fmtPhone = (raw)=>{
@@ -221,12 +286,7 @@
     function showBanner(msg){ banner.textContent=msg; banner.style.display="block"; window.scrollTo({top:0,behavior:"smooth"}); }
     function hideBanner(){ banner.style.display="none"; }
 
-    // 입력 중 포맷팅
-    $("#phone").addEventListener("input", e=> e.target.value = fmtPhone(e.target.value));
-    $("#guardianPhone").addEventListener("input", e=> e.target.value = fmtPhone(e.target.value));
-    $("#birth").addEventListener("input", e=> e.target.value = fmtBirth(e.target.value));
-
-    // 페이지 진입 시 등록일 기본값(오늘) 세팅
+    // 기본값: 오늘 날짜
     (function setDefaultStartDate(){
       const el = form.startDate;
       if (!el.value){
@@ -236,7 +296,95 @@
       }
     })();
 
-    /* ===== Submit ===== */
+    // 입력 포맷팅
+    phoneEl.addEventListener("input", e=> e.target.value = fmtPhone(e.target.value));
+    guardianPhoneEl.addEventListener("input", e=> e.target.value = fmtPhone(e.target.value));
+    birthEl.addEventListener("input", e=> e.target.value = fmtBirth(e.target.value));
+
+    // 남은 횟수 자동 계산
+    ['totalSessionsPurchased','consumedSessions'].forEach(n=>{
+      form[n].addEventListener('input', ()=>{
+        const total = +form.totalSessionsPurchased.value||0;
+        const used  = +form.consumedSessions.value||0;
+        form.remainingSessions.value = Math.max(0, total - used);
+      });
+    });
+
+    // 보호자 토글
+    $("#btnToggleGuardian").addEventListener("click", ()=>{
+      const wrap = $("#guardianFields");
+      const show = wrap.style.display === 'none';
+      wrap.style.display = show ? 'grid' : 'none';
+      const name = wrap.querySelector('[name="guardianName"]');
+      const phone = wrap.querySelector('[name="guardianPhone"]');
+      [name, phone].forEach(el=>{
+        if (show) el.required = true;
+        else { el.required = false; el.value = ''; }
+      });
+    });
+
+    // 프로필 미리보기 & 초기 상태
+    const resetAvatar = ()=>{ avatarPreview.src=''; avatarPreview.classList.add('skeleton'); }
+    resetAvatar();
+    photoFile.addEventListener('change', ()=>{
+      const f = photoFile.files?.[0];
+      if (!f){ resetAvatar(); return; }
+      const url = URL.createObjectURL(f);
+      avatarPreview.classList.remove('skeleton');
+      avatarPreview.src = url;
+    });
+    btnClearPhoto.addEventListener('click', ()=>{
+      photoFile.value = '';
+      resetAvatar();
+    });
+
+    // 휴대폰 중복 즉시체크
+    phoneEl.addEventListener('blur', async e=>{
+      const id = onlyDigits(e.target.value);
+      if (!id) return;
+      const s = await getDoc(doc(db, COL, id));
+      if (s.exists()){
+        showBanner('이미 등록된 번호입니다. 수정 화면으로 이동할까요?');
+        if (confirm('기존 회원입니다. 수정 페이지로 이동할까요?')){
+          location.href = `/member-list-edit.html?id=${id}`;
+        }
+      }
+    });
+
+    // 임시저장 (드래프트)
+    function debounce(fn,ms){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms)}}
+    form.addEventListener('input', debounce(()=>{
+      const data = Object.fromEntries(new FormData(form).entries());
+      // 파일은 저장하지 않음
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(data));
+    },300));
+    (function restore(){
+      const raw = localStorage.getItem(DRAFT_KEY);
+      if(!raw) return;
+      const data = JSON.parse(raw);
+      Object.keys(data).forEach(k=>{ if(form[k] && k!=='photoFile') form[k].value = data[k]; });
+    })();
+    function clearDraft(){ localStorage.removeItem(DRAFT_KEY); }
+
+    // 스케줄 자동 소진용 트랜잭션 헬퍼 (다른 페이지에서 호출)
+    // 사용법: applyScheduleSpend(memberId, -1)  // 1회 소진
+    export async function applyScheduleSpend(memberId, delta){
+      const ref = doc(db, COL, memberId);
+      await runTransaction(db, async (tx)=>{
+        const snap = await tx.get(ref);
+        if (!snap.exists()) throw new Error('회원 문서가 없습니다.');
+        const d = snap.data();
+        const consumed = Math.max(0, (d.consumedSessions||0) + Math.abs(delta));
+        const remaining = Math.max(0, (d.remainingSessions||0) - Math.abs(delta));
+        tx.update(ref, {
+          consumedSessions: consumed,
+          remainingSessions: remaining,
+          updatedAt: serverTimestamp()
+        });
+      });
+    }
+
+    // 제출
     form.addEventListener("submit", async (e)=>{
       e.preventDefault(); hideBanner();
       loading.style.display = "block";
@@ -252,7 +400,9 @@
         if (!name){ showBanner("이름을 입력하세요."); loading.style.display="none"; return; }
         if (!isValidPhone(phoneDisplay)){ showBanner("휴대폰 번호 형식이 올바르지 않습니다."); loading.style.display="none"; return; }
         if (birthDisplay && !isValidBirth(birthDisplay)){ showBanner("생년월일 형식이 올바르지 않습니다."); loading.style.display="none"; return; }
-        if (form.guardianPhone.value && !isValidPhone(form.guardianPhone.value)){ showBanner("보호자 연락처 형식이 올바르지 않습니다."); loading.style.display="none"; return; }
+        if ($("#guardianFields").style.display!=='none' && form.guardianPhone.value && !isValidPhone(form.guardianPhone.value)){
+          showBanner("보호자 연락처 형식이 올바르지 않습니다."); loading.style.display="none"; return;
+        }
 
         const docId = phone;
         const ref = doc(db, COL, docId);
@@ -269,35 +419,58 @@
         const bodyFatPercent = form.bodyFatPercent.value ? Number(form.bodyFatPercent.value) : null;
         const bodyFatMass = form.bodyFatMass.value ? Number(form.bodyFatMass.value) : null;
 
-       const basePayload = {
-  name, gender,
-  phone, phoneDisplay,
-  birth: birth || null,
-  birthDisplay: birthDisplay || null,
+        // 결제/회차
+        const purchaseAmount = Number(form.purchaseAmount.value)||0;
+        const totalSessionsPurchased = Number(form.totalSessionsPurchased.value)||0;
+        const consumedSessions = Number(form.consumedSessions.value)||0;
+        const remainingSessions = Math.max(0, Number(form.remainingSessions.value)||0);
 
-  trainer: form.trainer.value || "",
-  lessonType: form.lessonType.value || "",
-  level: form.level.value || "일반",
-  address: form.address.value || "",
+        // 프로필 사진 업로드(있으면)
+        let photoURL = null;
+        if (photoFile.files && photoFile.files[0]){
+          const file = photoFile.files[0];
+          const pRef = sRef(storage, `members/${docId}/profile.jpg`);
+          await uploadBytes(pRef, file);
+          photoURL = await getDownloadURL(pRef);
+        }
 
-  // ▼ 추가 / 변경
-  job: form.job.value || "",                 // 직업
-  memberMemo: form.memberMemo.value || "",   // 일반 메모
+        const basePayload = {
+          memberId: docId,
+          name, gender,
+          phone, phoneDisplay,
+          birth: birth || null,
+          birthDisplay: birthDisplay || null,
 
-  guardianName: form.guardianName.value || "",
-  guardianRelation: form.guardianRelation.value || "",
-  emergency: onlyDigits(form.guardianPhone.value) || null,
+          trainer: form.trainer.value || "",
+          lessonType: form.lessonType.value || "",
+          level: form.level.value || "일반",
+          address: form.address.value || "",
+          job: form.job.value || "",
+          memberMemo: form.memberMemo.value || "",
 
-  healthMemo: form.healthMemo.value || "",
+          guardianName: form.guardianName.value || "",
+          guardianRelation: form.guardianRelation.value || "",
+          emergency: onlyDigits(form.guardianPhone.value) || null,
 
-  startDate: form.startDate.value || null,
+          healthMemo: form.healthMemo.value || "",
+          startDate: form.startDate.value || null,
 
-  totalSessionsPurchased: 0,
-  remainingSessions: 0,
+          purchaseAmount,
+          lastPurchaseAmount: purchaseAmount,
+          lastPurchaseDate: form.startDate.value || null,
+          lastPurchaseSessions: totalSessionsPurchased,
 
-  createdAt: serverTimestamp(),
-  updatedAt: serverTimestamp()
-};
+          totalSessionsPurchased,
+          consumedSessions,
+          remainingSessions,
+          renewalCount: 0,
+
+          photoURL: photoURL || null,
+          autoSpendEnabled: true, // 스케줄 자동 소진 연동 플래그
+
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        };
 
         const withInbody = (heightCm||weightKg||muscleMass||bodyFatPercent||bodyFatMass)
           ? {
@@ -309,13 +482,38 @@
             }
           : {};
 
+        // 1) 회원 문서 생성
         await setDoc(ref, { ...basePayload, ...withInbody });
 
+        // 2) PT 일지 page-1 자동 생성
+        const page1Ref = doc(db, 'members', docId, 'ptLogsV1', 'page-1');
+        const page1Snap = await getDoc(page1Ref);
+        if (!page1Snap.exists()){
+          const defaultRows = Array.from({length:30}, (_,i)=>({
+            n:String(i+1), date:"", time:"08:00", note:"",
+            trainerSigType:"", trainerSigValue:"",
+            customerSigType:"", customerSigValue:"",
+            locked:false, nsType:""
+          }));
+          await setDoc(page1Ref, {
+            meta: {
+              name, birth: birthDisplay||null, phone: phoneDisplay,
+              lesson: form.lessonType.value||"", trainer: form.trainer.value||"",
+              start: form.startDate.value||null, page:"1"
+            },
+            rows: defaultRows,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+          });
+        }
+
+        clearDraft();
         alert("등록이 완료되었습니다.");
         location.href="/member-list-edit.html";
       }catch(err){
         console.error(err);
-        showBanner("저장 실패: " + err.message);
+        showBanner("저장 실패: " + (err.message||err));
+        form.querySelector(':invalid')?.focus();
       }finally{
         loading.style.display = "none";
       }
