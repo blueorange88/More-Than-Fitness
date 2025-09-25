@@ -335,8 +335,15 @@
 
     const DASHBOARD_URL = "dashboard.html";
     const RESET_PIN = "0000";
-    const STORE_KEY = "mtf_pt_log_v5";
-
+    // 로컬 저장 prefix
+    const STORE_PREFIX = "mtf_pt_log_v5";
+    const __digits = (s)=> String(s||"").replace(/\D/g,"");
+    // 현재 회원/페이지 기반 저장키
+    function STORE_KEY() {
+    const id   = window.currentMemberId || __digits(document.getElementById('m-phone')?.value || "");
+    const page = document.getElementById('m-page')?.value || "1";
+    return `${STORE_PREFIX}::${id || 'anon'}::p${page}`;
+}
     let tbody, entryMode = 'typing', currentEditRow = null;
     let currentSign = null, lastTrainerTyped = "", lastCustomerTyped = "";
     let cvs, ctx, dpr=1, drawing=false, lastX=0, lastY=0;
@@ -649,13 +656,18 @@
       return {meta, rows};
     }
     function saveToStorage(){
-      try{ localStorage.setItem(STORE_KEY, JSON.stringify(collectData())); }
+      try{ localStorage.setItem(STORE_KEY(), JSON.stringify(collectData())); }
       catch(e){ showToast('저장 오류'); console.warn(e); }
       if (window.saveLogToFirestore) window.saveLogToFirestore(); // Firestore 동시 저장
     }
-    function loadFromStorage(){
-      let raw; try{ raw = localStorage.getItem(STORE_KEY); }catch(e){}
-      if (!raw) return;
+  function loadFromStorage(){
+  resetTableForNewMember(); // ← 먼저 UI를 깨끗이 비움
+  let raw; 
+  try{
+    raw = localStorage.getItem(STORE_KEY()) 
+       || localStorage.getItem(STORE_PREFIX); // 옛날 단일키 호환
+  }catch(e){}
+    if (!raw) return;
       let data; try{ data = JSON.parse(raw); }catch(e){ return; }
       const {meta, rows} = data;
 
@@ -721,6 +733,37 @@
     function debounce(fn,ms){let t;return (...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms)}}
     function showToast(msg){ const el = document.getElementById('toast'); el.textContent = msg; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'), 1600); }
 
+    function resetTableForNewMember(){
+  [...document.querySelectorAll('#tbody tr')].forEach(tr=>{
+    const tds = tr.querySelectorAll('td');
+
+    // 서명 칸 초기화
+    ['trainer','customer'].forEach((role, idx)=>{
+      const td = tds[idx===0?4:5];
+      td.classList.remove('signed');
+      td.removeAttribute('data-sig-type');
+      td.removeAttribute('data-sig-value');
+      td.innerHTML = `<button type="button" class="sign-btn" data-role="${role}">서명</button>`;
+    });
+
+    // 행 잠금/노쇼 초기화
+    tr.classList.remove('row-locked','row-noshow');
+    delete tr.dataset.nsType;
+    tr.querySelectorAll('input, textarea, button.sign-btn').forEach(el=>{
+      el.disabled = false;
+      if (el.tagName !== 'BUTTON') el.readOnly = false;
+    });
+
+    // 새로 만든 서명버튼에 핸들러 다시 연결
+    tr.querySelectorAll('.sign-btn').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const td = btn.closest('td');
+        if (td.classList.contains('signed')) return;
+        openSignModal(btn, btn.dataset.role);
+      });
+    });
+  });
+}
     /* ===== 전화/생일 포맷 ===== */
     function initPhoneAutoHyphen(){
       const el = document.getElementById('m-phone');
@@ -758,7 +801,14 @@
       const pin = prompt('전체 초기화를 위해 PIN을 입력하세요 (기본 0000)');
       if (pin !== RESET_PIN){ showToast('비밀번호가 일치하지 않습니다'); return; }
       if (!confirm('모든 내용을 초기화할까요? (되돌릴 수 없음)')) return;
-      try{ localStorage.removeItem(STORE_KEY); }catch(e){}
+       try{
+       for (let i=localStorage.length-1;i>=0;i--){
+       const k = localStorage.key(i);
+       if (k && (k===STORE_PREFIX || k.startsWith(STORE_PREFIX+'::'))) {
+       localStorage.removeItem(k);
+       }
+      }
+       }catch(e){}
       location.reload();
     }
     function goDashboard(){ location.href = DASHBOARD_URL; }
@@ -1133,8 +1183,7 @@ document.getElementById('m-page')?.addEventListener('change', () => {
       document.getElementById('m-trainer').value = x.trainer || '';
       document.getElementById('m-start').value   = x.startDate || toDateValue(x.createdAt) || '';
 
-      try{
-        const raw = localStorage.getItem("mtf_pt_log_v5");
+      try{ const raw = localStorage.getItem(STORE_KEY()) || localStorage.getItem(STORE_PREFIX);
         const data = raw ? JSON.parse(raw) : {meta:{}, rows:[]};
         data.meta = {
           ...data.meta,
@@ -1146,7 +1195,7 @@ document.getElementById('m-page')?.addEventListener('change', () => {
           start: document.getElementById('m-start').value,
           page: document.getElementById('m-page').value || "1"
         };
-        localStorage.setItem("mtf_pt_log_v5", JSON.stringify(data));
+   localStorage.setItem(STORE_KEY(), JSON.stringify(data));
       }catch(e){}
     }
 
