@@ -89,6 +89,11 @@
   .banner{position:fixed;top:52px;left:50%;transform:translateX(-50%);background:#fff8e1;border:1px solid #f59e0b;color:#7c5200;padding:8px 12px;border-radius:10px;z-index:1005;display:none}
   .banner button{margin-left:8px;border:1px solid #f59e0b;background:#fff;border-radius:8px;padding:4px 8px;cursor:pointer}
 
+  /* 요일 멀티선택 (팝업) */
+  .dow-group{display:flex;gap:8px;justify-content:center;margin:6px 0 10px}
+  .dow{width:34px;height:34px;border-radius:999px;border:1px solid #e5e7eb;background:#fff;cursor:pointer;font-weight:700}
+  .dow.active{background:#e9efff;border-color:#8aa2ff;color:#1e3a8a}
+
   @media (max-width:768px){
     th{font-size:11px}
     td{font-size:11px}
@@ -194,6 +199,18 @@
 
   <div class="popup" id="popupLesson" role="dialog" aria-modal="true" aria-labelledby="popupLessonTitle">
     <h3 id="popupLessonTitle">레슨 정보 <span id="slotHint" class="slot-badge" style="display:none"></span> </h3>
+
+    <!-- ✅ 요일 멀티선택 -->
+    <div class="dow-group" id="dowGroup" aria-label="요일 선택">
+      <button type="button" class="dow" data-di="1">월</button>
+      <button type="button" class="dow" data-di="2">화</button>
+      <button type="button" class="dow" data-di="3">수</button>
+      <button type="button" class="dow" data-di="4">목</button>
+      <button type="button" class="dow" data-di="5">금</button>
+      <button type="button" class="dow" data-di="6">토</button>
+      <button type="button" class="dow" data-di="7">일</button>
+    </div>
+
     <input id="nameInput" placeholder="회원 이름" />
     <div style="display:flex;gap:8px">
       <input id="enrolledInput" type="number" placeholder="회차" />
@@ -307,7 +324,7 @@
 
       const minute = localStorage.getItem(`minute-${hh}`) || '00';
 
-      // 시간 칸 (리스너는 attachDelegation에서 일괄 처리)
+      // 시간 칸
       const td0 = document.createElement('td');
       td0.textContent = `${hh}:${minute}`;
       td0.className   = 'time-cell';
@@ -391,6 +408,26 @@
     });
   }
 
+  /* ✅ 요일 멀티선택 제어 */
+  function initDowGroup(){
+    const g = $('dowGroup');
+    if(!g) return;
+    g.addEventListener('click', (e)=>{
+      const b = e.target.closest('.dow'); if(!b) return;
+      b.classList.toggle('active');
+    });
+  }
+  function setDowSelection(arr){
+    const g = $('dowGroup'); if(!g) return;
+    g.querySelectorAll('.dow').forEach(b=>{
+      const di = +b.dataset.di;
+      b.classList.toggle('active', arr.includes(di));
+    });
+  }
+  function getSelectedDows(){
+    return [...document.querySelectorAll('#dowGroup .dow.active')].map(b=>+b.dataset.di).sort((a,b)=>a-b);
+  }
+
   // 이벤트 바인딩
   (function wireUI(){
     $('btnLogout').onclick=()=>{ alert('로그아웃되었습니다'); location.href='/login.html'; };
@@ -430,6 +467,8 @@
 
     $('saveScheduleBtn').addEventListener('click', bulkSave);
     window.addEventListener('resize', fitGridToScreen);
+
+    initDowGroup();   /* 요일 UI 초기화 */
   })();
 
   function attachDelegation(){
@@ -564,6 +603,9 @@
     $('capacityInput').value = d.cap || '';
     $('memberIdInput').value = d.memberId || '';
 
+    /* 현재 칸의 요일만 기본 선택 */
+    setDowSelection([di]);
+
     showPopup($('popupLesson'));
 
     setTimeout(()=> window.updateStatsFromInputs && window.updateStatsFromInputs(), 0);
@@ -573,27 +615,71 @@
     return td0 ? td0.textContent : '';
   }
 
-  function saveLesson(){
+  /* ✅ 저장: 여러 요일을 같은 시간에 한 번에 반영 */
+  async function saveLesson(){
     if(!currentCell) return;
+
     const name=($('nameInput').value||'').trim();
     const enrolled=+($('enrolledInput').value||0);
     const cap=+($('capacityInput').value||0);
     const memberId=($('memberIdInput').value||'').replace(/\D/g,'');
     if(!name && !memberId && !enrolled && !cap){ toast('내용을 입력해주세요'); return; }
-    const time=rowHour(currentCell); const di=+currentCell.dataset.weekcol;
-    const info={ name, enrolled, cap, time, di, memberId: memberId || null };
-    renderCell(currentCell, info);
 
+    const time=rowHour(currentCell);
+    const selectedDays = getSelectedDows();
+    if(selectedDays.length===0){ toast('요일을 선택하세요'); return; }
+
+    // 충돌 확인 (이미 값 있는 칸)
+    const conflicts = selectedDays.filter(di=>{
+      const target = findCellBy(time, di);
+      return target && target.dataset.info;
+    });
+    if(conflicts.length>0){
+      const ok = confirm(`선택한 요일 중 ${conflicts.length}칸에 기존 레슨이 있습니다. 덮어쓰시겠습니까?`);
+      if(!ok) return;
+    }
+
+    const infoBase={ name, enrolled, cap, time, memberId: memberId || null };
+
+    // 로컬 배열 정리
     let arr=JSON.parse(localStorage.getItem('scheduleData')||'[]');
-    arr=arr.filter(x=>!(x.time===info.time && x.di===info.di)); arr.push(info);
-    localStorage.setItem('scheduleData',JSON.stringify(arr));
+    selectedDays.forEach(di=>{
+      arr = arr.filter(x=>!(x.time===time && x.di===di)); // 기존 삭제
+    });
 
-    window.upsertScheduleFromCell && window.upsertScheduleFromCell(currentCell)
-      .then(()=>toast('스케줄 저장 완료'))
-      .catch(e=>toast('저장 실패: '+(e.message||e.code)));
+    // UI/로컬/파이어스토어 반영
+    const tasks=[];
+    selectedDays.forEach(di=>{
+      const cell = findCellBy(time, di);
+      if(!cell) return;
+      const info = {...infoBase, di};
+      renderCell(cell, info);
+      arr.push(info);
+      if(window.upsertScheduleFromCell) tasks.push(window.upsertScheduleFromCell(cell));
+    });
+    localStorage.setItem('scheduleData', JSON.stringify(arr));
+
+    try{
+      await Promise.all(tasks);
+      toast('스케줄 저장 완료');
+    }catch(e){
+      console.error(e);
+      toast('저장 실패: '+(e.message||e.code));
+    }
 
     updateTodayList(); updateTimeLine(); hideAll();
   }
+
+  function findCellBy(time, di){
+    const rows = document.querySelectorAll('#scheduleTableCurr tbody tr');
+    for (const r of rows){
+      if(r.firstElementChild?.textContent===time){
+        return r.children[di] || null;
+      }
+    }
+    return null;
+  }
+
   function deleteLesson(){
     if(!currentCell) return;
     const info=currentCell.dataset.info?JSON.parse(currentCell.dataset.info):null;
@@ -673,8 +759,8 @@
     const name=(document.getElementById('quickName').value||"").trim();
     const phoneRaw=(document.getElementById('quickPhone').value||"").replace(/\D/g,'');
     const agree=document.getElementById('quickAgree').checked;
-    if(!name || phoneRaw.length<10){ toast("이름/전화 확인"); return; }
-    if(!agree){ toast("개인정보 동의를 체크하세요"); return; }
+    if(!name || phoneRaw.length<10){ document.getElementById('toast').textContent="이름/전화 확인"; document.getElementById('toast').style.opacity=1; setTimeout(()=>document.getElementById('toast').style.opacity=0,1700); return; }
+    if(!agree){ document.getElementById('toast').textContent="개인정보 동의를 체크하세요"; document.getElementById('toast').style.opacity=1; setTimeout(()=>document.getElementById('toast').style.opacity=0,1700); return; }
     try{
       await setDoc(doc(db,"members",phoneRaw),{
         name, phone:phoneRaw, phoneDisplay:formatPhone(phoneRaw),
@@ -684,10 +770,10 @@
       },{merge:true});
       membersCache.set(phoneRaw, { name, remainingSessions: 0 });
       window.refreshMembersDatalist && window.refreshMembersDatalist();
-      toast("빠른 등록 완료");
+      document.getElementById('toast').textContent="빠른 등록 완료"; document.getElementById('toast').style.opacity=1; setTimeout(()=>document.getElementById('toast').style.opacity=0,1700);
       document.getElementById('quickName').value=""; document.getElementById('quickPhone').value="";
       document.getElementById('popupOverlay').click();
-    }catch(e){ console.error(e); toast("등록 실패: "+(e.message||e.code)); }
+    }catch(e){ console.error(e); document.getElementById('toast').textContent="등록 실패: "+(e.message||e.code); document.getElementById('toast').style.opacity=1; setTimeout(()=>document.getElementById('toast').style.opacity=0,1700); }
   };
   function formatPhone(v){
     v=String(v).replace(/\D/g,'').slice(0,11);
@@ -768,10 +854,11 @@
           [`${flagUpdate.flag}At`]:serverTimestamp()
         });
       }
-      toast(flagUpdate.flag==='noShowDeducted'
+      document.getElementById('toast').textContent=(flagUpdate.flag==='noShowDeducted'
         ? (flagUpdate.value?'노쇼 차감 완료':'노쇼 취소 완료')
         : (flagUpdate.value?'소진 처리 완료':'소진 취소 완료'));
-    }catch(e){ console.error(e); toast("처리 실패: "+(e.message||e.code)); }
+      document.getElementById('toast').style.opacity=1; setTimeout(()=>document.getElementById('toast').style.opacity=0,1700);
+    }catch(e){ console.error(e); document.getElementById('toast').textContent="처리 실패: "+(e.message||e.code); document.getElementById('toast').style.opacity=1; setTimeout(()=>document.getElementById('toast').style.opacity=0,1700); }
   };
 
   /* 자동 소진 */
@@ -810,7 +897,7 @@
         }
       });
       await Promise.all(tasks); localStorage.setItem('autoConsumeLast',target);
-      if(tasks.length>0) toast(`어제 (${target}) 자동 소진 ${tasks.length}건`);
+      if(tasks.length>0){ const t=document.getElementById('toast'); t.textContent=`어제 (${target}) 자동 소진 ${tasks.length}건`; t.style.opacity=1; setTimeout(()=>t.style.opacity=0,1700); }
     }catch(e){ console.error(e); }
   };
   </script>
