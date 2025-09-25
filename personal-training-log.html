@@ -930,13 +930,7 @@
     function closeMemberModal(){ document.getElementById('memberModal').classList.add('hidden'); }
 
     document.getElementById('btnMemberSearch').addEventListener('click', openMemberModal);
-    div.addEventListener('click', ()=>{
-  prefillFromMember(it.x);
-  nameInput.value = it.name;
-  window.currentMemberId = it.id;
-  closeMemberModal();
-+ loadPtLogForMember(it.id);   // ← 추가
-});
+
   </script>
 
   <!-- ===== Firebase (회원/일지 저장) ===== -->
