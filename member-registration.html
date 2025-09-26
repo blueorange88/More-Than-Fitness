@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>회원 신규 등록</title>
+  <title>회원 등록/수정</title>
   <style>
     :root{
       --ink:#0d1b2a; --bg:#f5f0e8; --card:#fff; --line:#e5e7eb;
@@ -20,7 +20,7 @@
     input,select,textarea{width:100%;padding:8px 9px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:14px}
     textarea{resize:vertical}
     .help{font-size:11px;color:#6b7280;margin-top:4px}
-    .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+    .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px;flex-wrap:wrap}
     .btn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 12px;font-size:14px;cursor:pointer}
     .btn:hover{border-color:#bfc5cc}
     .btn-primary{border-color:var(--brand);color:var(--brand);font-weight:800}
@@ -31,14 +31,16 @@
     details.inbody{border:1px dashed var(--line);border-radius:12px;padding:10px 12px;background:#fff}
     details.inbody>summary{cursor:pointer;font-weight:800;color:var(--brand)}
     .muted{color:#6b7280}
-
-    /* 프로필 카드 */
     .photo-card{display:flex;gap:12px;align-items:center;border:1px dashed var(--line);border-radius:12px;padding:10px}
     .avatar{width:72px;height:72px;border-radius:50%;object-fit:cover;background:#f3f4f6;border:1px solid var(--line)}
     .avatar.skeleton{background:linear-gradient(90deg,#f3f4f6 0%,#e5e7eb 50%,#f3f4f6 100%);animation:sh 1.2s infinite}
     @keyframes sh{0%{background-position:-100px}100%{background-position:200px}}
-    .photo-actions{display:flex;gap:8px;align-items:center}
-
+    /* 모달 */
+    .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000}
+    .popup{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:16px;border-radius:10px;z-index:1001;width:520px;max-width:94%;max-height:84vh;overflow:auto}
+    .popup h3{margin:0 0 8px;font-size:16px}
+    .history-item{border-bottom:1px solid #eee;padding:6px 2px}
+    .history-item .k{font-weight:700}
     @media (max-width:420px){
       body{padding:12px}
       .container{padding:12px}
@@ -50,10 +52,11 @@
 <body>
   <div class="container">
     <div class="header">
-      <div class="title">회원 신규 등록</div>
+      <div class="title" id="pageTitle">회원 신규 등록</div>
       <div class="navs">
-        <button class="btn" onclick="location.href='/dashboard.html'">메인으로</button>
+        <button class="btn" onclick="location.href='/MTF-F.html'">메인으로</button>
         <button class="btn" onclick="location.href='/member-list-edit.html'">목록으로</button>
+        <button class="btn" id="btnOpenHistory" style="display:none">📜 히스토리</button>
       </div>
     </div>
 
@@ -86,7 +89,7 @@
             <div class="photo-actions">
               <input type="file" id="photoFile" accept="image/*">
               <button type="button" class="btn" id="btnClearPhoto">삭제</button>
-              <div class="help">사진은 저장 시 업로드되며 Storage: <code>members/{문서ID}/profile.jpg</code> 로 저장됩니다.</div>
+              <div class="help">Storage 경로: <code>members/{문서ID}/profile.jpg</code></div>
             </div>
           </div>
         </div>
@@ -209,19 +212,39 @@
       </details>
 
       <div class="actions">
-        <button type="button" class="btn" onclick="location.href='/member-list-edit.html'">취소</button>
-        <button type="submit" class="btn btn-primary">등록</button>
+        <button type="button" class="btn" onclick="location.href='/member-list-edit.html'">목록</button>
+        <button type="button" class="btn" id="btnRenewal" style="display:none">➕ 재등록</button>
+        <button type="submit" class="btn btn-primary">저장</button>
       </div>
     </form>
 
-    <div id="loading" class="muted" style="display:none;margin-top:6px">저장 중…</div>
+    <div id="loading" class="muted" style="display:none;margin-top:6px">처리 중…</div>
+  </div>
+
+  <!-- overlay & history modal -->
+  <div class="overlay" id="overlay"></div>
+  <div class="popup" id="popupHistory" role="dialog" aria-modal="true" aria-labelledby="popupHistoryTitle">
+    <h3 id="popupHistoryTitle">히스토리</h3>
+    <div id="historyInfo" class="muted" style="margin-bottom:8px"></div>
+    <div id="historyList" style="max-height:40vh;overflow:auto;border:1px solid #e5e7eb;border-radius:8px;padding:8px"></div>
+    <div style="margin-top:10px;border-top:1px dashed #e5e7eb;padding-top:10px">
+      <div style="font-weight:800;margin-bottom:6px">재등록</div>
+      <input type="number" id="reAmount" placeholder="금액(원)" />
+      <input type="number" id="reSessions" placeholder="회차(+)" />
+      <textarea id="reMemo" rows="2" placeholder="메모(선택)"></textarea>
+      <div class="actions" style="justify-content:flex-end">
+        <button class="btn" id="btnHistoryClose">닫기</button>
+        <button class="btn btn-primary" id="btnRenewalSave">재등록 저장</button>
+      </div>
+    </div>
   </div>
 
   <!-- Firebase (app, firestore, storage) -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
     import {
-      getFirestore, doc, getDoc, setDoc, updateDoc, runTransaction, serverTimestamp
+      getFirestore, doc, getDoc, setDoc, updateDoc, runTransaction, serverTimestamp,
+      collection, addDoc, getDocs, query, where
     } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
     import {
       getStorage, ref as sRef, uploadBytes, getDownloadURL
@@ -255,7 +278,12 @@
     const avatarPreview = $("#avatarPreview");
     const btnClearPhoto = $("#btnClearPhoto");
 
-    const DRAFT_KEY='member_reg_draft_v2';
+    const overlay = $("#overlay");
+    const popupHistory = $("#popupHistory");
+    const btnOpenHistory = $("#btnOpenHistory");
+    const btnRenewal = $("#btnRenewal");
+
+    const DRAFT_KEY='member_reg_or_edit_v1';
 
     const onlyDigits = (s)=> String(s||"").replace(/\D/g,"");
     const fmtPhone = (raw)=>{
@@ -285,6 +313,11 @@
     };
     function showBanner(msg){ banner.textContent=msg; banner.style.display="block"; window.scrollTo({top:0,behavior:"smooth"}); }
     function hideBanner(){ banner.style.display="none"; }
+
+    function openModal(el){ overlay.style.display='block'; el.style.display='block'; }
+    function closeModal(el){ el.style.display='none'; overlay.style.display='none'; }
+    overlay.addEventListener('click', ()=> closeModal(popupHistory));
+    $("#btnHistoryClose").addEventListener('click', ()=> closeModal(popupHistory));
 
     // 기본값: 오늘 날짜
     (function setDefaultStartDate(){
@@ -338,57 +371,60 @@
       resetAvatar();
     });
 
-    // 휴대폰 중복 즉시체크
-    phoneEl.addEventListener('blur', async e=>{
-      const id = onlyDigits(e.target.value);
-      if (!id) return;
-      const s = await getDoc(doc(db, COL, id));
-      if (s.exists()){
-        showBanner('이미 등록된 번호입니다. 수정 화면으로 이동할까요?');
-        if (confirm('기존 회원입니다. 수정 페이지로 이동할까요?')){
-          location.href = `/member-list-edit.html?id=${id}`;
-        }
-      }
-    });
-
-    // 임시저장 (드래프트)
-    function debounce(fn,ms){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms)}}
-    form.addEventListener('input', debounce(()=>{
-      const data = Object.fromEntries(new FormData(form).entries());
-      // 파일은 저장하지 않음
-      localStorage.setItem(DRAFT_KEY, JSON.stringify(data));
-    },300));
-    (function restore(){
-      const raw = localStorage.getItem(DRAFT_KEY);
-      if(!raw) return;
-      const data = JSON.parse(raw);
-      Object.keys(data).forEach(k=>{ if(form[k] && k!=='photoFile') form[k].value = data[k]; });
-    })();
-    function clearDraft(){ localStorage.removeItem(DRAFT_KEY); }
-
-    // 스케줄 자동 소진용 트랜잭션 헬퍼 (다른 페이지에서 호출)
-    // 사용법: applyScheduleSpend(memberId, -1)  // 1회 소진
-    export async function applyScheduleSpend(memberId, delta){
-      const ref = doc(db, COL, memberId);
-      await runTransaction(db, async (tx)=>{
-        const snap = await tx.get(ref);
-        if (!snap.exists()) throw new Error('회원 문서가 없습니다.');
-        const d = snap.data();
-        const consumed = Math.max(0, (d.consumedSessions||0) + Math.abs(delta));
-        const remaining = Math.max(0, (d.remainingSessions||0) - Math.abs(delta));
-        tx.update(ref, {
-          consumedSessions: consumed,
-          remainingSessions: remaining,
-          updatedAt: serverTimestamp()
+    // ===== 히스토리 로깅 유틸 =====
+    async function logMemberUpdate(memberId, { kind='update', note='', meta=null }){
+      try{
+        await addDoc(collection(db,'members', memberId, 'history'), {
+          kind, note, meta, createdAt: serverTimestamp()
         });
+      }catch(e){ console.error('history log failed', e); }
+    }
+
+    // ===== 모드 판정 (신규/수정) =====
+    const params = new URLSearchParams(location.search);
+    const editingId = params.get('id') ? onlyDigits(params.get('id')) : null;
+    if(editingId){
+      $("#pageTitle").textContent = "회원 프로필 / 수정";
+      btnOpenHistory.style.display='inline-block';
+      btnRenewal.style.display='inline-block';
+      // 문서 로드
+      loadMember(editingId);
+    } else {
+      // 휴대폰 중복 즉시체크
+      phoneEl.addEventListener('blur', async e=>{
+        const id = onlyDigits(e.target.value);
+        if (!id) return;
+        const s = await getDoc(doc(db, COL, id));
+        if (s.exists()){
+          showBanner('이미 등록된 번호입니다. 이 회원을 수정하시겠어요?');
+          if (confirm('기존 회원입니다. 수정 페이지로 이동할까요?')){
+            location.href = `/member-registration.html?id=${id}`;
+          }
+        }
       });
     }
 
-    // 제출
+    // ===== 드래프트 저장/복구 (신규일 때만) =====
+    function debounce(fn,ms){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms)}}
+    if(!editingId){
+      form.addEventListener('input', debounce(()=>{
+        const data = Object.fromEntries(new FormData(form).entries());
+        // 파일은 저장하지 않음
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(data));
+      },300));
+      (function restore(){
+        const raw = localStorage.getItem(DRAFT_KEY);
+        if(!raw) return;
+        const data = JSON.parse(raw);
+        Object.keys(data).forEach(k=>{ if(form[k] && k!=='photoFile') form[k].value = data[k]; });
+      })();
+    }
+    function clearDraft(){ localStorage.removeItem(DRAFT_KEY); }
+
+    // ===== 저장(신규/수정) =====
     form.addEventListener("submit", async (e)=>{
       e.preventDefault(); hideBanner();
       loading.style.display = "block";
-
       try{
         const name = form.name.value.trim();
         const gender = form.gender.value || "여성";
@@ -404,10 +440,11 @@
           showBanner("보호자 연락처 형식이 올바르지 않습니다."); loading.style.display="none"; return;
         }
 
-        const docId = phone;
+        const docId = editingId || phone;
         const ref = doc(db, COL, docId);
         const exists = await getDoc(ref);
-        if (exists.exists()){
+
+        if(!editingId && exists.exists()){
           showBanner("이미 등록된 휴대폰 번호입니다. 회원 수정 화면에서 변경하세요.");
           loading.style.display="none"; return;
         }
@@ -426,12 +463,14 @@
         const remainingSessions = Math.max(0, Number(form.remainingSessions.value)||0);
 
         // 프로필 사진 업로드(있으면)
-        let photoURL = null;
+        let photoURL = exists.exists() ? (exists.data().photoURL || null) : null;
         if (photoFile.files && photoFile.files[0]){
           const file = photoFile.files[0];
           const pRef = sRef(storage, `members/${docId}/profile.jpg`);
           await uploadBytes(pRef, file);
           photoURL = await getDownloadURL(pRef);
+        } else if ($("#btnClearPhoto").dataset.cleared === '1') {
+          photoURL = null; // 사용자가 삭제 눌렀을 때 표시만 해제 (실제 Storage 삭제는 선택사항)
         }
 
         const basePayload = {
@@ -456,60 +495,72 @@
           startDate: form.startDate.value || null,
 
           purchaseAmount,
-          lastPurchaseAmount: purchaseAmount,
-          lastPurchaseDate: form.startDate.value || null,
-          lastPurchaseSessions: totalSessionsPurchased,
+          lastPurchaseAmount: purchaseAmount || (exists.data?.()?.lastPurchaseAmount||0),
+          lastPurchaseDate: form.startDate.value || (exists.data?.()?.lastPurchaseDate || null),
+          lastPurchaseSessions: totalSessionsPurchased || (exists.data?.()?.lastPurchaseSessions || 0),
 
           totalSessionsPurchased,
           consumedSessions,
           remainingSessions,
-          renewalCount: 0,
+          renewalCount: exists.exists() ? (exists.data().renewalCount || 0) : 0,
 
           photoURL: photoURL || null,
-          autoSpendEnabled: true, // 스케줄 자동 소진 연동 플래그
-
-          createdAt: serverTimestamp(),
+          autoSpendEnabled: exists.exists() ? (exists.data().autoSpendEnabled ?? true) : true,
           updatedAt: serverTimestamp()
         };
+        if(!exists.exists()){
+          basePayload.createdAt = serverTimestamp();
+        }
 
         const withInbody = (heightCm||weightKg||muscleMass||bodyFatPercent||bodyFatMass)
           ? {
               heightCm, weightKg, muscleMass, bodyFatPercent, bodyFatMass,
-              inbodyHistory: [{
-                heightCm, weightKg, muscleMass, bodyFatPercent, bodyFatMass,
-                createdAt: serverTimestamp()
-              }]
+              ...(exists.exists()?{}:{ // 최초 등록 시에만 history 초기화 항목 포함 가능
+                inbodyHistory: [{
+                  heightCm, weightKg, muscleMass, bodyFatPercent, bodyFatMass,
+                  createdAt: serverTimestamp()
+                }]
+              })
             }
           : {};
 
-        // 1) 회원 문서 생성
-        await setDoc(ref, { ...basePayload, ...withInbody });
+        await setDoc(ref, { ...basePayload, ...withInbody }, { merge:true });
 
-        // 2) PT 일지 page-1 자동 생성
-        const page1Ref = doc(db, 'members', docId, 'ptLogsV1', 'page-1');
-        const page1Snap = await getDoc(page1Ref);
-        if (!page1Snap.exists()){
-          const defaultRows = Array.from({length:30}, (_,i)=>({
-            n:String(i+1), date:"", time:"08:00", note:"",
-            trainerSigType:"", trainerSigValue:"",
-            customerSigType:"", customerSigValue:"",
-            locked:false, nsType:""
-          }));
-          await setDoc(page1Ref, {
-            meta: {
-              name, birth: birthDisplay||null, phone: phoneDisplay,
-              lesson: form.lessonType.value||"", trainer: form.trainer.value||"",
-              start: form.startDate.value||null, page:"1"
-            },
-            rows: defaultRows,
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp()
-          });
+        // 신규 등록 시 PT 일지 page-1 자동 생성 (없을 때만)
+        if(!exists.exists()){
+          const page1Ref = doc(db, 'members', docId, 'ptLogsV1', 'page-1');
+          const page1Snap = await getDoc(page1Ref);
+          if (!page1Snap.exists()){
+            const defaultRows = Array.from({length:30}, (_,i)=>({
+              n:String(i+1), date:"", time:"08:00", note:"",
+              trainerSigType:"", trainerSigValue:"",
+              customerSigType:"", customerSigValue:"",
+              locked:false, nsType:""
+            }));
+            await setDoc(page1Ref, {
+              meta: {
+                name, birth: birthDisplay||null, phone: phoneDisplay,
+                lesson: form.lessonType.value||"", trainer: form.trainer.value||"",
+                start: form.startDate.value||null, page:"1"
+              },
+              rows: defaultRows,
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp()
+            });
+          }
+          await logMemberUpdate(docId, { kind:'register', note:'신규 등록' });
+        } else {
+          await logMemberUpdate(docId, { kind:'profile.update', note:'회원 정보 수정' });
         }
 
         clearDraft();
-        alert("등록이 완료되었습니다.");
-        location.href="/member-list-edit.html";
+        alert("저장 완료");
+        if(!editingId){
+          location.href=`/member-registration.html?id=${docId}`;
+        }else{
+          // 수정 모드면 화면만 갱신
+          await loadMember(docId, true);
+        }
       }catch(err){
         console.error(err);
         showBanner("저장 실패: " + (err.message||err));
@@ -518,6 +569,200 @@
         loading.style.display = "none";
       }
     });
+
+    // ===== 멤버 로드(수정 모드) =====
+    async function loadMember(id, silent=false){
+      try{
+        const snap = await getDoc(doc(db,COL,id));
+        if(!snap.exists()){ showBanner("해당 회원을 찾을 수 없습니다."); return; }
+        const d = snap.data();
+        // 타이틀/버튼
+        $("#pageTitle").textContent = `회원 프로필 / ${d.name||id}`;
+        btnOpenHistory.onclick = async ()=>{
+          await renderHistory(id);
+          openModal(popupHistory);
+        };
+        btnRenewal.onclick = ()=>{
+          // 바로 모달 열어 재등록 입력 가능
+          renderHistory(id).then(()=> openModal(popupHistory));
+        };
+
+        // 입력 채우기
+        form.name.value = d.name || '';
+        form.gender.value = d.gender || '여성';
+        form.phone.value = d.phoneDisplay || fmtPhone(id);
+        form.phone.disabled = true; // 문서ID 변경 방지
+        form.birth.value = d.birthDisplay || '';
+        form.address.value = d.address || '';
+        form.job.value = d.job || '';
+        form.memberMemo.value = d.memberMemo || '';
+        form.trainer.value = d.trainer || '';
+        form.lessonType.value = d.lessonType || '';
+        form.level.value = d.level || '일반';
+        form.startDate.value = d.startDate || form.startDate.value;
+
+        form.purchaseAmount.value = d.purchaseAmount ?? 0;
+        form.totalSessionsPurchased.value = d.totalSessionsPurchased ?? 0;
+        form.consumedSessions.value = d.consumedSessions ?? 0;
+        form.remainingSessions.value = d.remainingSessions ?? Math.max(0,(d.totalSessionsPurchased||0)-(d.consumedSessions||0));
+        form.renewalCount.value = d.renewalCount ?? 0;
+
+        form.guardianName.value = d.guardianName || '';
+        form.guardianRelation.value = d.guardianRelation || '';
+        form.guardianPhone.value = d.emergency ? fmtPhone(d.emergency) : '';
+
+        form.healthMemo.value = d.healthMemo || '';
+
+        // 인바디
+        form.heightCm.value = d.heightCm ?? '';
+        form.weightKg.value = d.weightKg ?? '';
+        form.muscleMass.value = d.muscleMass ?? '';
+        form.bodyFatPercent.value = d.bodyFatPercent ?? '';
+        form.bodyFatMass.value = d.bodyFatMass ?? '';
+
+        // 프로필 이미지
+        if(d.photoURL){
+          avatarPreview.classList.remove('skeleton');
+          avatarPreview.src = d.photoURL;
+        }else{
+          avatarPreview.classList.add('skeleton');
+          avatarPreview.src = '';
+        }
+
+        if(!silent) hideBanner();
+      }catch(e){
+        console.error(e);
+        if(!silent) showBanner("회원 로드 실패: "+(e.message||e));
+      }
+    }
+
+    // ===== 히스토리 렌더링 & 재등록 저장 =====
+    async function renderHistory(memberId){
+      $("#historyInfo").textContent = `회원ID: ${memberId}`;
+      const box = $("#historyList");
+      box.innerHTML = '<div class="muted">불러오는 중…</div>';
+      try{
+        const items = [];
+
+        // 1) members/{id}/history
+        const hsnap = await getDocs(collection(db,'members',memberId,'history'));
+        hsnap.forEach(d=>{
+          const v=d.data(); const ts=v.createdAt?.toDate?.()||new Date();
+          items.push({ kind:v.kind||'update', when: ts, note: v.note||'' });
+        });
+
+        // 2) renewals
+        const rsnap = await getDocs(collection(db,'members',memberId,'renewals'));
+        rsnap.forEach(d=>{
+          const v=d.data(); const ts=v.createdAt?.toDate?.()||new Date();
+          items.push({ kind:'renewal', when: ts, note: `+${v.sessions}회 / ${Number(v.amount||0).toLocaleString()}원 ${v.memo?'- '+v.memo:''}` });
+        });
+
+        // 3) session_ledger (optional)
+        const lsnap = await getDocs(query(collection(db,'session_ledger'), where('memberId','==',memberId)));
+        lsnap.forEach(d=>{
+          const v=d.data(); const ts=v.createdAt?.toDate?.()||new Date();
+          items.push({ kind:`ledger.${v.type}`, when: ts, note: `${v.date||''} ${v.time||''}` });
+        });
+
+        items.sort((a,b)=> b.when - a.when);
+        if(items.length===0){ box.innerHTML = '<div class="muted">기록이 없습니다.</div>'; return; }
+
+        box.innerHTML = '';
+        items.forEach(it=>{
+          const div = document.createElement('div');
+          div.className = 'history-item';
+          div.innerHTML = `<div class="k">${it.kind}</div><div class="muted">${it.when.toLocaleString()} · ${it.note||''}</div>`;
+          box.appendChild(div);
+        });
+      }catch(e){
+        console.error(e);
+        box.innerHTML = '<div class="muted">히스토리 로드 실패</div>';
+      }
+    }
+
+    $("#btnRenewalSave").addEventListener('click', async ()=>{
+      const id = editingId || onlyDigits(form.phone.value);
+      if(!id){ alert('회원ID가 없습니다'); return; }
+      const amt = +($("#reAmount").value||0);
+      const ses = +($("#reSessions").value||0);
+      const memo = ($("#reMemo").value||'').trim();
+      if(ses<=0){ alert('회차를 입력하세요'); return; }
+      loading.style.display = "block";
+      try{
+        const mref = doc(db,'members',id);
+        const now = new Date();
+        const p2=n=>String(n).padStart(2,'0');
+        const iso = `${now.getFullYear()}-${p2(now.getMonth()+1)}-${p2(now.getDate())}`;
+
+        await updateDoc(mref,{
+          totalSessionsPurchased: (window.firebaseIncrement||null) ? firebaseIncrement(ses) : undefined
+        }).catch(()=>{}); // 호환용
+
+        // 안전하게 runTransaction으로 잔여/누적 증가
+        await runTransaction(db, async (tx)=>{
+          const snap = await tx.get(mref);
+          if(!snap.exists()) throw new Error('회원 문서가 없습니다.');
+          const d = snap.data();
+          const total = (d.totalSessionsPurchased||0) + ses;
+          const remain = (d.remainingSessions||0) + ses;
+          const renewCnt = (d.renewalCount||0) + 1;
+          tx.update(mref,{
+            totalSessionsPurchased: total,
+            remainingSessions: remain,
+            lastPurchaseAmount: amt,
+            lastPurchaseSessions: ses,
+            lastPurchaseDate: iso,
+            renewalCount: renewCnt,
+            updatedAt: serverTimestamp()
+          });
+        });
+
+        await addDoc(collection(db,'members',id,'renewals'),{
+          amount: amt, sessions: ses, memo, date: iso, createdAt: serverTimestamp()
+        });
+        await logMemberUpdate(id,{kind:'renewal',note:`+${ses}회 / ${amt.toLocaleString()}원 ${memo?'- '+memo:''}`});
+
+        // 폼도 즉시 반영
+        await loadMember(id, true);
+        await renderHistory(id);
+        alert('재등록 저장 완료');
+        $("#reAmount").value=''; $("#reSessions").value=''; $("#reMemo").value='';
+      }catch(e){
+        console.error(e);
+        alert('재등록 실패: '+(e.message||e));
+      }finally{
+        loading.style.display = "none";
+      }
+    });
+
+    // ===== 사진 삭제 상태 토글 (표시만) =====
+    btnClearPhoto.addEventListener('click', ()=>{
+      $("#btnClearPhoto").dataset.cleared = '1';
+      photoFile.value = '';
+      avatarPreview.src = '';
+      avatarPreview.classList.add('skeleton');
+    });
+
+    // ===== 외부에서 쓸 수 있는 소진 트랜잭션(대시보드 등) =====
+    // 사용법: applyScheduleSpend(memberId, -1)  // 1회 소진
+    export async function applyScheduleSpend(memberId, delta){
+      const ref = doc(db, COL, memberId);
+      await runTransaction(db, async (tx)=>{
+        const snap = await tx.get(ref);
+        if (!snap.exists()) throw new Error('회원 문서가 없습니다.');
+        const d = snap.data();
+        const consumed = Math.max(0, (d.consumedSessions||0) + Math.abs(delta));
+        const remaining = Math.max(0, (d.remainingSessions||0) - Math.abs(delta));
+        tx.update(ref, {
+          consumedSessions: consumed,
+          remainingSessions: remaining,
+          updatedAt: serverTimestamp()
+        });
+      });
+      await logMemberUpdate(memberId, { kind:'consume.tx', note:`delta ${delta}` });
+    }
+
   </script>
 </body>
 </html>
