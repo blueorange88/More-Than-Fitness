@@ -421,7 +421,7 @@
     const g = $('dowGroup'); if(!g) return;
     g.querySelectorAll('.dow').forEach(b=>{
       const di = +b.dataset.di;
-      b.classList.toggle('active', arr.includes(di));
+  AAas    b.classList.toggle('active', arr.includes(di));
     });
   }
   function getSelectedDows(){
@@ -636,59 +636,41 @@ function getDaysForDelete(baseDi){
   }
 
   /* ✅ 저장: 여러 요일을 같은 시간에 한 번에 반영 */
-  async function saveLesson(){
-    if(!currentCell) return;
+async function saveLesson(){
+  if(!currentCell) return;
 
-    const name=($('nameInput').value||'').trim();
-    const enrolled=+($('enrolledInput').value||0);
-    const cap=+($('capacityInput').value||0);
-    const memberId=($('memberIdInput').value||'').replace(/\D/g,'');
-    if(!name && !memberId && !enrolled && !cap){ toast('내용을 입력해주세요'); return; }
+  const name = (document.getElementById('nameInput').value||'').trim();
+  const enrolled = +(document.getElementById('enrolledInput').value||0);
+  const cap = +(document.getElementById('capacityInput').value||0);
+  const memberId = (document.getElementById('memberIdInput').value||'').replace(/\D/g,'');
+  if(!name && !memberId && !enrolled && !cap){ toast('내용을 입력해주세요'); return; }
 
-    const time=rowHour(currentCell);
-    const selectedDays = getSelectedDows();
-    if(selectedDays.length===0){ toast('요일을 선택하세요'); return; }
+  const time = rowHour(currentCell);
+  const baseDi = +currentCell.dataset.weekcol;
 
-    // 충돌 확인 (이미 값 있는 칸)
-    const conflicts = selectedDays.filter(di=>{
-      const target = findCellBy(time, di);
-      return target && target.dataset.info;
-    });
-    if(conflicts.length>0){
-      const ok = confirm(`선택한 요일 중 ${conflicts.length}칸에 기존 레슨이 있습니다. 덮어쓰시겠습니까?`);
-      if(!ok) return;
-    }
+  const days = getDaysForAdd(baseDi); // ✅ 요일 선택 반영
 
-    const infoBase={ name, enrolled, cap, time, memberId: memberId || null };
+  const infos = days.map(di => ({ name, enrolled, cap, time, di, memberId: memberId || null }));
 
-    // 로컬 배열 정리
-    let arr=JSON.parse(localStorage.getItem('scheduleData')||'[]');
-    selectedDays.forEach(di=>{
-      arr = arr.filter(x=>!(x.time===time && x.di===di)); // 기존 삭제
-    });
+  // 화면 반영
+  infos.forEach(i=>{
+    const target = (i.di===baseDi && tableIdFromCell(currentCell)===currentTableId)
+      ? currentCell
+      : cellBy(currentTableId, i.di, time);
+    if(target) renderCell(target, i);
+  });
 
-    // UI/로컬/파이어스토어 반영
-    const tasks=[];
-    selectedDays.forEach(di=>{
-      const cell = findCellBy(time, di);
-      if(!cell) return;
-      const info = {...infoBase, di};
-      renderCell(cell, info);
-      arr.push(info);
-      if(window.upsertScheduleFromCell) tasks.push(window.upsertScheduleFromCell(cell));
-    });
-    localStorage.setItem('scheduleData', JSON.stringify(arr));
+  // 로컬 저장(해당 주차)
+  upsertLocal(infos, currentWeekOffset);
 
-    try{
-      await Promise.all(tasks);
-      toast('스케줄 저장 완료');
-    }catch(e){
-      console.error(e);
-      toast('저장 실패: '+(e.message||e.code));
-    }
+  // Firestore 저장
+  try{
+    await Promise.all(infos.map(i => window.upsertScheduleByKey && window.upsertScheduleByKey(i, currentWeekOffset)));
+    toast(days.length>1 ? '여러 요일 저장 완료' : '스케줄 저장 완료');
+  }catch(e){ console.error(e); toast('저장 실패: '+(e.message||e.code)); }
 
-    updateTodayList(); updateTimeLine(); hideAll();
-  }
+  updateTodayList(); updateTimeLine(); hideAll();
+}
 
   function findCellBy(time, di){
     const rows = document.querySelectorAll('#scheduleTableCurr tbody tr');
@@ -702,14 +684,13 @@ function getDaysForDelete(baseDi){
 async function deleteLesson(){
   if(!currentCell) return;
 
-  const time   = rowHour(currentCell);
+  const time = rowHour(currentCell);
   const baseDi = +currentCell.dataset.weekcol;
 
   // ✅ 체크 없으면 현재 요일만, 체크 있으면 체크된 요일들만
-  const checked = getCheckedDays();              // [1,3,5] 같은 배열
-  const days    = (checked.length === 0) ? [baseDi] : checked.slice().sort((a,b)=>a-b);
+  const days = getDaysForDelete(baseDi);
 
-  // ✅ 여러 요일이면 확인창
+  // 여러 요일이면 확인창
   if (days.length > 1){
     const label = days.map(n => "월화수목금토일".charAt(n-1)).join('/');
     if (!confirm(`${label} 동일스케줄을 일괄삭제하시겠습니까?`)){
@@ -718,17 +699,14 @@ async function deleteLesson(){
     }
   }
 
-  // UI & 로컬 제거(현재 주차 기준)
+  // UI & 로컬 제거(해당 주차)
   let arr = JSON.parse(localStorage.getItem(LS_KEY(currentWeekOffset))||'[]');
 
   days.forEach(di=>{
     const target = (di===baseDi) ? currentCell : cellBy(currentTableId, di, time);
     if(target){
-      target.innerHTML = '';
-      target.classList.remove('filled');
-      target.style.background = '';
-      delete target.dataset.info;
-      delete target.dataset.docId;
+      target.innerHTML=''; target.classList.remove('filled'); target.style.background='';
+      delete target.dataset.info; delete target.dataset.docId;
     }
     arr = arr.filter(x => !(x.time===time && x.di===di));
   });
@@ -736,18 +714,11 @@ async function deleteLesson(){
 
   // Firestore 삭제
   try{
-    await Promise.all(days.map(di =>
-      window.deleteScheduleByKey && window.deleteScheduleByKey({ di, time }, currentWeekOffset)
-    ));
+    await Promise.all(days.map(di => window.deleteScheduleByKey && window.deleteScheduleByKey({di,time}, currentWeekOffset)));
     toast(days.length>1 ? '여러 요일 삭제 완료' : '삭제 완료');
-  }catch(e){
-    console.error(e);
-    toast("삭제 실패: " + (e.message||e.code));
-  }
+  }catch(e){ console.error(e); toast("삭제 실패: "+(e.message||e.code)); }
 
-  updateTodayList();
-  updateTimeLine();
-  hideAll();
+  updateTodayList(); updateTimeLine(); hideAll();
 }
 
   async function bulkSave(){
