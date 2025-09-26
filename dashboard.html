@@ -446,7 +446,7 @@
 
     $('titleNext').onclick=()=>{ const w=$('wrapNext'); w.style.display=(w.style.display==='none'||!w.style.display)?'block':'none'; };
     $('titleLast').onclick=()=>{ const w=$('wrapLast'); w.style.display=(w.style.display==='none'||!w.style.display)?'block':'none'; };
-
+    $('btnDeleteLesson').onclick = deleteLesson;
     const saved=JSON.parse(localStorage.getItem('scheduleRange')||'{}');
     if(Number.isFinite(+saved.start) && Number.isFinite(+saved.end)){
       let s=+saved.start, e=+saved.end; if(e<=s) e+=24; if(e-s>=3 && e-s<=24){ scheduleStart=s; scheduleEnd=e; }
