@@ -52,12 +52,12 @@
   .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000}
   .popup{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:16px;border-radius:10px;z-index:1001;width:340px;max-width:92%;max-height:84vh;overflow:auto}
   .popup h3{font-size:16px;margin-bottom:8px}
-  .popup input,.popup select{width:100%;padding:9px;border:1px solid #e5e7eb;border-radius:8px;margin:6px 0}
+  .popup input,.popup select, .popup textarea{width:100%;padding:9px;border:1px solid #e5e7eb;border-radius:8px;margin:6px 0}
   .button-group{display:flex;gap:8px;margin-top:8px}
   .button-group button{flex:1;padding:10px;background:#f5f0e8;border:1px solid #ddd;border-radius:8px;cursor:pointer}
   .btn-primary{background:var(--navy)!important;color:#fff!important;border:none!important}
 
-  #cellSheet{position:fixed;background:#111;color:#fff;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.35);padding:8px;z-index:1101;display:none;min-width:200px}
+  #cellSheet{position:fixed;background:#111;color:#fff;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.35);padding:8px;z-index:1101;display:none;min-width:220px}
   #cellSheet button{display:block;width:100%;text-align:left;background:transparent;border:none;color:#fff;padding:10px;border-bottom:1px solid rgba(255,255,255,.1);cursor:pointer;font-size:13px}
   #cellSheet button:last-child{border-bottom:none}
   #cellSheet .danger{color:#ffb4b4}
@@ -190,12 +190,32 @@
     </div>
   </div>
 
+  <!-- Member history / renewal popup -->
+  <div class="popup" id="popupMember" role="dialog" aria-modal="true" aria-labelledby="popupMemberTitle" style="width:360px">
+    <h3 id="popupMemberTitle">회원 히스토리 / 재등록</h3>
+    <div id="memInfo" style="font-size:12px;color:#334155;margin-bottom:6px"></div>
+    <div id="memHistoryList" style="max-height:34vh;overflow:auto;border:1px solid #e5e7eb;border-radius:8px;padding:8px;margin-bottom:8px"></div>
+    <div style="border-top:1px dashed #e5e7eb;padding-top:8px;margin-top:6px">
+      <div style="font-weight:800;margin-bottom:6px">➕ 재등록</div>
+      <input type="number" id="reAmount" placeholder="금액(원)" />
+      <input type="number" id="reSessions" placeholder="회차(+)" />
+      <textarea id="reMemo" rows="2" placeholder="메모(선택)"></textarea>
+      <div class="button-group" style="margin-top:8px">
+        <button id="btnMemberClose">닫기</button>
+        <button class="btn-primary" id="btnRenewalSave">재등록 저장</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Cell action sheet -->
   <div id="cellSheet" role="menu">
     <button id="sheetConsume">✅ 소진 처리(–1)</button>
     <button id="sheetUndoConsume">↩️ 소진 취소(+1)</button>
     <button id="sheetNoShow" class="danger">🚫 노쇼 차감(–1)</button>
     <button id="sheetUndoNoShow">🧺 노쇼 취소(+1)</button>
+    <button id="sheetHistory">📜 히스토리</button>
+    <button id="sheetRenewal">➕ 재등록(+회차)</button>
+    <button id="sheetProfile">👤 프로필 열기</button>
     <button id="sheetClose">닫기</button>
   </div>
 
@@ -428,6 +448,17 @@
     window.addEventListener('resize', fitGridToScreen);
 
     initDowGroup();
+
+    // Member modal buttons (UI쪽 바인딩)
+    $('btnMemberClose').onclick = hideAll;
+    $('btnRenewalSave').onclick = async ()=>{
+      const mid = $('popupMember').dataset.mid || '';
+      if(!mid){ toast('회원ID가 없습니다'); return; }
+      const amt = +($('reAmount').value||0);
+      const ses = +($('reSessions').value||0);
+      const memo = ($('reMemo').value||'').trim();
+      await (window.saveRenewal && window.saveRenewal({memberId:mid, amount:amt, sessions:ses, memo}));
+    };
   })();
 
   function attachDelegationFor(tableId, wo){
@@ -460,7 +491,7 @@
   function openCellSheet(td){
     if(!td.dataset.info){ toast('먼저 레슨을 저장하세요'); return; }
     const sheet=$('cellSheet'); const r=td.getBoundingClientRect();
-    sheet.style.left=Math.min(window.innerWidth-220,Math.max(8,r.left))+'px';
+    sheet.style.left=Math.min(window.innerWidth-240,Math.max(8,r.left))+'px';
     sheet.style.top =Math.min(window.innerHeight-10,r.bottom+6)+'px';
     sheet.style.display='block';
     bindSheetHandlers(td);
@@ -472,6 +503,9 @@
     $('sheetUndoConsume').onclick= async()=>{ await consumeAdjust(memberId,+1,{flag:'consumed',value:false},td,wo); };
     $('sheetNoShow').onclick     = async()=>{ await consumeAdjust(memberId,-1,{flag:'noShowDeducted',value:true},td,wo); };
     $('sheetUndoNoShow').onclick = async()=>{ await consumeAdjust(memberId,+1,{flag:'noShowDeducted',value:false},td,wo); };
+    $('sheetHistory').onclick    = async()=>{ if(!memberId){ toast('회원ID가 없습니다'); return; } await (window.openMemberModal && window.openMemberModal(memberId)); showPopup($('popupMember')); };
+    $('sheetRenewal').onclick    = async()=>{ if(!memberId){ toast('회원ID가 없습니다'); return; } await (window.openMemberModal && window.openMemberModal(memberId)); showPopup($('popupMember')); };
+    $('sheetProfile').onclick    = ()=>{ if(!memberId){ toast('회원ID가 없습니다'); return; } location.href=`/member-registration.html?id=${memberId}`; };
     $('sheetClose').onclick=()=>{ $('cellSheet').style.display='none'; };
   }
 
@@ -642,10 +676,10 @@
   }
   </script>
 
-  <!-- ===== Firebase / 저장 & 자동소진 (고정키 버전) ===== -->
+  <!-- ===== Firebase / 저장 & 자동소진 & 히스토리/재등록 ===== -->
   <script type="module">
   import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
-  import {getFirestore, collection, setDoc, deleteDoc, doc, serverTimestamp,updateDoc, increment, query, where, getDocs, getDoc} from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+  import {getFirestore, collection, setDoc, deleteDoc, doc, serverTimestamp, updateDoc, increment, query, where, getDocs, getDoc, addDoc, runTransaction, limit} from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
   import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
 
   const firebaseConfig={ apiKey:"AIzaSyCjdyveDx0qFPUzmaChnEy9Ni0VjTysYnM", authDomain:"more-than-fitness-f6adb.firebaseapp.com", projectId:"more-than-fitness-f6adb", storageBucket:"more-than-fitness-f6adb.appspot.com", messagingSenderId:"993248877411", appId:"1:993248877411:web:c0e6785162cf252fbcd156", measurementId:"G-MK0RVFG296" };
@@ -671,28 +705,35 @@
   }
   const docIdFrom = ({date,di,start}) => `${date}-${di}-${start}`;
 
-  // 업서트(고정 ID, 주차 반영)
+  // ===== 스케줄 업서트/삭제 (createdAt 중복 세팅 방지) =====
   window.upsertScheduleByKey = async (i, weekOffset=0)=>{
     const date = isoFromDi(i.di, weekOffset);
     const id   = docIdFrom({date,di:i.di,start:i.time});
+    const ref  = doc(db,"schedules",id);
     const payload={
       date, di:i.di, start:i.time, end:add60(i.time),
       name:i.name||"", cap:i.cap||0, enrolled:i.enrolled||0,
       trainer:"트레이너 A", memberId:i.memberId||null,
-      updatedAt:serverTimestamp(), createdAt:serverTimestamp()
+      updatedAt:serverTimestamp()
     };
-    await setDoc(doc(db,"schedules",id), payload, { merge:true });
+    try{
+      const ex = await getDoc(ref);
+      if(!ex.exists()){
+        await setDoc(ref, { ...payload, createdAt: serverTimestamp() }, { merge:true });
+      }else{
+        await setDoc(ref, payload, { merge:true });
+      }
+    }catch(e){ console.error(e); throw e; }
     return id;
   };
 
-  // 삭제(고정 ID)
   window.deleteScheduleByKey = async ({di,time}, weekOffset=0)=>{
     const date = isoFromDi(di, weekOffset);
     const id   = docIdFrom({date,di,start:time});
     await deleteDoc(doc(db,"schedules",id));
   };
 
-  // 빠른 등록
+  // ===== 빠른 등록 =====
   window.submitQuickMember = async ()=>{
     const name=(document.getElementById('quickName').value||"").trim();
     const phoneRaw=(document.getElementById('quickPhone').value||"").replace(/\D/g,'');
@@ -705,7 +746,7 @@
         name, phone:phoneRaw, phoneDisplay:formatPhone(phoneRaw),
         createdAt:serverTimestamp(), level:"일반", lessonType:"PT",
         remainingSessions:0, totalSessionsPurchased:0,
-        noShowDeducted:0, noShowUndeducted:0
+        noShowDeducted:0, noShowUndeducted:0, renewalCount:0, updatedAt: serverTimestamp()
       },{merge:true});
       membersCache.set(phoneRaw, { name, remainingSessions: 0 });
       window.refreshMembersDatalist && window.refreshMembersDatalist();
@@ -716,19 +757,30 @@
   };
   function formatPhone(v){ v=String(v).replace(/\D/g,'').slice(0,11); if(v.length<=3)return v; if(v.length<=7)return v.slice(0,3)+'-'+v.slice(3); return v.slice(0,3)+'-'+v.slice(3,7)+'-'+v.slice(7); }
 
-  // 멤버 캐시 & datalist
+  // ===== 멤버 캐시 & datalist 선로딩 =====
   const membersCache=new Map();
+  async function preloadMembers(){
+    try{
+      const snap = await getDocs(query(collection(db,'members'), limit(300)));
+      snap.forEach(d=>{
+        const v=d.data();
+        membersCache.set(d.id, { name: v.name||d.id, remainingSessions: v.remainingSessions||0 });
+      });
+      refreshMembersDatalist();
+    }catch(e){ console.error(e); }
+  }
   window.refreshMembersDatalist=function(){
     const dl=document.getElementById('membersList'); if(!dl) return; dl.innerHTML='';
     membersCache.forEach((m,id)=>{ const opt=document.createElement('option'); opt.value=id; opt.label=`${m?.name||''} (${formatPhone(id)}) · 잔여 ${m?.remainingSessions||0}`; dl.appendChild(opt); });
   };
+  preloadMembers();
 
   const memberIdEl=document.getElementById('memberIdInput');
   if(memberIdEl){ memberIdEl.addEventListener('change',onMemberPicked); memberIdEl.addEventListener('blur',onMemberPicked); }
   async function onMemberPicked(){
     const id=(memberIdEl.value||'').replace(/\D/g,''); if(!id) return;
     let m=membersCache.get(id);
-    if(!m){ try{ const ds=await getDoc(doc(db,'members',id)); if(ds.exists()){ m=ds.data(); membersCache.set(id,m); refreshMembersDatalist(); } }catch(e){ console.error(e); } }
+    if(!m){ try{ const ds=await getDoc(doc(db,'members',id)); if(ds.exists()){ m=ds.data(); membersCache.set(id,{ name:m.name||id, remainingSessions:m.remainingSessions||0 }); refreshMembersDatalist(); } }catch(e){ console.error(e); } }
     if(!m) return;
     const nameEl=document.getElementById('nameInput'); if(nameEl && !nameEl.value) nameEl.value=m.name||'';
     showRemainBadge(m.remainingSessions);
@@ -738,24 +790,38 @@
     const base=(hint.textContent||'').split(' · ')[0]; hint.textContent=`${base} · 잔여 ${remain ?? 0}`; hint.style.display='inline-block';
   }
 
-  // 소진/노쇼 (고정키 문서 업데이트)
+  // ===== 소진/노쇼 처리 + 히스토리/원장부 기록 =====
   window.consumeAdjust = async (memberId,deltaRemain,flagUpdate,td,weekOffset=0)=>{
     document.getElementById('cellSheet').style.display='none';
     try{
+      const nowInfo = td?.dataset.info ? JSON.parse(td.dataset.info) : null;
+      const dateStr = nowInfo ? isoFromDi(nowInfo.di, weekOffset) : null;
+      const schedId = nowInfo ? `${dateStr}-${nowInfo.di}-${nowInfo.time}` : null;
+      const type = (flagUpdate.flag==='noShowDeducted'
+        ? (flagUpdate.value?'noshow':'noshow.undo')
+        : (flagUpdate.value?'consume':'consume.undo'));
+
       if(memberId){
         await updateDoc(doc(db,"members",memberId),{
           remainingSessions:increment(deltaRemain),
           ...(flagUpdate.flag==='noShowDeducted'?{noShowDeducted:increment(flagUpdate.value?+1:-1)}:{})
         });
+        // ledger + history
+        try{
+          await addDoc(collection(db,'session_ledger'),{
+            memberId, scheduleId:schedId, type, delta: deltaRemain,
+            date: dateStr, time: nowInfo?.time||null, createdAt: serverTimestamp()
+          });
+          await addDoc(collection(db,'members',memberId,'history'),{
+            kind:type, note:`${dateStr||''} ${nowInfo?.time||''}`, createdAt: serverTimestamp()
+          });
+        }catch(e){ console.warn('log failed', e); }
       }
       if(td?.dataset.info){
-        const i=JSON.parse(td.dataset.info||'{}');
-        const date = isoFromDi(i.di, weekOffset);
-        const id = `${date}-${i.di}-${i.time}`;
-        await updateDoc(doc(db,"schedules",id),{
+        await updateDoc(doc(db,"schedules",schedId),{
           [flagUpdate.flag]:flagUpdate.value,
           [`${flagUpdate.flag}At`]:serverTimestamp()
-        });
+        }).catch(()=>{});
       }
       const t=document.getElementById('toast');
       t.textContent=(flagUpdate.flag==='noShowDeducted'
@@ -767,7 +833,98 @@
     }
   };
 
-  // 자동 소진 (전날)
+  // ===== Member modal (히스토리/재등록) =====
+  async function renderMemberHistory(memberId){
+    const box = document.getElementById('memHistoryList');
+    box.innerHTML = '<div style="font-size:12px;color:#6b7280">불러오는 중…</div>';
+    try{
+      const items = [];
+      const hs = await getDocs(collection(db,'members',memberId,'history'));
+      hs.forEach(d=>{ const v=d.data(); const ts=v.createdAt?.toDate?.()||new Date(); items.push({ when: ts, kind:v.kind||'update', note:v.note||'' }); });
+      const rs = await getDocs(collection(db,'members',memberId,'renewals'));
+      rs.forEach(d=>{ const v=d.data(); const ts=v.createdAt?.toDate?.()||new Date(); items.push({ when: ts, kind:'renewal', note:`+${v.sessions}회 / ${Number(v.amount||0).toLocaleString()}원${v.memo?` - ${v.memo}`:''}` }); });
+      const ls = await getDocs(query(collection(db,'session_ledger'), where('memberId','==',memberId)));
+      ls.forEach(d=>{ const v=d.data(); const ts=v.createdAt?.toDate?.()||new Date(); items.push({ when: ts, kind:`ledger.${v.type}`, note:`${v.date||''} ${v.time||''}` }); });
+
+      items.sort((a,b)=> b.when - a.when);
+      if(items.length===0){ box.innerHTML = '<div style="font-size:12px;color:#6b7280">기록이 없습니다.</div>'; return; }
+      box.innerHTML='';
+      items.forEach(it=>{
+        const div=document.createElement('div');
+        div.style.borderBottom='1px solid #eee'; div.style.padding='6px 2px';
+        div.innerHTML = `<div style="font-weight:700">${it.kind}</div><div style="font-size:12px;color:#6b7280">${it.when.toLocaleString()} · ${it.note||''}</div>`;
+        box.appendChild(div);
+      });
+    }catch(e){
+      console.error(e);
+      box.innerHTML = '<div style="font-size:12px;color:#6b7280">히스토리 로드 실패</div>';
+    }
+  }
+
+  window.openMemberModal = async (memberId)=>{
+    const pop = document.getElementById('popupMember');
+    pop.dataset.mid = memberId;
+    try{
+      const snap = await getDoc(doc(db,'members',memberId));
+      const d = snap.data()||{};
+      document.getElementById('memInfo').textContent =
+        `${d.name||memberId} · ${ (d.phoneDisplay||memberId.replace(/\D/g,'')).replace(/(\d{3})(\d{3,4})(\d{4})/,'$1-$2-$3') } · 잔여 ${d.remainingSessions||0}회`;
+      await renderMemberHistory(memberId);
+    }catch(e){
+      console.error(e);
+      document.getElementById('memInfo').textContent = `회원ID: ${memberId}`;
+    }
+  };
+
+  window.saveRenewal = async ({memberId, amount=0, sessions=0, memo=''})=>{
+    const toast=(m)=>{ const t=document.getElementById('toast'); t.textContent=m; t.style.opacity=1; setTimeout(()=>t.style.opacity=0,1700); };
+    if(!memberId) return;
+    if(!sessions || sessions<=0){ toast('회차를 입력하세요'); return; }
+    try{
+      const mref = doc(db,'members',memberId);
+      const now = new Date();
+      const iso = `${now.getFullYear()}-${p2(now.getMonth()+1)}-${p2(now.getDate())}`;
+      await runTransaction(db, async (tx)=>{
+        const snap = await tx.get(mref);
+        if(!snap.exists()) throw new Error('회원 문서가 없습니다.');
+        const d = snap.data();
+        const total = (d.totalSessionsPurchased||0) + sessions;
+        const remain = (d.remainingSessions||0) + sessions;
+        const renewCnt = (d.renewalCount||0) + 1;
+        tx.update(mref,{
+          totalSessionsPurchased: total,
+          remainingSessions: remain,
+          lastPurchaseAmount: amount,
+          lastPurchaseSessions: sessions,
+          lastPurchaseDate: iso,
+          renewalCount: renewCnt,
+          updatedAt: serverTimestamp()
+        });
+      });
+      await addDoc(collection(db,'members',memberId,'renewals'),{
+        amount, sessions, memo, date: iso, createdAt: serverTimestamp()
+      });
+      await addDoc(collection(db,'members',memberId,'history'),{
+        kind:'renewal', note:`+${sessions}회 / ${Number(amount||0).toLocaleString()}원${memo?` - ${memo}`:''}`, createdAt: serverTimestamp()
+      });
+
+      // 캐시/뷰 갱신
+      const msnap = await getDoc(doc(db,'members',memberId));
+      const md = msnap.data()||{};
+      if(md.name) membersCache.set(memberId, { name: md.name, remainingSessions: md.remainingSessions||0 });
+      window.refreshMembersDatalist && window.refreshMembersDatalist();
+      document.getElementById('reAmount').value=''; document.getElementById('reSessions').value=''; document.getElementById('reMemo').value='';
+      await renderMemberHistory(memberId);
+      document.getElementById('memInfo').textContent =
+        `${md.name||memberId} · ${(md.phoneDisplay||memberId).replace(/(\d{3})(\d{3,4})(\d{4})/,'$1-$2-$3')} · 잔여 ${md.remainingSessions||0}회`;
+      toast('재등록 저장 완료');
+    }catch(e){
+      console.error(e);
+      toast('재등록 실패: '+(e.message||e));
+    }
+  };
+
+  // ===== 자동 소진 (전날) =====
   window.maybeAskAuto=function(){
     const asked=localStorage.getItem('autoAsked')==='1';
     const enabled=localStorage.getItem('autoConsume')==='1';
@@ -796,6 +953,8 @@
         if(s.memberId){
           tasks.push(
             updateDoc(doc(db,"members",s.memberId),{remainingSessions:increment(-1)})
+              .then(()=>addDoc(collection(db,'session_ledger'),{memberId:s.memberId, scheduleId:docSnap.id, type:'consume.auto', delta:-1, date:s.date, time:s.start, createdAt:serverTimestamp()}))
+              .then(()=>addDoc(collection(db,'members',s.memberId,'history'),{kind:'consume.auto', note:`${s.date} ${s.start}`, createdAt:serverTimestamp()}))
               .then(()=>updateDoc(doc(db,"schedules",docSnap.id),{consumed:true,consumedAt:serverTimestamp()}))
           );
         } else {
