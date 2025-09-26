@@ -181,6 +181,40 @@
     .row .label{ color:#cbd5e1; }
     .sub-sessions{ color:#cbd5e1; }
   }
+  /* === Mobile fixes: ≤520px ⇒ 오버랩/3D 제거 + 축소 레이아웃 === */
+@media (max-width: 520px){
+  :root{
+    --binder-w: 88vw;           /* 한 장이 화면 대부분 차지 */
+    --binder-h: auto;
+    --overlap: 0;               /* 겹침 제거 */
+  }
+  .shelf{ gap:12px; padding:14px 12px; overflow-y:visible; }
+  .binder{
+    transform:none !important;
+    height:auto;                /* 내용 높이에 맞춤 */
+    margin-left:0;
+  }
+  .panel{
+    position:relative; inset:auto;
+    transform:none !important; opacity:1 !important;
+    padding:10px;
+  }
+  .head{ padding:12px 12px 4px 28px; }
+  .name{ font-size:17px; }
+  .sub-sessions{ font-size:11px; }
+  .rows{ font-size:12px; }
+  .ring{ width:56px; height:56px; border-width:5px; }
+  .stickers{ position:static; gap:6px; }
+  .holes, .under, .shine{ display:none; } /* 장식 제거로 오염 최소화 */
+  .actions{ display:none !important; }     /* 내부 버튼 숨기고 시트만 사용 */
+}
+
+/* 초소형 폰(≤380px): 완전 리스트화 */
+@media (max-width: 380px){
+  :root{ --binder-w: calc(100vw - 24px); }
+  .head{ padding-left:22px; }
+  .ring{ width:50px; height:50px; border-width:4px; }
+}
 </style>
 </head>
 <body>
@@ -231,7 +265,18 @@
   import { getFirestore, collection, onSnapshot, doc, updateDoc, increment,
            query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
   import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
-
+    
+// 모바일에서 카드 탭하면 바로 이동하던 과거 핸들러를 무력화하고 액션시트만 띄움
+document.addEventListener('click', (e)=>{
+  const card = e.target.closest('.binder');
+  if(!card) return;
+  if (e.target.closest('button')) return; // 카드 내부 버튼 클릭은 그대로 동작
+  e.preventDefault(); e.stopPropagation();
+  const id = card.getAttribute('data-id');
+  const m = (typeof state !== 'undefined') ? state.members.find(v=>v.id===id) : null;
+  if (m && typeof openSheet === 'function') openSheet(m);
+}, true);
+    
   /* Firebase */
   const firebaseConfig = {
     apiKey:"AIzaSyCjdyveDx0qFPUzmaChnEy9Ni0VjTysYnM",
