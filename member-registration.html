@@ -48,7 +48,6 @@
   #toast{position:fixed;top:58px;left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:8px 12px;border-radius:14px;opacity:0;transition:opacity .2s;z-index:1100;font-size:12px}
   .banner{position:fixed;top:52px;left:50%;transform:translateX(-50%);background:#fff8e1;border:1px solid #f59e0b;color:#7c5200;padding:8px 12px;border-radius:10px;z-index:1005;display:none}
   .banner button{margin-left:8px;border:1px solid #f59e0b;background:#fff;border-radius:8px;padding:4px 8px;cursor:pointer}
-  /* 요일 체크 UI */
   .day-group{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
   .day-chip{display:inline-flex;align-items:center;gap:6px;border:1px solid #e5e7eb;border-radius:999px;padding:6px 10px;font-size:12px;cursor:pointer}
   .day-chip input{accent-color:#0d1b2a}
@@ -56,6 +55,7 @@
 </style>
 </head>
 <body>
+  <!-- Top bar -->
   <div class="topbar">
     <button class="hamburger" id="hamburger">메뉴</button>
     <h1>More Than Fitness</h1>
@@ -66,10 +66,13 @@
     </div>
   </div>
 
-  <div id="autoAsk" class="banner">자동 소진 기능을 켤까요?
+  <!-- Auto consume ask -->
+  <div id="autoAsk" class="banner">
+    자동 소진 기능을 켤까요?
     <button id="btnEnableAuto">지금 켜기</button><button id="btnLaterAuto">나중에</button>
   </div>
 
+  <!-- Sidebar -->
   <div class="sidebar" id="sidebar">
     <button onclick="location.href='MTF-F.html'" style="font-weight:800;background:#222;border-radius:8px;padding:8px 10px">MORE THAN FITNESS</button>
     <button onclick="toggleSubmenu('member')" aria-expanded="false" aria-controls="submenu-member">회원 관리</button>
@@ -80,26 +83,29 @@
     </div>
     <button onclick="location.href='client-card.html'">고객 카드</button>
     <button onclick="location.href='#'">상품 구매</button>
-    <button onclick="location.href='#'">운동 AI</button>
+    <button onclick="location.href='#'">운동 AI </button>
   </div>
 
+  <!-- Main -->
   <div class="main" id="main">
     <div class="card"><div class="section-title">오늘 다음 레슨</div><ul id="todayLessonList" style="padding-left:16px"></ul></div>
 
     <div class="section-title">이번 주 스케줄</div>
     <div class="schedule-wrapper">
-      <table id="scheduleTableCurr" aria-label="이번 주 스케줄">
-        <thead><tr>
-          <th id="headerCurr" class="time-head" title="클릭해 시간범위 설정">시간</th>
-          <th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th><th>일</th>
-        </tr></thead>
+      <table id="scheduleTableCurr" data-wo="0" aria-label="이번 주 스케줄">
+        <thead>
+          <tr>
+            <th id="headerCurr" class="time-head" title="클릭해 시간범위 설정">시간</th>
+            <th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th><th>일</th>
+          </tr>
+        </thead>
         <tbody></tbody>
       </table>
     </div>
 
     <div class="section-title" id="titleNext" style="cursor:pointer">다음 주 스케줄 (클릭하여 열기/닫기)</div>
     <div class="schedule-wrapper" id="wrapNext" style="display:none">
-      <table id="scheduleTableNext" aria-label="다음 주 스케줄">
+      <table id="scheduleTableNext" data-wo="1" aria-label="다음 주 스케줄">
         <thead><tr><th class="time-head">시간</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th><th>일</th></tr></thead>
         <tbody></tbody>
       </table>
@@ -107,13 +113,14 @@
 
     <div class="section-title" id="titleLast" style="cursor:pointer">지난 주 스케줄 (클릭하여 열기/닫기)</div>
     <div class="schedule-wrapper" id="wrapLast" style="display:none">
-      <table id="scheduleTableLast" aria-label="지난 주 스케줄">
+      <table id="scheduleTableLast" data-wo="-1" aria-label="지난 주 스케줄">
         <thead><tr><th class="time-head">시간</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th><th>일</th></tr></thead>
         <tbody></tbody>
       </table>
     </div>
   </div>
 
+  <!-- Overlay / Popups -->
   <div class="overlay" id="popupOverlay"></div>
 
   <div class="popup" id="popupRange" role="dialog" aria-modal="true" aria-labelledby="popupRangeTitle">
@@ -156,6 +163,7 @@
     </div>
   </div>
 
+  <!-- Cell action sheet -->
   <div id="cellSheet" role="menu">
     <button id="sheetConsume">✅ 소진 처리(–1)</button>
     <button id="sheetUndoConsume">↩️ 소진 취소(+1)</button>
@@ -164,6 +172,7 @@
     <button id="sheetClose">닫기</button>
   </div>
 
+  <!-- Quick Register -->
   <div id="quickRegisterCard" role="dialog" aria-modal="true" aria-labelledby="qrTitle">
     <div style="position:absolute;top:8px;right:8px"><button id="btnGoRegister" style="font-size:11px;background:#f5f0e8;border:1px solid #ccc;border-radius:6px;padding:4px 8px;color:var(--ink);cursor:pointer">자세히 등록</button></div>
     <h3 id="qrTitle">빠른 회원 등록</h3>
@@ -173,93 +182,135 @@
     <button id="btnQuickSubmit" class="btn-primary" style="width:100%;margin-top:10px">등록</button>
   </div>
 
+  <!-- Fixed buttons -->
   <div class="bottom-right">
     <button id="toggleQuickBtn" class="goldBtn">+ 빠른 등록</button>
     <button id="saveScheduleBtn" class="btn-primary">이번 주 스케줄 저장</button>
   </div>
+
   <div id="toast" role="status" aria-live="polite"></div>
 
-  <!-- ===== UI / TABLE SCRIPT ===== -->
+  <!-- ===== UI / TABLE SCRIPT (디자인 + 동작) ===== -->
   <script>
   const $ = (id) => document.getElementById(id);
-  let currentCell=null, scheduleStart=6, scheduleEnd=21;
+  let currentCell=null, currentWeekOffset=0, currentTableId='scheduleTableCurr';
+  let scheduleStart=6, scheduleEnd=21;
   let lpTimer=null, lpFired=false;
+
+  const LS_KEY = (wo)=>`scheduleData_${wo}`;  // -1,0,1
 
   function toast(msg){ const t=$('toast'); t.textContent=msg; t.style.opacity=1; setTimeout(()=>t.style.opacity=0,1700); }
   function showOverlay(){ $('popupOverlay').style.display='block'; }
   function hideOverlay(){ $('popupOverlay').style.display='none'; }
   function showPopup(el){ showOverlay(); el.style.display='block'; }
-  function hidePopups(){ document.querySelectorAll('.popup').forEach(p=>p.style.display='none'); const hint=$('slotHint'); if(hint){hint.style.display='none'; hint.textContent='';}}
+  function hidePopups(){ document.querySelectorAll('.popup').forEach(p => p.style.display = 'none'); const hint=$('slotHint'); if(hint){hint.style.display='none'; hint.textContent='';} }
   function hideAll(){ hidePopups(); $('cellSheet').style.display='none'; $('quickRegisterCard').style.display='none'; hideOverlay(); }
-  function toggleSubmenu(id){ document.querySelectorAll('.submenu').forEach(el=>el.style.display='none'); const t=$('submenu-'+id); if(t) t.style.display='block'; }
 
-  const COLORS=['#6b5bd2','#60a5fa','#10b981','#f59e0b','#ef4444','#ec4899','#22c55e'];
+  function toggleSubmenu(id){ document.querySelectorAll('.submenu').forEach(el=> el.style.display='none'); const t=$('submenu-'+id); if(t) t.style.display='block'; }
+
+  const COLORS = ['#6b5bd2','#60a5fa','#10b981','#f59e0b','#ef4444','#ec4899','#22c55e'];
   function colorForName(name=''){ let h=0; for(let i=0;i<name.length;i++) h=(h*31+name.charCodeAt(i))>>>0; return COLORS[h % COLORS.length]; }
+
   function renderCell(td, info){
     const labelFull = info.name || (info.memberId ? `[${info.memberId}]` : '—');
     const short = labelFull.slice(0,4);
-    td.classList.add('filled'); td.style.background=colorForName(labelFull);
+    td.classList.add('filled');
+    td.style.background = colorForName(labelFull);
     td.innerHTML = `<span class="label" title="${labelFull}">${short}</span>`;
     td.dataset.info = JSON.stringify(info);
   }
+
   function fitGridToScreen(){
     const topH=document.querySelector('.topbar')?.offsetHeight||0;
     const todayH=document.querySelector('.card')?.offsetHeight||0;
     const headH=document.querySelector('#scheduleTableCurr thead')?.offsetHeight||32;
     const avail = window.innerHeight - (topH + todayH + headH + 84);
-    const hours=Math.max(1,(scheduleEnd - scheduleStart));
-    const row=Math.max(26, Math.floor(avail/hours));
+    const hours = Math.max(1, (scheduleEnd - scheduleStart));
+    const row = Math.max(26, Math.floor(avail / hours));
     document.documentElement.style.setProperty('--row-h', row + 'px');
   }
+
   function highlightToday(){
     const di=new Date().getDay(); const idx=di===0?7:di;
     const ths=document.querySelectorAll('#scheduleTableCurr thead th');
     if(ths[idx]){ ths[idx].style.background='var(--gold)'; ths[idx].style.color='var(--navy)'; }
-    document.querySelectorAll('#scheduleTableCurr tbody tr').forEach(r=>{ if(r.children[idx]) r.children[idx].classList.add('today-col'); });
+    document.querySelectorAll('#scheduleTableCurr tbody tr').forEach(r=>{
+      if(r.children[idx]) r.children[idx].classList.add('today-col');
+    });
   }
-  function buildTables(){ buildOne('#scheduleTableCurr tbody'); buildOne('#scheduleTableNext tbody'); buildOne('#scheduleTableLast tbody'); fitGridToScreen(); }
+
+  function buildTables(){
+    buildOne('#scheduleTableCurr tbody');
+    buildOne('#scheduleTableNext tbody');
+    buildOne('#scheduleTableLast tbody');
+    fitGridToScreen();
+  }
   function buildOne(sel){
     const tb=document.querySelector(sel); tb.innerHTML='';
-    for(let h=scheduleStart;h<scheduleEnd;h++){
-      const hh=(h%24).toString().padStart(2,'0'); const tr=document.createElement('tr');
-      const minute=localStorage.getItem(`minute-${hh}`)||'00';
-      const td0=document.createElement('td'); td0.textContent=`${hh}:${minute}`; td0.className='time-cell'; tr.appendChild(td0);
-      for(let i=0;i<7;i++){ const td=document.createElement('td'); td.dataset.weekcol=String(i+1); tr.appendChild(td); }
+    for (let h=scheduleStart; h<scheduleEnd; h++){
+      const hh=(h%24).toString().padStart(2,'0');
+      const tr=document.createElement('tr');
+
+      const minute = localStorage.getItem(`minute-${hh}`) || '00';
+      const td0=document.createElement('td');
+      td0.textContent = `${hh}:${minute}`;
+      td0.className   = 'time-cell';
+      tr.appendChild(td0);
+
+      for (let i=0;i<7;i++){
+        const td=document.createElement('td');
+        td.dataset.weekcol = String(i+1);
+        tr.appendChild(td);
+      }
       tb.appendChild(tr);
     }
   }
-  function getRows(){ return [...document.querySelectorAll('#scheduleTableCurr tbody tr')]; }
-  function cellBy(di, time){
-    const row = getRows().find(r=> (r.firstElementChild?.textContent||'') === time);
-    return row ? row.children[di] : null; // di: 1~7
+
+  function getRows(tableId){ return [...document.querySelectorAll(`#${tableId} tbody tr`)]; }
+  function cellBy(tableId, di, time){
+    const row = getRows(tableId).find(r => (r.firstElementChild?.textContent||'')===time);
+    return row ? row.children[di] : null;
   }
-  function loadCurrFromLocal(){
-    const data=JSON.parse(localStorage.getItem('scheduleData')||'[]'); const rows=getRows();
+
+  function loadFromLocal(tableId, wo){
+    const data = JSON.parse(localStorage.getItem(LS_KEY(wo))||'[]');
+    const rows = getRows(tableId);
     data.forEach(i=>{
-      const row = rows.find(r=>{
-        const [h,m]=(r.firstElementChild?.textContent||'').split(':');
-        return `${h}:${m}`===i.time;
-      });
-      if(row){ const c=row.children[i.di]; if(c) renderCell(c,i); }
+      const row = rows.find(r => (r.firstElementChild?.textContent||'') === i.time);
+      if(row){ const c=row.children[i.di]; if(c) renderCell(c, i); }
     });
   }
+
   function updateTodayList(){
-    const now=new Date(); const today=now.getDay(); const col=today===0?7:today; const nowMin=now.getHours()*60+now.getMinutes(); const arr=[];
-    getRows().forEach(r=>{
+    const now = new Date();
+    const today = now.getDay();
+    const col = today===0 ? 7 : today;
+    const nowMin = now.getHours()*60 + now.getMinutes();
+    const arr=[];
+    getRows('scheduleTableCurr').forEach(r=>{
       const [h,m]=(r.firstElementChild?.textContent||'00:00').split(':').map(Number);
-      const total=h*60+(m||0); const cell=r.children[col];
-      if(cell && cell.dataset.info){ const v=JSON.parse(cell.dataset.info); const dn=v.name || (v.memberId ? `[${v.memberId}]` : '—'); if(total>=nowMin){ arr.push({t:total,text:`${v.time} ${dn} (${v.enrolled||0}/${v.cap||0})`});}}
+      const total=h*60+(m||0);
+      const cell=r.children[col];
+      if(cell && cell.dataset.info){
+        const v=JSON.parse(cell.dataset.info);
+        const dn=v.name || (v.memberId ? `[${v.memberId}]` : '—');
+        if(total>=nowMin) arr.push({t:total, text:`${v.time} ${dn} (${v.enrolled||0}/${v.cap||0})`});
+      }
     });
-    arr.sort((a,b)=>a.t-b.t); const ul=$('todayLessonList'); ul.innerHTML=''; arr.slice(0,2).forEach(i=>{ const li=document.createElement('li'); li.textContent=i.text; ul.appendChild(li); });
+    arr.sort((a,b)=>a.t-b.t);
+    const ul=$('todayLessonList'); ul.innerHTML='';
+    arr.slice(0,2).forEach(i=>{ const li=document.createElement('li'); li.textContent=i.text; ul.appendChild(li); });
   }
+
   function updateTimeLine(){
     document.querySelectorAll('.current-time-line').forEach(e=>e.remove());
     const now=new Date(); const di=now.getDay(); const dayIdx=di===0?7:di;
-    getRows().forEach(r=>{
+    getRows('scheduleTableCurr').forEach(r=>{
       const [hh,mm]=(r.firstElementChild?.textContent||'00:00').split(':').map(Number);
       const rowTime=hh*60+(mm||0), nv=now.getHours()*60+now.getMinutes();
       if(nv>=rowTime && nv<rowTime+60){
-        const pct=((nv-rowTime)/60)*100; const cell=r.children[dayIdx]; if(!cell) return;
+        const pct=((nv-rowTime)/60)*100;
+        const cell = r.children[dayIdx]; if(!cell) return;
         const line=document.createElement('div'); line.className='current-time-line'; line.style.top=`${pct}%`; cell.appendChild(line);
       }
     });
@@ -284,9 +335,20 @@
     $('titleLast').onclick=()=>{ const w=$('wrapLast'); w.style.display=(w.style.display==='none'||!w.style.display)?'block':'none'; };
 
     const saved=JSON.parse(localStorage.getItem('scheduleRange')||'{}');
-    if(Number.isFinite(+saved.start) && Number.isFinite(+saved.end)){ let s=+saved.start, e=+saved.end; if(e<=s) e+=24; if(e-s>=3 && e-s<=24){ scheduleStart=s; scheduleEnd=e; } }
+    if(Number.isFinite(+saved.start) && Number.isFinite(+saved.end)){
+      let s=+saved.start, e=+saved.end; if(e<=s) e+=24; if(e-s>=3 && e-s<=24){ scheduleStart=s; scheduleEnd=e; }
+    }
 
-    buildTables(); attachDelegation(); loadCurrFromLocal(); highlightToday();
+    buildTables();
+    attachDelegationFor('scheduleTableCurr', 0);
+    attachDelegationFor('scheduleTableNext', +1);
+    attachDelegationFor('scheduleTableLast', -1);
+
+    loadFromLocal('scheduleTableCurr', 0);
+    loadFromLocal('scheduleTableNext', +1);
+    loadFromLocal('scheduleTableLast', -1);
+
+    highlightToday();
     updateTodayList(); updateTimeLine(); setInterval(updateTimeLine,60000);
     $('headerCurr').onclick = openRangePopup;
 
@@ -299,14 +361,14 @@
     });
     setTimeout(()=>{ window.maybeAskAuto && window.maybeAskAuto(); }, 200);
 
-    $('saveScheduleBtn').addEventListener('click', bulkSave);
+    $('saveScheduleBtn').addEventListener('click', ()=>bulkSave(0)); // 버튼은 이번 주만
     window.addEventListener('resize', fitGridToScreen);
   })();
 
-  function attachDelegation(){
-    const tb = document.querySelector('#scheduleTableCurr tbody');
+  function attachDelegationFor(tableId, wo){
+    const tb = document.querySelector(`#${tableId} tbody`);
     tb.replaceWith(tb.cloneNode(true));
-    const tbn = document.querySelector('#scheduleTableCurr tbody');
+    const tbn = document.querySelector(`#${tableId} tbody`);
 
     tbn.addEventListener('pointerdown', (e)=>{
       const td = e.target.closest('td'); if(!td) return; lpFired=false;
@@ -318,13 +380,13 @@
       }
     }, {passive:true});
     ['pointerup','pointerleave','pointercancel'].forEach(ev=>{
-      tbn.addEventListener(ev,(e)=>{ const td=e.target.closest('td'); if(td&&td._holdTimer){clearTimeout(td._holdTimer);} clearTimeout(lpTimer); lpTimer=null; },{passive:true});
+      tbn.addEventListener(ev,(e)=>{ const td=e.target.closest('td'); if(td&&td._holdTimer){ clearTimeout(td._holdTimer); } clearTimeout(lpTimer); lpTimer=null; },{passive:true});
     });
     tbn.addEventListener('click',(e)=>{
       const td=e.target.closest('td'); if(!td) return;
-      if(td.cellIndex===0){ if(td._longPressed){ td._longPressed=false; return;} openMinute(td); return; }
+      if(td.cellIndex===0){ if(td._longPressed){ td._longPressed=false; return; } openMinute(td); return; }
       if(lpFired){ lpFired=false; return; }
-      $('cellSheet').style.display='none'; openLesson(td);
+      $('cellSheet').style.display='none'; openLesson(td, tableId, wo);
     });
     tbn.addEventListener('contextmenu', e=>e.preventDefault());
   }
@@ -336,38 +398,81 @@
     sheet.style.top =Math.min(window.innerHeight-10,r.bottom+6)+'px';
     sheet.style.display='block'; bindSheetHandlers(td);
   }
+  function weekOffsetFromCell(td){
+    const t = td.closest('table'); return parseInt(t?.dataset?.wo || '0', 10);
+  }
+  function tableIdFromCell(td){ return td.closest('table')?.id || 'scheduleTableCurr'; }
+
   function bindSheetHandlers(td){
     const info=JSON.parse(td.dataset.info||'{}'); const memberId=info.memberId||null;
-    $('sheetConsume').onclick    = async()=>{ await consumeAdjust(memberId,-1,{flag:'consumed',value:true},td); };
-    $('sheetUndoConsume').onclick= async()=>{ await consumeAdjust(memberId,+1,{flag:'consumed',value:false},td); };
-    $('sheetNoShow').onclick     = async()=>{ await consumeAdjust(memberId,-1,{flag:'noShowDeducted',value:true},td); };
-    $('sheetUndoNoShow').onclick = async()=>{ await consumeAdjust(memberId,+1,{flag:'noShowDeducted',value:false},td); };
+    const wo = weekOffsetFromCell(td);
+    $('sheetConsume').onclick    = async()=>{ await consumeAdjust(memberId,-1,{flag:'consumed',value:true},td,wo); };
+    $('sheetUndoConsume').onclick= async()=>{ await consumeAdjust(memberId,+1,{flag:'consumed',value:false},td,wo); };
+    $('sheetNoShow').onclick     = async()=>{ await consumeAdjust(memberId,-1,{flag:'noShowDeducted',value:true},td,wo); };
+    $('sheetUndoNoShow').onclick = async()=>{ await consumeAdjust(memberId,+1,{flag:'noShowDeducted',value:false},td,wo); };
     $('sheetClose').onclick=()=>{ $('cellSheet').style.display='none'; };
   }
 
   function openMinute(cell){
     currentCell = cell;
-    const curMin=(cell.textContent.split(':')[1]||'00'); $('minuteSelect').value=curMin; showPopup($('popupMinute'));
+    const curMin=(cell.textContent.split(':')[1]||'00');
+    $('minuteSelect').value = curMin;
+    showPopup($('popupMinute'));
   }
   function saveMinute(){
-    const newM=$('minuteSelect').value; const h=currentCell.textContent.split(':')[0];
-    const old=`${h}:${localStorage.getItem(`minute-${h}`)||'00'}`; const neu=`${h}:${newM}`;
-    localStorage.setItem(`minute-${h}`,newM); currentCell.textContent=neu;
-    let arr=JSON.parse(localStorage.getItem('scheduleData')||'[]'); arr.forEach(x=>{ if(x.time===old) x.time=neu; });
-    localStorage.setItem('scheduleData',JSON.stringify(arr));
-    buildTables(); attachDelegation(); loadCurrFromLocal(); updateTimeLine(); hideAll();
+    const m=$('minuteSelect').value;
+    const h=currentCell.textContent.split(':')[0];
+    const old=`${h}:${localStorage.getItem(`minute-${h}`)||'00'}`;
+    const neu=`${h}:${m}`;
+    localStorage.setItem(`minute-${h}`, m);
+
+    // 화면 모두 갱신
+    ['scheduleTableCurr','scheduleTableNext','scheduleTableLast'].forEach(id=>{
+      getRows(id).forEach(r=>{
+        if((r.firstElementChild?.textContent||'')===old) r.firstElementChild.textContent=neu;
+      });
+    });
+
+    // 로컬 데이터(3주) 내 같은 시간 슬롯은 모두 업데이트
+    [-1,0,1].forEach(wo=>{
+      let arr=JSON.parse(localStorage.getItem(LS_KEY(wo))||'[]');
+      arr.forEach(x=>{ if(x.time===old) x.time=neu; });
+      localStorage.setItem(LS_KEY(wo), JSON.stringify(arr));
+    });
+
+    updateTimeLine(); hideAll();
   }
 
   function openRangePopup(){
-    const s=String(scheduleStart%24).padStart(2,'0'); const e=String(scheduleEnd%24).padStart(2,'0');
-    $('rangeStart').value=`${s}:00`; $('rangeEnd').value=`${e}:00`; showPopup($('popupRange'));
+    const s=String(scheduleStart%24).padStart(2,'0');
+    const e=String(scheduleEnd%24).padStart(2,'0');
+    $('rangeStart').value=`${s}:00`; $('rangeEnd').value=`${e}:00`;
+    showPopup($('popupRange'));
   }
   function applyRangeCurr(){
     const rawS=$('rangeStart').value||'06:00', rawE=$('rangeEnd').value||'21:00';
-    let sH=parseInt(rawS.slice(0,2),10), eH=parseInt(rawE.slice(0,2),10); if(rawE.startsWith('00')) eH=24; if(eH<=sH) eH+=24;
+    let sH=parseInt(rawS.slice(0,2),10), eH=parseInt(rawE.slice(0,2),10);
+    if(rawE.startsWith('00')) eH=24; if(eH<=sH) eH+=24;
     if(eH-sH<3){ toast('최소 3시간 이상으로 설정하세요'); return; }
-    scheduleStart=sH; scheduleEnd=eH; localStorage.setItem('scheduleRange', JSON.stringify({start:scheduleStart,end:scheduleEnd}));
-    currentCell=null; buildTables(); attachDelegation(); loadCurrFromLocal(); highlightToday(); updateTodayList(); requestAnimationFrame(updateTimeLine); hideAll(); fitGridToScreen();
+
+    scheduleStart=sH; scheduleEnd=eH;
+    localStorage.setItem('scheduleRange', JSON.stringify({start:scheduleStart,end:scheduleEnd}));
+
+    currentCell=null;
+    buildTables();
+    attachDelegationFor('scheduleTableCurr', 0);
+    attachDelegationFor('scheduleTableNext', +1);
+    attachDelegationFor('scheduleTableLast', -1);
+
+    loadFromLocal('scheduleTableCurr', 0);
+    loadFromLocal('scheduleTableNext', +1);
+    loadFromLocal('scheduleTableLast', -1);
+
+    highlightToday();
+    updateTodayList();
+    requestAnimationFrame(updateTimeLine);
+    hideAll();
+    fitGridToScreen();
   }
 
   function getSelectedDays(defaultDi){
@@ -376,30 +481,37 @@
     if(!checked.includes(defaultDi)) checked.push(defaultDi);
     return [...new Set(checked)].sort();
   }
-
   function setDayGroup(di){
-    document.querySelectorAll('input[name="dayMulti"]').forEach(i=>{ i.checked = (+i.value===di); });
+    document.querySelectorAll('input[name="dayMulti"]').forEach(i=>{ i.checked=(+i.value===di); });
   }
 
-  function openLesson(cell){
+  function openLesson(cell, tableId='scheduleTableCurr', wo=0){
     currentCell = cell;
+    currentWeekOffset = wo;
+    currentTableId = tableId;
+
     const dayNames=['','월','화','수','목','금','토','일'];
-    const di=+cell.dataset.weekcol; const time=rowHour(cell); const hint=$('slotHint');
+    const di=+cell.dataset.weekcol;
+    const time=rowHour(cell);
+    const hint=$('slotHint');
     if(hint){ hint.textContent=`${dayNames[di]} ${time}`; hint.style.display='inline-block'; }
     const d=cell.dataset.info?JSON.parse(cell.dataset.info):{};
-    $('nameInput').value=d.name||''; $('enrolledInput').value=d.enrolled||''; $('capacityInput').value=d.cap||''; $('memberIdInput').value=d.memberId||'';
+    $('nameInput').value=d.name||'';
+    $('enrolledInput').value=d.enrolled||'';
+    $('capacityInput').value=d.cap||'';
+    $('memberIdInput').value=d.memberId||'';
     setDayGroup(di);
     showPopup($('popupLesson'));
   }
-  function rowHour(cell){ const td0=cell?.parentElement?.firstElementChild; return td0?td0.textContent:''; }
+  function rowHour(cell){ const td0=cell?.parentElement?.firstElementChild; return td0 ? td0.textContent : ''; }
 
-  function upsertLocal(infoList){
-    let arr=JSON.parse(localStorage.getItem('scheduleData')||'[]');
+  function upsertLocal(infoList, wo){
+    let arr=JSON.parse(localStorage.getItem(LS_KEY(wo))||'[]');
     infoList.forEach(info=>{
       arr=arr.filter(x=>!(x.time===info.time && x.di===info.di));
       arr.push(info);
     });
-    localStorage.setItem('scheduleData', JSON.stringify(arr));
+    localStorage.setItem(LS_KEY(wo), JSON.stringify(arr));
   }
 
   async function saveLesson(){
@@ -410,23 +522,23 @@
     const memberId=($('memberIdInput').value||'').replace(/\D/g,'');
     if(!name && !memberId && !enrolled && !cap){ toast('내용을 입력해주세요'); return; }
 
-    const time=rowHour(currentCell); const baseDi=+currentCell.dataset.weekcol;
+    const time=rowHour(currentCell);
+    const baseDi=+currentCell.dataset.weekcol;
     const days=getSelectedDays(baseDi);
-
     const infos = days.map(di=>({ name, enrolled, cap, time, di, memberId: memberId || null }));
 
     // UI 반영
     infos.forEach(i=>{
-      const target = (i.di===baseDi) ? currentCell : cellBy(i.di, time);
-      if(target){ renderCell(target, i); }
+      const target = (i.di===baseDi && tableIdFromCell(currentCell)===currentTableId) ? currentCell : cellBy(currentTableId, i.di, time);
+      if(target) renderCell(target, i);
     });
 
-    // 로컬 저장
-    upsertLocal(infos);
+    // 로컬 저장(해당 주차)
+    upsertLocal(infos, currentWeekOffset);
 
-    // 파이어스토어 저장(업서트)
+    // Firestore 저장
     try{
-      await Promise.all(infos.map(i=> window.upsertScheduleByKey && window.upsertScheduleByKey(i)));
+      await Promise.all(infos.map(i => window.upsertScheduleByKey && window.upsertScheduleByKey(i, currentWeekOffset)));
       toast(days.length>1?'여러 요일 저장 완료':'스케줄 저장 완료');
     }catch(e){ console.error(e); toast('저장 실패: '+(e.message||e.code)); }
 
@@ -435,32 +547,36 @@
 
   async function deleteLesson(){
     if(!currentCell) return;
-    const time=rowHour(currentCell); const baseDi=+currentCell.dataset.weekcol;
+    const time=rowHour(currentCell);
+    const baseDi=+currentCell.dataset.weekcol;
     const days=getSelectedDays(baseDi);
-
     if(!confirm(`${days.map(n=>"월화수목금토일".charAt(n-1)).join(', ')} ${time} 일정을 삭제할까요?`)) return;
 
-    // UI/로컬 제거
-    let arr=JSON.parse(localStorage.getItem('scheduleData')||'[]');
+    // UI & 로컬 제거(해당 주차)
+    let arr=JSON.parse(localStorage.getItem(LS_KEY(currentWeekOffset))||'[]');
     days.forEach(di=>{
-      const target = (di===baseDi) ? currentCell : cellBy(di, time);
+      const target = (di===baseDi) ? currentCell : cellBy(currentTableId, di, time);
       if(target){ target.innerHTML=''; target.classList.remove('filled'); target.style.background=''; delete target.dataset.info; }
       arr = arr.filter(x => !(x.time===time && x.di===di));
     });
-    localStorage.setItem('scheduleData', JSON.stringify(arr));
+    localStorage.setItem(LS_KEY(currentWeekOffset), JSON.stringify(arr));
 
-    // 파이어스토어 삭제
+    // Firestore 삭제
     try{
-      await Promise.all(days.map(di => window.deleteScheduleByKey && window.deleteScheduleByKey({di, time})));
+      await Promise.all(days.map(di => window.deleteScheduleByKey && window.deleteScheduleByKey({di,time}, currentWeekOffset)));
       toast(days.length>1?'여러 요일 삭제 완료':'삭제 완료');
     }catch(e){ console.error(e); toast("삭제 실패: "+(e.message||e.code)); }
 
     updateTodayList(); updateTimeLine(); hideAll();
   }
 
-  async function bulkSave(){
-    const cells=[...document.querySelectorAll('#scheduleTableCurr tbody td')].filter(td=>td.cellIndex>0 && td.dataset.info);
-    try{ await Promise.all(cells.map(c=>{ const i=JSON.parse(c.dataset.info); return window.upsertScheduleByKey && window.upsertScheduleByKey(i); })); toast("스케줄 저장 완료"); }catch(e){ console.error(e); toast("저장 실패: "+(e.message||e.code)); }
+  async function bulkSave(wo=0){
+    const tableId = wo===0 ? 'scheduleTableCurr' : (wo>0?'scheduleTableNext':'scheduleTableLast');
+    const cells=[...document.querySelectorAll(`#${tableId} tbody td`)].filter(td=>td.cellIndex>0 && td.dataset.info);
+    try{
+      await Promise.all(cells.map(c=>{ const i=JSON.parse(c.dataset.info); return window.upsertScheduleByKey && window.upsertScheduleByKey(i, wo); }));
+      toast("스케줄 저장 완료");
+    }catch(e){ console.error(e); toast("저장 실패: "+(e.message||e.code)); }
   }
   </script>
 
@@ -481,35 +597,35 @@
   const yesterLocalISO=()=>{const d=new Date();d.setDate(d.getDate()-1);return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;};
   const add60=(t)=>{const [hh,mm]=t.split(':').map(Number);const m=hh*60+(mm||0)+60;return `${p2(Math.floor(m/60)%24)}:${p2(m%60)}`;};
 
-  // 이번 주 월요일 기준 di(1~7)의 실 날짜
-  function isoFromDi(di){
+  // 이번 주 월요일 기준 + weekOffset(–1,0,+1)에서 di(1~7)의 ISO 날짜
+  function isoFromDi(di, weekOffset=0){
     const now=new Date();
     const monday=new Date(now);
     const offset=(now.getDay()+6)%7; // 0=일 → 6
-    monday.setDate(now.getDate()-offset);
+    monday.setDate(now.getDate()-offset + weekOffset*7);
     const d=new Date(monday);
     d.setDate(monday.getDate()+(di-1));
     return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;
   }
   const docIdFrom = ({date,di,start}) => `${date}-${di}-${start}`;
 
-  // 업서트(고정 ID)
-  window.upsertScheduleByKey = async (i)=>{
-    const date = isoFromDi(i.di);
+  // 업서트(고정 ID, 주차 반영)
+  window.upsertScheduleByKey = async (i, weekOffset=0)=>{
+    const date = isoFromDi(i.di, weekOffset);
+    const id   = docIdFrom({date,di:i.di,start:i.time});
     const payload={
       date, di:i.di, start:i.time, end:add60(i.time),
       name:i.name||"", cap:i.cap||0, enrolled:i.enrolled||0,
       trainer:"트레이너 A", memberId:i.memberId||null,
       updatedAt:serverTimestamp(), createdAt:serverTimestamp()
     };
-    const id = docIdFrom({date,di:i.di,start:i.time});
     await setDoc(doc(db,"schedules",id), payload, { merge:true });
     return id;
   };
 
-  window.deleteScheduleByKey = async ({di,time})=>{
-    const date = isoFromDi(di);
-    const id = docIdFrom({date,di,start:time});
+  window.deleteScheduleByKey = async ({di,time}, weekOffset=0)=>{
+    const date = isoFromDi(di, weekOffset);
+    const id   = docIdFrom({date,di,start:time});
     await deleteDoc(doc(db,"schedules",id));
   };
 
@@ -557,7 +673,7 @@
     const base=(hint.textContent||'').split(' · ')[0]; hint.textContent=`${base} · 잔여 ${remain ?? 0}`; hint.style.display='inline-block';
   }
 
-  window.consumeAdjust = async (memberId,deltaRemain,flagUpdate,td)=>{
+  window.consumeAdjust = async (memberId,deltaRemain,flagUpdate,td,weekOffset=0)=>{
     document.getElementById('cellSheet').style.display='none';
     try{
       if(memberId){
@@ -567,21 +683,36 @@
         });
       }
       if(td?.dataset.info){
-        const i=JSON.parse(td.dataset.info);
-        const id = `${isoFromDi(i.di)}-${i.di}-${i.time}`;
-        await updateDoc(doc(db,"schedules",id),{ [flagUpdate.flag]:flagUpdate.value, [`${flagUpdate.flag}At`]:serverTimestamp() });
+        const i=JSON.parse(td.dataset.info||'{}');
+        const date = isoFromDi(i.di, weekOffset);
+        const id = `${date}-${i.di}-${i.time}`;
+        await updateDoc(doc(db,"schedules",id),{
+          [flagUpdate.flag]:flagUpdate.value,
+          [`${flagUpdate.flag}At`]:serverTimestamp()
+        });
       }
-      toast(flagUpdate.flag==='noShowDeducted' ? (flagUpdate.value?'노쇼 차감 완료':'노쇼 취소 완료') : (flagUpdate.value?'소진 처리 완료':'소진 취소 완료'));
+      toast(flagUpdate.flag==='noShowDeducted'
+        ? (flagUpdate.value?'노쇼 차감 완료':'노쇼 취소 완료')
+        : (flagUpdate.value?'소진 처리 완료':'소진 취소 완료'));
     }catch(e){ console.error(e); toast("처리 실패: "+(e.message||e.code)); }
   };
 
   window.maybeAskAuto=function(){
-    const asked=localStorage.getItem('autoAsked')==='1'; const enabled=localStorage.getItem('autoConsume')==='1';
+    const asked=localStorage.getItem('autoAsked')==='1';
+    const enabled=localStorage.getItem('autoConsume')==='1';
     if(!asked && !enabled) document.getElementById('autoAsk').style.display='block';
     window.runAutoConsumeIfNeeded && window.runAutoConsumeIfNeeded(false);
   };
-  window.enableAutoConsume=function(){ localStorage.setItem('autoAsked','1'); localStorage.setItem('autoConsume','1'); document.getElementById('autoAsk').style.display='none'; document.getElementById('autoConsumeToggle').checked=true; window.runAutoConsumeIfNeeded && window.runAutoConsumeIfNeeded(true); };
-  window.dismissAutoAsk=function(){ localStorage.setItem('autoAsked','1'); document.getElementById('autoAsk').style.display='none'; };
+  window.enableAutoConsume=function(){
+    localStorage.setItem('autoAsked','1'); localStorage.setItem('autoConsume','1');
+    document.getElementById('autoAsk').style.display='none';
+    document.getElementById('autoConsumeToggle').checked=true;
+    window.runAutoConsumeIfNeeded && window.runAutoConsumeIfNeeded(true);
+  };
+  window.dismissAutoAsk=function(){
+    localStorage.setItem('autoAsked','1');
+    document.getElementById('autoAsk').style.display='none';
+  };
 
   window.runAutoConsumeIfNeeded = async function(forceNow){
     const enabled=localStorage.getItem('autoConsume')==='1'; if(!enabled) return;
@@ -592,7 +723,10 @@
       snap.forEach(docSnap=>{
         const s=docSnap.data(); if(s.consumed || s.noShowDeducted) return;
         if(s.memberId){
-          tasks.push( updateDoc(doc(db,"members",s.memberId),{remainingSessions:increment(-1)}).then(()=>updateDoc(doc(db,"schedules",docSnap.id),{consumed:true,consumedAt:serverTimestamp()})) );
+          tasks.push(
+            updateDoc(doc(db,"members",s.memberId),{remainingSessions:increment(-1)})
+              .then(()=>updateDoc(doc(db,"schedules",docSnap.id),{consumed:true,consumedAt:serverTimestamp()}))
+          );
         } else {
           tasks.push(updateDoc(doc(db,"schedules",docSnap.id),{consumed:true,consumedAt:serverTimestamp()}).catch(()=>{}));
         }
