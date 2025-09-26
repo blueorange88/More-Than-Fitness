@@ -513,62 +513,103 @@
     });
     localStorage.setItem(LS_KEY(wo), JSON.stringify(arr));
   }
+    
+/* === NEW: 요일 선택 유틸 === */
+// 팝업에서 체크된 요일들만 그대로 반환 (선택이 하나도 없으면 빈 배열)
+function getCheckedDays(){
+  return [...document.querySelectorAll('input[name="dayMulti"]:checked')]
+    .map(i => +i.value);
+}
 
-  async function saveLesson(){
-    if(!currentCell) return;
-    const name=($('nameInput').value||'').trim();
-    const enrolled=+($('enrolledInput').value||0);
-    const cap=+($('capacityInput').value||0);
-    const memberId=($('memberIdInput').value||'').replace(/\D/g,'');
-    if(!name && !memberId && !enrolled && !cap){ toast('내용을 입력해주세요'); return; }
+// 저장(추가)용: 체크가 없으면 현재 칸의 요일만, 체크가 있으면 현재 요일을 강제로 포함
+function getDaysForAdd(baseDi){
+  const checked = getCheckedDays();
+  if (checked.length === 0) return [baseDi];
+  if (!checked.includes(baseDi)) checked.push(baseDi);
+  return [...new Set(checked)].sort();
+}
 
-    const time=rowHour(currentCell);
-    const baseDi=+currentCell.dataset.weekcol;
-    const days=getSelectedDays(baseDi);
-    const infos = days.map(di=>({ name, enrolled, cap, time, di, memberId: memberId || null }));
+// 삭제용: 체크가 없으면 현재 요일만, 체크가 있으면 체크된 요일들만(현재 요일은 체크했을 때만)
+function getDaysForDelete(baseDi){
+  const checked = getCheckedDays();
+  return checked.length === 0 ? [baseDi] : checked.slice().sort((a,b)=>a-b);
+}
+ async function saveLesson(){
+  if(!currentCell) return;
 
-    // UI 반영
-    infos.forEach(i=>{
-      const target = (i.di===baseDi && tableIdFromCell(currentCell)===currentTableId) ? currentCell : cellBy(currentTableId, i.di, time);
-      if(target) renderCell(target, i);
-    });
+  const name = (document.getElementById('nameInput').value||'').trim();
+  const enrolled = +(document.getElementById('enrolledInput').value||0);
+  const cap = +(document.getElementById('capacityInput').value||0);
+  const memberId = (document.getElementById('memberIdInput').value||'').replace(/\D/g,'');
+  if(!name && !memberId && !enrolled && !cap){ toast('내용을 입력해주세요'); return; }
 
-    // 로컬 저장(해당 주차)
-    upsertLocal(infos, currentWeekOffset);
+  const time = rowHour(currentCell);
+  const baseDi = +currentCell.dataset.weekcol;
 
-    // Firestore 저장
-    try{
-      await Promise.all(infos.map(i => window.upsertScheduleByKey && window.upsertScheduleByKey(i, currentWeekOffset)));
-      toast(days.length>1?'여러 요일 저장 완료':'스케줄 저장 완료');
-    }catch(e){ console.error(e); toast('저장 실패: '+(e.message||e.code)); }
+  // ✅ 저장(추가) 시: 체크 없으면 현재 요일만, 체크 있으면 현재 요일 강제 포함
+  const days = getDaysForAdd(baseDi);
 
-    updateTodayList(); updateTimeLine(); hideAll();
+  const infos = days.map(di => ({ name, enrolled, cap, time, di, memberId: memberId || null }));
+
+  // UI 반영
+  infos.forEach(i=>{
+    const target = (i.di===baseDi && tableIdFromCell(currentCell)===currentTableId)
+      ? currentCell
+      : cellBy(currentTableId, i.di, time);
+    if(target) renderCell(target, i);
+  });
+
+  // 로컬 저장(해당 주차)
+  upsertLocal(infos, currentWeekOffset);
+
+  // Firestore 저장
+  try{
+    await Promise.all(infos.map(i => window.upsertScheduleByKey && window.upsertScheduleByKey(i, currentWeekOffset)));
+    toast(days.length>1 ? '여러 요일 저장 완료' : '스케줄 저장 완료');
+  }catch(e){ console.error(e); toast('저장 실패: '+(e.message||e.code)); }
+
+  updateTodayList(); updateTimeLine(); hideAll();
+}
+
+async function deleteLesson(){
+  if(!currentCell) return;
+
+  const time = rowHour(currentCell);
+  const baseDi = +currentCell.dataset.weekcol;
+
+  // ✅ 삭제 시: 체크 없으면 현재 요일만, 체크 있으면 체크된 요일들만
+  const days = getDaysForDelete(baseDi);
+
+  // 여러 요일이면 확인 팝업(하루만이면 바로 삭제)
+  if (days.length > 1){
+    const label = days.map(n => "월화수목금토일".charAt(n-1)).join('/');
+    if (!confirm(`${label} 동일스케줄을 일괄삭제하시겠습니까?`)){
+      hideAll(); 
+      return;
+    }
   }
 
-  async function deleteLesson(){
-    if(!currentCell) return;
-    const time=rowHour(currentCell);
-    const baseDi=+currentCell.dataset.weekcol;
-    const days=getSelectedDays(baseDi);
-    if(!confirm(`${days.map(n=>"월화수목금토일".charAt(n-1)).join(', ')} ${time} 일정을 삭제할까요?`)) return;
+  // UI & 로컬 제거(해당 주차)
+  let arr = JSON.parse(localStorage.getItem(LS_KEY(currentWeekOffset))||'[]');
 
-    // UI & 로컬 제거(해당 주차)
-    let arr=JSON.parse(localStorage.getItem(LS_KEY(currentWeekOffset))||'[]');
-    days.forEach(di=>{
-      const target = (di===baseDi) ? currentCell : cellBy(currentTableId, di, time);
-      if(target){ target.innerHTML=''; target.classList.remove('filled'); target.style.background=''; delete target.dataset.info; }
-      arr = arr.filter(x => !(x.time===time && x.di===di));
-    });
-    localStorage.setItem(LS_KEY(currentWeekOffset), JSON.stringify(arr));
+  days.forEach(di=>{
+    const target = (di===baseDi) ? currentCell : cellBy(currentTableId, di, time);
+    if(target){
+      target.innerHTML=''; target.classList.remove('filled'); target.style.background='';
+      delete target.dataset.info; delete target.dataset.docId;
+    }
+    arr = arr.filter(x => !(x.time===time && x.di===di));
+  });
+  localStorage.setItem(LS_KEY(currentWeekOffset), JSON.stringify(arr));
 
-    // Firestore 삭제
-    try{
-      await Promise.all(days.map(di => window.deleteScheduleByKey && window.deleteScheduleByKey({di,time}, currentWeekOffset)));
-      toast(days.length>1?'여러 요일 삭제 완료':'삭제 완료');
-    }catch(e){ console.error(e); toast("삭제 실패: "+(e.message||e.code)); }
+  // Firestore 삭제
+  try{
+    await Promise.all(days.map(di => window.deleteScheduleByKey && window.deleteScheduleByKey({di,time}, currentWeekOffset)));
+    toast(days.length>1 ? '여러 요일 삭제 완료' : '삭제 완료');
+  }catch(e){ console.error(e); toast("삭제 실패: "+(e.message||e.code)); }
 
-    updateTodayList(); updateTimeLine(); hideAll();
-  }
+  updateTodayList(); updateTimeLine(); hideAll();
+}
 
   async function bulkSave(wo=0){
     const tableId = wo===0 ? 'scheduleTableCurr' : (wo>0?'scheduleTableNext':'scheduleTableLast');
