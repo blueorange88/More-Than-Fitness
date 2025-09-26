@@ -679,20 +679,56 @@
     }
     return null;
   }
+async function deleteLesson(){
+  if(!currentCell) return;
 
-  function deleteLesson(){
-    if(!currentCell) return;
-    const info=currentCell.dataset.info?JSON.parse(currentCell.dataset.info):null;
-    window.deleteScheduleByCell && window.deleteScheduleByCell(currentCell).catch(e=>toast("삭제 실패: "+(e.message||e.code)));
-    currentCell.innerHTML=''; currentCell.classList.remove('filled'); currentCell.style.background='';
-    delete currentCell.dataset.info; delete currentCell.dataset.docId;
-    if(info){
-      let data=JSON.parse(localStorage.getItem('scheduleData')||'[]');
-      data=data.filter(x=>!(x.time===info.time && x.di===info.di));
-      localStorage.setItem('scheduleData',JSON.stringify(data));
+  const time   = rowHour(currentCell);
+  const baseDi = +currentCell.dataset.weekcol;
+
+  // ✅ 체크 없으면 현재 요일만, 체크 있으면 체크된 요일들만
+  const checked = getCheckedDays();              // [1,3,5] 같은 배열
+  const days    = (checked.length === 0) ? [baseDi] : checked.slice().sort((a,b)=>a-b);
+
+  // ✅ 여러 요일이면 확인창
+  if (days.length > 1){
+    const label = days.map(n => "월화수목금토일".charAt(n-1)).join('/');
+    if (!confirm(`${label} 동일스케줄을 일괄삭제하시겠습니까?`)){
+      hideAll();
+      return;
     }
-    toast("삭제 완료"); updateTodayList(); updateTimeLine(); hideAll();
   }
+
+  // UI & 로컬 제거(현재 주차 기준)
+  let arr = JSON.parse(localStorage.getItem(LS_KEY(currentWeekOffset))||'[]');
+
+  days.forEach(di=>{
+    const target = (di===baseDi) ? currentCell : cellBy(currentTableId, di, time);
+    if(target){
+      target.innerHTML = '';
+      target.classList.remove('filled');
+      target.style.background = '';
+      delete target.dataset.info;
+      delete target.dataset.docId;
+    }
+    arr = arr.filter(x => !(x.time===time && x.di===di));
+  });
+  localStorage.setItem(LS_KEY(currentWeekOffset), JSON.stringify(arr));
+
+  // Firestore 삭제
+  try{
+    await Promise.all(days.map(di =>
+      window.deleteScheduleByKey && window.deleteScheduleByKey({ di, time }, currentWeekOffset)
+    ));
+    toast(days.length>1 ? '여러 요일 삭제 완료' : '삭제 완료');
+  }catch(e){
+    console.error(e);
+    toast("삭제 실패: " + (e.message||e.code));
+  }
+
+  updateTodayList();
+  updateTimeLine();
+  hideAll();
+}
 
   async function bulkSave(){
     const cells=[...document.querySelectorAll('#scheduleTableCurr tbody td')].filter(td=>td.cellIndex>0 && td.dataset.info);
