@@ -60,6 +60,7 @@
   .binder.expired{filter:grayscale(.2) saturate(.9)}
   .binder::before{content:""; position:absolute; left:0; top:0; bottom:0; width:24px; border-radius:16px 0 0 16px;
     background:linear-gradient(180deg,rgba(255,255,255,.22),rgba(0,0,0,.1)); box-shadow:2px 0 6px rgba(0,0,0,.12) inset; transform:translateZ(16px);}
+
   .shine{position:absolute; inset:-2px; border-radius:16px; pointer-events:none; background:linear-gradient(120deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.28) 30%,rgba(255,255,255,0) 60%);
     transform:translateX(-130%); transition:transform .9s ease; mix-blend-mode:screen}
   .binder:hover .shine,.binder:focus-visible .shine{transform:translateX(130%)}
@@ -81,6 +82,19 @@
   .sticker{font-size:11px; padding:4px 8px; border-radius:10px; background:rgba(255,255,255,.75); color:#1f2937; border:1px solid rgba(0,0,0,.08); backdrop-filter:blur(3px)}
   .sticker.recent{background:#ecfeff; border-color:#a5f3fc; color:#0e7490}
   .sticker.expire{background:var(--danger-bg); border-color:var(--danger); color:#991b1b}
+
+  /* === Edge Tab (이름 라벨) === */
+  .edgeTab{
+    position:absolute; right:-10px; width:30px; height:170px; border-radius:10px 10px 10px 10px;
+    background:rgba(255,255,255,.92); border:1px solid rgba(0,0,0,.12); box-shadow:0 8px 18px rgba(0,0,0,.25);
+    display:flex; align-items:center; justify-content:center; padding:6px 4px;
+    writing-mode:vertical-rl; text-orientation:upright; letter-spacing:1px;
+    font-weight:900; font-size:14px; color:#0B1E3A; transform:translateZ(28px);
+  }
+  .edgeTab.pos-top{ top:70px }
+  .edgeTab.pos-mid{ top:140px }
+  .edgeTab.pos-btm{ top:210px }
+  .binder.open .edgeTab{ filter:grayscale(.15) opacity(.85) } /* 열려있을 때 살짝 뒤로 보임 */
 
   /* Inline file (태블릿/PC) */
   .filePage{ position:absolute; right:10px; top:70px; bottom:12px; left:36px;
@@ -110,15 +124,18 @@
        font-weight:800; font-size:13px; cursor:pointer; color:#0B1E3A; box-shadow:0 6px 16px rgba(11,30,58,.12)}
   .btn.strong{ background:#0B1E3A; color:#fff; border-color:#0B1E3A }
 
-  /* ===== 모바일: inline 숨기고 '떠오르는 파일' 사용 ===== */
+  /* 모바일: 인라인 숨기고 떠오르는 파일 사용 + 탭 크기 보정 */
   @media (max-width:540px){
     :root{ --binder-w:240px; --binder-h:380px; --binder-overlap:-90px }
     .holes{ top:98px; gap:18px }
-    .filePage{ display:none !important; }   /* 모바일에선 인라인 파일 숨김 */
+    .filePage{ display:none !important; }
+    .edgeTab{ width:28px; height:140px; right:-8px; font-size:13px }
+    .edgeTab.pos-top{ top:56px } .edgeTab.pos-mid{ top:116px } .edgeTab.pos-btm{ top:176px }
   }
   @media (max-width:400px){
     :root{ --binder-w:210px; --binder-h:340px; --binder-overlap:-70px }
     .holes{ top:92px; gap:16px }
+    .edgeTab{ height:120px } .edgeTab.pos-mid{ top:108px } .edgeTab.pos-btm{ top:164px }
   }
 
   /* 다크 */
@@ -131,9 +148,10 @@
     .row .label{ color:#cbd5e1 }
     .btn{ background:#0f172a; color:#e5e7eb; border-color:#334155 }
     .btn.strong{ background:#0B1E3A }
+    .edgeTab{ background:rgba(255,255,255,.14); color:#e5e7eb; border-color:rgba(255,255,255,.18) }
   }
 
-  /* ===== 모바일 오버레이 파일 ===== */
+  /* 모바일 떠오르는 파일 */
   .glass{ position:fixed; inset:0; background:rgba(0,0,0,.38); backdrop-filter:blur(2px); opacity:0; pointer-events:none; transition:opacity .2s; z-index:90 }
   .glass.show{ opacity:1; pointer-events:auto }
   .floatFile{ position:fixed; left:50%; top:50%; transform:translate(-50%,-50%) scale(.96); width:92vw; max-width:420px;
@@ -263,6 +281,16 @@
     const today=new Date(todayISO()).getTime(); const expT=toTime(m.expireAt);
     return Boolean(m.expiredFlag) || (Number.isFinite(expT) && expT<today);
   }
+  const edgeText=(name)=>{
+    const s=String(name||'').trim();
+    if(/[A-Za-z0-9]/.test(s)) return s.toUpperCase().slice(0,5);
+    return s.slice(0,4); // 한글/한자 3~4글자
+  };
+  const edgePosClass=(name,id)=>{
+    let h=0; const key=String(name||'')+String(id||'');
+    for(let i=0;i<key.length;i++) h=(h*31+key.charCodeAt(i))>>>0;
+    return ['pos-top','pos-mid','pos-btm'][h%3];
+  };
 
   /* 다음 예약 */
   const nextScheduleCache=new Map();
@@ -341,6 +369,7 @@
       const sGrade=m.grade?`<span class="sticker">${escapeHtml(m.grade)}</span>`:'';
       const pct=Math.max(0,Math.min(100,Math.round(((m.remaining||0)/(m.total||1))*100)));
       const low=(m.remaining||0)<=3;
+      const posClass=edgePosClass(m.name,m.id);
 
       art.innerHTML=`
         <span class="shine" aria-hidden="true"></span><span class="under" aria-hidden="true"></span>
@@ -348,6 +377,9 @@
           <div class="name-wrap"><div class="name">${escapeHtml(m.name)} <span class="suffix">고객님</span></div><div class="sub-sessions">(${m.total||0}/${m.remaining||0})</div></div>
           <div class="stickers">${sGrade} ${sRecent} ${sExpire}</div>
         </div>
+
+        <div class="edgeTab ${posClass}" aria-hidden="true">${escapeHtml(edgeText(m.name))}</div>
+
         <div class="filePage" role="region" aria-label="고객 상세">
           <div style="display:flex; align-items:center; gap:8px;">
             <div class="ring ${low?'low':''}" style="--pct:${pct}"><div class="ring-label">${m.remaining||0}/${m.total||0}</div></div>
