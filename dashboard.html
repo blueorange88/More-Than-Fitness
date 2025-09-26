@@ -585,7 +585,27 @@
     hideAll();
     fitGridToScreen();
   }
+    
+// ✅ 팝업(#popupLesson) 안에서만 체크된 요일 읽기
+function getCheckedDays(){
+  const popup = document.getElementById('popupLesson');
+  return [...popup.querySelectorAll('input[name="dayMulti"]:checked')].map(i => +i.value);
+}
 
+// ✅ 저장(추가)할 때: 체크 없으면 현재 요일만, 체크 있으면 현재 요일 강제 포함
+function getDaysForAdd(baseDi){
+  const checked = getCheckedDays();
+  if (checked.length === 0) return [baseDi];
+  if (!checked.includes(baseDi)) checked.push(baseDi);
+  return [...new Set(checked)].sort();
+}
+
+// ✅ 삭제할 때: 체크 없으면 현재 요일만, 체크 있으면 체크된 요일들만
+function getDaysForDelete(baseDi){
+  const checked = getCheckedDays();
+  return checked.length === 0 ? [baseDi] : checked.slice().sort((a,b)=>a-b);
+}
+    
   function openLesson(cell){
     currentCell = cell;
 
