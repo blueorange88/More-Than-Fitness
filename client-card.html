@@ -11,69 +11,42 @@
     --ok:#2563eb; --track:#e5e7eb;
     --shelf:#f3f4f6; --shelf-edge:#e5e7eb;
 
-    /* 바인더 크기(모바일도 동일 스타일 유지) */
-    --binder-w: 320px;
-    --binder-h: 520px;
-    --binder-overlap: -180px;
+    --binder-w: 320px; --binder-h: 520px; --binder-overlap: -180px;
   }
   *{box-sizing:border-box}
-  body{
-    margin:0; background:linear-gradient(#fff,#fbfbfb); color:var(--ink);
-    font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,sans-serif;
-  }
+  body{ margin:0; background:linear-gradient(#fff,#fbfbfb); color:var(--ink);
+        font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,sans-serif; }
 
-  /* ===== Header / Tools ===== */
-  header{
-    position:sticky; top:0; z-index:20;
-    background:linear-gradient(#fff,#f9fafb);
-    border-bottom:2px solid var(--gold);
-    padding:14px 16px 12px;
-  }
+  /* Header */
+  header{ position:sticky; top:0; z-index:20; background:linear-gradient(#fff,#f9fafb);
+          border-bottom:2px solid var(--gold); padding:14px 16px 12px; }
   header h1{margin:0 0 10px; font-size:18px; color:#0B1E3A;}
   .tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-  .tools input[type="search"]{
-    flex:1; min-width:220px; border:1px solid var(--line); border-radius:12px;
-    padding:10px 12px; font-size:14px; background:#fff;
-  }
-  .tools .group{display:flex;gap:8px; align-items:center; font-size:13px; color:#0B1E3A}
-  .tools select, .tools button{
-    border:1px solid var(--line); border-radius:10px; padding:8px 10px; background:#fff; font-size:13px; cursor:pointer;
-  }
+  .tools input[type="search"]{flex:1; min-width:220px; border:1px solid var(--line); border-radius:12px;
+    padding:10px 12px; font-size:14px; background:#fff;}
+  .tools .group{display:flex;gap:8px;align-items:center;font-size:13px;color:#0B1E3A}
+  .tools select,.tools button{border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:#fff;font-size:13px;cursor:pointer}
   .tools button.tgl{min-width:92px}
-  .back{ margin-left:auto; background:#0B1E3A; color:#fff; font-weight:700; }
+  .back{margin-left:auto;background:#0B1E3A;color:#fff;font-weight:700}
 
-  /* ===== Shelf ===== */
+  /* Shelf */
   .shelf-wrap{position:relative; padding:18px 0 calc(28px + env(safe-area-inset-bottom,0))}
-  .shelf{
-    position:relative; display:flex; gap:0; padding:26px 22px;
-    overflow-x:auto; overflow-y:visible; scrollbar-width:thin;
-    perspective:1200px;
-    border-top:1px solid var(--shelf-edge); border-bottom:1px solid var(--shelf-edge);
-    background:var(--shelf);
-    scroll-snap-type:x proximity;
-  }
-  .shelf::before, .shelf::after{
-    content:""; position:sticky; width:40px; height:100%; flex:0 0 40px; pointer-events:none; z-index:1;
-  }
-  .shelf::before{ left:0; background:linear-gradient(90deg,#f9fafb,rgba(249,250,251,0)); }
-  .shelf::after{ right:0; background:linear-gradient(270deg,#f9fafb,rgba(249,250,251,0)); }
+  .shelf{position:relative; display:flex; gap:0; padding:26px 22px; overflow-x:auto; overflow-y:visible; scrollbar-width:thin;
+         perspective:1200px; border-top:1px solid var(--shelf-edge); border-bottom:1px solid var(--shelf-edge); background:var(--shelf);
+         scroll-snap-type:x proximity;}
+  .shelf::before,.shelf::after{content:""; position:sticky; width:40px; height:100%; flex:0 0 40px; pointer-events:none; z-index:1;}
+  .shelf::before{left:0;background:linear-gradient(90deg,#f9fafb,rgba(249,250,251,0))}
+  .shelf::after{right:0;background:linear-gradient(270deg,#f9fafb,rgba(249,250,251,0))}
 
-  /* ===== Binder ===== */
-  @keyframes breathe { 0%,100%{filter:saturate(1) brightness(1)} 50%{filter:saturate(1.08) brightness(1.05)} }
-  @keyframes glowPulse {
-    0%,100%{ box-shadow:-10px 0 0 rgba(255,255,255,.18) inset, 0 22px 40px rgba(0,0,0,.22); }
-    50%    { box-shadow:-12px 0 0 rgba(255,255,255,.24) inset, 0 28px 60px rgba(0,0,0,.28); }
-  }
-  .binder{
-    position:relative;
-    width:var(--binder-w); height:var(--binder-h); margin-left:var(--binder-overlap);
-    border-radius:16px; cursor:pointer; user-select:none; outline:0;
-    transform:translateZ(0) rotateY(-12deg) translateY(6px);
-    transform-origin:left center; will-change:transform, filter;
-    box-shadow:-8px 0 0 rgba(0,0,0,.06) inset, 0 8px 20px rgba(0,0,0,.08);
+  /* Binder */
+  @keyframes breathe {0%,100%{filter:saturate(1) brightness(1)} 50%{filter:saturate(1.08) brightness(1.05)}}
+  @keyframes glowPulse{0%,100%{box-shadow:-10px 0 0 rgba(255,255,255,.18) inset,0 22px 40px rgba(0,0,0,.22)}
+                       50%{box-shadow:-12px 0 0 rgba(255,255,255,.24) inset,0 28px 60px rgba(0,0,0,.28)}}
+  .binder{ position:relative; width:var(--binder-w); height:var(--binder-h); margin-left:var(--binder-overlap);
+    border-radius:16px; cursor:pointer; user-select:none; outline:0; transform:translateZ(0) rotateY(-12deg) translateY(6px);
+    transform-origin:left center; will-change:transform,filter; box-shadow:-8px 0 0 rgba(0,0,0,.06) inset,0 8px 20px rgba(0,0,0,.08);
     transition:transform .28s cubic-bezier(.2,.8,.2,1), box-shadow .28s, filter .28s, z-index .28s;
-    background:linear-gradient(160deg, #9ec5ff 0%, #6aa0ff 55%, #3a6ddf 100%);
-    border:1px solid rgba(0,0,0,.06); color:#0b1220; scroll-snap-align:start;
+    background:linear-gradient(160deg,#9ec5ff 0%,#6aa0ff 55%,#3a6ddf 100%); border:1px solid rgba(0,0,0,.06); color:#0b1220; scroll-snap-align:start;
     transform-style:preserve-3d;
   }
   .cFemale  { background:linear-gradient(160deg,#a7f3d0,#34d399,#059669);}
@@ -81,62 +54,40 @@
   .cMale50  { background:linear-gradient(160deg,#1e293b,#0f172a,#0b1e3a);}
   .cFemale50{ background:linear-gradient(160deg,#fbcfe8,#f472b6,#db2777);}
   .cDefault { background:linear-gradient(160deg,#ddd6fe,#a78bfa,#7c3aed);}
-  .binder:first-child{ margin-left:8px; }
-  .binder:hover, .binder:focus-visible{
-    z-index:9; transform:translateY(-14px) rotateY(-2deg) scale(1.04);
-    box-shadow:-10px 0 0 rgba(255,255,255,.18) inset, 0 22px 40px rgba(0,0,0,.22);
-    animation:breathe 2.6s ease-in-out infinite;
-  }
-  .binder.expired{ filter:grayscale(.2) saturate(.9); }
-  .binder::before{ /* 등쪽 하이라이트 */
-    content:""; position:absolute; left:0; top:0; bottom:0; width:24px; border-radius:16px 0 0 16px;
-    background:linear-gradient(180deg, rgba(255,255,255,.22), rgba(0,0,0,.1));
-    box-shadow:2px 0 6px rgba(0,0,0,.12) inset;
-    transform:translateZ(16px);
-  }
-  .shine{ position:absolute; inset:-2px; border-radius:16px; pointer-events:none;
-    background:linear-gradient(120deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.28) 30%, rgba(255,255,255,0) 60%);
-    transform: translateX(-130%); transition: transform .9s ease; mix-blend-mode: screen; }
-  .binder:hover .shine, .binder:focus-visible .shine{ transform: translateX(130%); }
-  .under{
-    position:absolute; left:18%; right:12px; bottom:-10px; height:20px; pointer-events:none;
-    background:radial-gradient(60% 100% at 50% 0, rgba(0,0,0,.28), rgba(0,0,0,0));
-    filter: blur(3px); opacity:.65; transition:opacity .25s, transform .25s;
-  }
-  .binder:hover .under, .binder:focus-visible .under{ opacity:.9; transform: translateY(2px) scale(1.06); }
-  .binder.pulse{ animation:glowPulse 1.1s ease-in-out 1; }
+  .binder:first-child{margin-left:8px}
+  .binder:hover,.binder:focus-visible{z-index:9; transform:translateY(-14px) rotateY(-2deg) scale(1.04);
+    box-shadow:-10px 0 0 rgba(255,255,255,.18) inset,0 22px 40px rgba(0,0,0,.22); animation:breathe 2.6s ease-in-out infinite;}
+  .binder.expired{filter:grayscale(.2) saturate(.9)}
+  .binder::before{content:""; position:absolute; left:0; top:0; bottom:0; width:24px; border-radius:16px 0 0 16px;
+    background:linear-gradient(180deg,rgba(255,255,255,.22),rgba(0,0,0,.1)); box-shadow:2px 0 6px rgba(0,0,0,.12) inset; transform:translateZ(16px);}
+  .shine{position:absolute; inset:-2px; border-radius:16px; pointer-events:none; background:linear-gradient(120deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.28) 30%,rgba(255,255,255,0) 60%);
+    transform:translateX(-130%); transition:transform .9s ease; mix-blend-mode:screen}
+  .binder:hover .shine,.binder:focus-visible .shine{transform:translateX(130%)}
+  .under{position:absolute; left:18%; right:12px; bottom:-10px; height:20px; pointer-events:none; background:radial-gradient(60% 100% at 50% 0,rgba(0,0,0,.28),rgba(0,0,0,0));
+    filter:blur(3px); opacity:.65; transition:opacity .25s, transform .25s}
+  .binder:hover .under,.binder:focus-visible .under{opacity:.9; transform:translateY(2px) scale(1.06)}
+  .binder.pulse{animation:glowPulse 1.1s ease-in-out 1}
 
-  .holes{ position:absolute; left:10px; top:110px; display:flex; flex-direction:column; gap:20px; pointer-events:none; transform:translateZ(20px); }
-  .hole{ width:10px; height:10px; border-radius:50%; background:rgba(0,0,0,.22);
-         box-shadow: inset 0 1px 2px rgba(255,255,255,.25), 0 1px 2px rgba(0,0,0,.25);
-         opacity:.55; }
+  .holes{position:absolute; left:10px; top:110px; display:flex; flex-direction:column; gap:20px; pointer-events:none; transform:translateZ(20px)}
+  .hole{width:10px; height:10px; border-radius:50%; background:rgba(0,0,0,.22); box-shadow:inset 0 1px 2px rgba(255,255,255,.25),0 1px 2px rgba(0,0,0,.25); opacity:.55}
 
-  /* ===== 카드 머리(이름/서브) ===== */
-  .head{position:relative; display:flex; align-items:flex-start; justify-content:space-between; padding:16px 16px 8px 36px; transform:translateZ(24px); }
+  .head{position:relative; display:flex; align-items:flex-start; justify-content:space-between; padding:16px 16px 8px 36px; transform:translateZ(24px)}
   .name{font-weight:900; font-size:20px; color:#0b1220; text-shadow:0 1px 0 rgba(255,255,255,.35)}
   .name .suffix{margin-left:4px; font-weight:800; color:#1f2937; font-size:15px}
   .name-wrap{display:flex; flex-direction:column; gap:2px}
   .sub-sessions{font-size:12px; font-weight:800; color:#334155; opacity:.9}
 
-  .stickers{position:absolute; top:10px; right:10px; display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end; transform:translateZ(24px); }
-  .sticker{
-    font-size:11px; padding:4px 8px; border-radius:10px;
-    background:rgba(255,255,255,.75); color:#1f2937;
-    border:1px solid rgba(0,0,0,.08); backdrop-filter:blur(3px);
-  }
-  .sticker.recent{ background:#ecfeff; border-color:#a5f3fc; color:#0e7490; }
-  .sticker.expire{ background:var(--danger-bg); border-color:var(--danger); color:#991b1b; }
+  .stickers{position:absolute; top:10px; right:10px; display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end; transform:translateZ(24px)}
+  .sticker{font-size:11px; padding:4px 8px; border-radius:10px; background:rgba(255,255,255,.75); color:#1f2937; border:1px solid rgba(0,0,0,.08); backdrop-filter:blur(3px)}
+  .sticker.recent{background:#ecfeff; border-color:#a5f3fc; color:#0e7490}
+  .sticker.expire{background:var(--danger-bg); border-color:var(--danger); color:#991b1b}
 
-  /* ===== 인라인 파일(바인더 안쪽에 슬라이드) ===== */
-  .filePage{
-    position:absolute; right:10px; top:70px; bottom:12px; left:36px;
+  /* Inline file (태블릿/PC) */
+  .filePage{ position:absolute; right:10px; top:70px; bottom:12px; left:36px;
     background:rgba(255,255,255,.82); border:1px solid rgba(0,0,0,.08);
-    border-radius:12px; padding:12px; overflow:hidden;
-    box-shadow:0 12px 24px rgba(0,0,0,.16), inset 0 1px 0 rgba(255,255,255,.6);
-    transform:translateX(14px) rotateY(10deg) translateZ(28px); opacity:0;
-    transition:opacity .24s ease, transform .28s cubic-bezier(.2,.8,.2,1);
-    pointer-events:none; backdrop-filter: blur(6px);
-  }
+    border-radius:12px; padding:12px; overflow:hidden; box-shadow:0 12px 24px rgba(0,0,0,.16), inset 0 1px 0 rgba(255,255,255,.6);
+    transform:translateX(14px) rotateY(10deg) translateZ(28px); opacity:0; transition:opacity .24s ease, transform .28s cubic-bezier(.2,.8,.2,1);
+    pointer-events:none; backdrop-filter:blur(6px); }
   .binder.open{ z-index:12; transform:translateY(-10px) rotateY(-6deg) scale(1.02); }
   .binder.open .filePage{ opacity:1; transform:translateX(0) rotateY(0) translateZ(28px); pointer-events:auto; }
 
@@ -144,61 +95,62 @@
   .row{display:flex; gap:8px}
   .row .label{width:68px; color:#334155; font-weight:700}
   .row .value{flex:1}
-
-  .ring{
-    --pct: 0;
-    width:84px; height:84px; border-radius:50%;
-    background: conic-gradient(var(--ok) calc(var(--pct)*1%), var(--track) 0);
-    display:grid; place-items:center; margin:2px 8px 6px auto; border:6px solid rgba(255,255,255,.9);
-    box-shadow:0 2px 10px rgba(0,0,0,.08) inset, 0 6px 14px rgba(0,0,0,.08);
-  }
-  .ring.low{ --ok:#ef4444; }
-  .ring .ring-label{background:#fff; border-radius:999px; padding:6px 8px; font-size:12px; font-weight:900; border:1px solid #e5e7eb}
-
+  .ring{ --pct:0; width:84px; height:84px; border-radius:50%; background:conic-gradient(var(--ok) calc(var(--pct)*1%), var(--track) 0);
+         display:grid; place-items:center; margin:2px 8px 6px auto; border:6px solid rgba(255,255,255,.9);
+         box-shadow:0 2px 10px rgba(0,0,0,.08) inset, 0 6px 14px rgba(0,0,0,.08) }
+  .ring.low{ --ok:#ef4444 } .ring .ring-label{background:#fff; border-radius:999px; padding:6px 8px; font-size:12px; font-weight:900; border:1px solid #e5e7eb}
   .stats{display:flex; gap:8px; flex-wrap:wrap; margin-top:10px}
   .pill{border:1px solid var(--line); padding:6px 10px; border-radius:999px; font-size:12px; background:#fff}
   .pill strong{font-weight:900}
   .pill.remain{border-color:#60a5fa; background:#eff6ff}
   .pill.remain.low{border-color:#ef4444; background:#fee2e2; color:#991b1b}
   .pill.total{border-color:#d1d5db; background:#f9fafb}
+  .actions{position:absolute; left:16px; right:16px; bottom:12px; display:flex; gap:10px}
+  .btn{flex:1; padding:10px 12px; border-radius:999px; background:#fff; border:1px solid rgba(0,0,0,.08);
+       font-weight:800; font-size:13px; cursor:pointer; color:#0B1E3A; box-shadow:0 6px 16px rgba(11,30,58,.12)}
+  .btn.strong{ background:#0B1E3A; color:#fff; border-color:#0B1E3A }
 
-  .actions{
-    position:absolute; left:16px; right:16px; bottom:12px;
-    display:flex; gap:10px;
+  /* ===== 모바일: inline 숨기고 '떠오르는 파일' 사용 ===== */
+  @media (max-width:540px){
+    :root{ --binder-w:240px; --binder-h:380px; --binder-overlap:-90px }
+    .holes{ top:98px; gap:18px }
+    .filePage{ display:none !important; }   /* 모바일에선 인라인 파일 숨김 */
   }
-  .btn{
-    flex:1; padding:10px 12px; border-radius:999px;
-    background:#fff; border:1px solid rgba(0,0,0,.08);
-    font-weight:800; font-size:13px; cursor:pointer; color:#0B1E3A;
-    box-shadow:0 6px 16px rgba(11,30,58,.12);
-  }
-  .btn.strong{ background:#0B1E3A; color:#fff; border-color:#0B1E3A; }
-
-  /* 반응형: 크기만 살짝 축소. 구조/애니메이션은 유지 */
-  @media (max-width: 860px){
-    :root{ --binder-w: 280px; --binder-h: 460px; --binder-overlap: -130px; }
-  }
-  @media (max-width: 540px){
-    :root{ --binder-w: 240px; --binder-h: 380px; --binder-overlap: -90px; }
-    .holes{ top:98px; gap:18px; }
-  }
-  @media (max-width: 400px){
-    :root{ --binder-w: 210px; --binder-h: 340px; --binder-overlap: -70px; }
-    .holes{ top:92px; gap:16px; }
+  @media (max-width:400px){
+    :root{ --binder-w:210px; --binder-h:340px; --binder-overlap:-70px }
+    .holes{ top:92px; gap:16px }
   }
 
-  /* 다크 모드 */
+  /* 다크 */
   @media (prefers-color-scheme: dark){
-    body{ background:linear-gradient(#0b1220,#101826); color:#e5e7eb; }
-    header{ background:linear-gradient(#0f172a,#0b1220); border-bottom-color:#475569; }
-    .tools input[type="search"], .tools select, .tools button{ background:#0f172a; color:#e5e7eb; border-color:#374151; }
-    .shelf{ background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.02));
-            border-top-color:#374151; border-bottom-color:#374151; }
-    .filePage{ background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.12); }
-    .row .label{ color:#cbd5e1; }
-    .btn{ background:#0f172a; color:#e5e7eb; border-color:#334155; }
-    .btn.strong{ background:#0B1E3A; }
+    body{ background:linear-gradient(#0b1220,#101826); color:#e5e7eb }
+    header{ background:linear-gradient(#0f172a,#0b1220); border-bottom-color:#475569 }
+    .tools input[type="search"],.tools select,.tools button{ background:#0f172a; color:#e5e7eb; border-color:#374151 }
+    .shelf{ background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.02));
+            border-top-color:#374151; border-bottom-color:#374151 }
+    .row .label{ color:#cbd5e1 }
+    .btn{ background:#0f172a; color:#e5e7eb; border-color:#334155 }
+    .btn.strong{ background:#0B1E3A }
   }
+
+  /* ===== 모바일 오버레이 파일 ===== */
+  .glass{ position:fixed; inset:0; background:rgba(0,0,0,.38); backdrop-filter:blur(2px); opacity:0; pointer-events:none; transition:opacity .2s; z-index:90 }
+  .glass.show{ opacity:1; pointer-events:auto }
+  .floatFile{ position:fixed; left:50%; top:50%; transform:translate(-50%,-50%) scale(.96); width:92vw; max-width:420px;
+              background:linear-gradient(#ffffff,#fafafa); border:1px solid rgba(0,0,0,.08); border-radius:16px; box-shadow:0 18px 48px rgba(0,0,0,.35);
+              padding:14px 14px 54px; opacity:0; pointer-events:none; transition:opacity .22s, transform .22s; z-index:91 }
+  .floatFile.show{ opacity:1; pointer-events:auto; transform:translate(-50%,-50%) scale(1) }
+  .floatHead{ display:flex; align-items:center; gap:10px; margin-bottom:8px }
+  .floatTitle{ font-weight:900; font-size:16px }
+  .floatClose{ margin-left:auto; border:1px solid var(--line); background:#fff; border-radius:10px; padding:6px 10px; cursor:pointer }
+  .fRows{ font-size:13px; color:#374151; display:grid; gap:8px }
+  .fRow{ display:flex; gap:8px } .fRow .label{ width:68px; color:#334155; font-weight:700 } .fRow .value{ flex:1 }
+  .fRing{ --pct:0; width:74px; height:74px; border-radius:50%; background:conic-gradient(var(--ok) calc(var(--pct)*1%), var(--track) 0);
+          display:grid; place-items:center; border:6px solid rgba(255,255,255,.9); box-shadow:0 2px 10px rgba(0,0,0,.08) inset }
+  .fRing.low{ --ok:#ef4444 } .fRing .ring-label{ background:#fff; border-radius:999px; padding:4px 7px; font-size:12px; font-weight:900; border:1px solid #e5e7eb }
+  .floatActions{ position:absolute; left:14px; right:14px; bottom:12px; display:flex; gap:8px }
+  .fbtn{ flex:1; padding:10px 12px; border-radius:999px; background:#fff; border:1px solid rgba(0,0,0,.08); font-weight:800; font-size:13px; cursor:pointer; color:#0B1E3A }
+  .fbtn.primary{ background:#0B1E3A; color:#fff; border-color:#0B1E3A }
 </style>
 </head>
 <body>
@@ -218,23 +170,45 @@
         <button id="orderBtn" class="tgl" aria-pressed="false">오름차순 ↑</button>
       </div>
       <button id="expiredToggle" class="tgl" aria-pressed="false">만료 회원만 보기 (0)</button>
-      <button id="btnDash" class="back" onclick="location.href='dashboard.html'">대시보드로</button>
+      <button class="back" onclick="location.href='dashboard.html'">대시보드로</button>
     </div>
   </header>
 
   <section class="shelf-wrap">
     <div id="shelf" class="shelf" aria-live="polite"></div>
-    <div id="empty" class="empty" hidden>검색 결과가 없어요.</div>
+    <div id="empty" class="empty" hidden style="padding:40px 16px; text-align:center; color:#6b7280">검색 결과가 없어요.</div>
   </section>
 
-  <!-- 롱프레스 액션시트 -->
-  <div id="overlay" class="overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:40;"></div>
-  <div id="sheet" class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" style="display:none; position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); width:320px; max-width:90%; background:#fff; border-radius:14px; padding:16px; box-shadow:0 18px 48px rgba(0,0,0,.35); z-index:41;">
-    <h3 id="sheetTitle" style="margin:0 0 8px; font-size:16px; color:#0b1220">만료 고객 분류</h3>
+  <!-- 만료 액션시트 (롱프레스) -->
+  <div id="overlay" class="glass" style="z-index:95"></div>
+  <div id="sheet" class="floatFile" style="max-width:320px; z-index:96">
+    <div class="floatHead"><div class="floatTitle" id="sheetTitle">만료 고객 분류</div><button id="btnCancel" class="floatClose">닫기</button></div>
     <p id="sheetDesc" style="margin:0 0 12px; color:#475569; font-size:13px">이 고객을 만료 고객으로 분류할까요?</p>
-    <div class="rowbtns" style="display:flex; gap:8px">
-      <button id="btnExpire" style="flex:1; padding:10px; border-radius:10px; border:1px solid var(--line); background:#ef4444; color:#fff;">만료로 분류</button>
-      <button id="btnCancel" style="flex:1; padding:10px; border-radius:10px; border:1px solid var(--line); background:#fff;">취소</button>
+    <div style="display:flex; gap:8px"><button id="btnExpire" class="fbtn primary">만료로 분류</button><button id="btnSheetClose" class="fbtn">취소</button></div>
+  </div>
+
+  <!-- 모바일 떠오르는 파일 -->
+  <div id="glass" class="glass"></div>
+  <div id="float" class="floatFile" role="dialog" aria-modal="true" aria-labelledby="mf-title">
+    <div class="floatHead">
+      <div class="floatTitle" id="mf-title">고객 카드</div>
+      <button id="mf-close" class="floatClose">닫기</button>
+    </div>
+    <div style="display:flex; gap:10px; align-items:center; margin-bottom:8px">
+      <div id="mf-ring" class="fRing"><div class="ring-label" id="mf-ringlabel">0/0</div></div>
+      <div class="fRows" style="flex:1">
+        <div class="fRow"><span class="label">담당</span><span class="value" id="mf-trainer">-</span></div>
+        <div class="fRow"><span class="label">등급</span><span class="value" id="mf-grade">-</span></div>
+        <div class="fRow"><span class="label">등록일</span><span class="value" id="mf-first">-</span></div>
+        <div class="fRow"><span class="label">만료일</span><span class="value" id="mf-expire">-</span></div>
+        <div class="fRow"><span class="label">작성</span><span class="value" id="mf-log">0회</span></div>
+        <div class="fRow"><span class="label">다음예약</span><span class="value" id="mf-next">조회 중…</span></div>
+      </div>
+    </div>
+    <div class="floatActions">
+      <button id="mf-journal" class="fbtn">📓 일지 열기</button>
+      <button id="mf-extend" class="fbtn">➕ 연장 등록</button>
+      <button id="mf-consume" class="fbtn primary">–1 소진</button>
     </div>
   </div>
 
@@ -244,159 +218,139 @@
            query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
   import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
 
-  /* Firestore */
-  const firebaseConfig = {
-    apiKey:"AIzaSyCjdyveDx0qFPUzmaChnEy9Ni0VjTysYnM",
-    authDomain:"more-than-fitness-f6adb.firebaseapp.com",
-    projectId:"more-than-fitness-f6adb",
-    storageBucket:"more-than-fitness-f6adb.appspot.com",
-    messagingSenderId:"993248877411",
-    appId:"1:993248877411:web:c0e6785162cf252fbcd156",
-    measurementId:"G-MK0RVFG296"
-  };
-  const app = initializeApp(firebaseConfig);
-  const db  = getFirestore(app);
+  const firebaseConfig={ apiKey:"AIzaSyCjdyveDx0qFPUzmaChnEy9Ni0VjTysYnM",
+    authDomain:"more-than-fitness-f6adb.firebaseapp.com", projectId:"more-than-fitness-f6adb",
+    storageBucket:"more-than-fitness-f6adb.appspot.com", messagingSenderId:"993248877411",
+    appId:"1:993248877411:web:c0e6785162cf252fbcd156", measurementId:"G-MK0RVFG296" };
+  const app=initializeApp(firebaseConfig); const db=getFirestore(app);
 
   /* DOM */
-  const shelf    = document.getElementById('shelf');
-  const empty    = document.getElementById('empty');
-  const qEl      = document.getElementById('q');
-  const sortSel  = document.getElementById('sortBy');
-  const orderBtn = document.getElementById('orderBtn');
-  const expiredToggleBtn = document.getElementById('expiredToggle');
+  const shelf=document.getElementById('shelf'), empty=document.getElementById('empty');
+  const qEl=document.getElementById('q'), sortSel=document.getElementById('sortBy'), orderBtn=document.getElementById('orderBtn'), expiredToggleBtn=document.getElementById('expiredToggle');
 
-  const overlay  = document.getElementById('overlay');
-  const sheet    = document.getElementById('sheet');
-  const btnExpire= document.getElementById('btnExpire');
-  const btnCancel= document.getElementById('btnCancel');
-  const sheetTitle = document.getElementById('sheetTitle');
-  const sheetDesc  = document.getElementById('sheetDesc');
+  // 만료 시트
+  const overlay=document.getElementById('overlay'), sheet=document.getElementById('sheet'), btnExpire=document.getElementById('btnExpire'),
+        btnCancel=document.getElementById('btnCancel'), btnSheetClose=document.getElementById('btnSheetClose'),
+        sheetTitle=document.getElementById('sheetTitle'), sheetDesc=document.getElementById('sheetDesc');
+
+  // 모바일 파일
+  const glass=document.getElementById('glass'), float=document.getElementById('float');
+  const mfTitle=document.getElementById('mf-title'), mfClose=document.getElementById('mf-close');
+  const mfTrainer=document.getElementById('mf-trainer'), mfGrade=document.getElementById('mf-grade'),
+        mfFirst=document.getElementById('mf-first'), mfExpire=document.getElementById('mf-expire'),
+        mfLog=document.getElementById('mf-log'), mfNext=document.getElementById('mf-next'),
+        mfRing=document.getElementById('mf-ring'), mfRingLabel=document.getElementById('mf-ringlabel');
+  const mfJournal=document.getElementById('mf-journal'), mfExtend=document.getElementById('mf-extend'), mfConsume=document.getElementById('mf-consume');
 
   /* Utils */
-  const collator = new Intl.Collator('ko-KR',{numeric:true,sensitivity:'base'});
-  const escapeHtml = s => String(s ?? "").replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' }[m]));
-  const p2 = n => String(n).padStart(2,'0');
-  const todayISO = () => { const d = new Date(); return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`; };
-  const nowHM = () => { const d=new Date(); return `${p2(d.getHours())}:${p2(d.getMinutes())}`; };
-  const toISO = ts => ts?.toDate ? ts.toDate().toISOString().slice(0,10) : (typeof ts==='string' ? ts : "");
-  const toTime = (str)=> (str ? new Date(str).getTime() : NaN);
+  const collator=new Intl.Collator('ko-KR',{numeric:true,sensitivity:'base'});
+  const escapeHtml=s=>String(s??"").replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+  const p2=n=>String(n).padStart(2,'0');
+  const todayISO=()=>{const d=new Date(); return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`};
+  const nowHM=()=>{const d=new Date(); return `${p2(d.getHours())}:${p2(d.getMinutes())}`};
+  const toISO=ts=>ts?.toDate?ts.toDate().toISOString().slice(0,10):(typeof ts==='string'?ts:"");
+  const toTime=str=>str?new Date(str).getTime():NaN;
+  const isMobile=()=>window.matchMedia('(max-width: 540px)').matches;
 
-  function daysUntilAnnual(dateStr){
-    if(!dateStr) return null;
-    const [y,m,d] = String(dateStr).split('-').map(Number); if(!m||!d) return null;
-    const now = new Date();
-    const tgt = new Date(now.getFullYear(), m-1, d);
-    if (tgt < new Date(now.getFullYear(), now.getMonth(), now.getDate())) tgt.setFullYear(now.getFullYear()+1);
-    const diff = Math.ceil((tgt - now)/86400000);
-    return diff<=30 ? diff : null;
-  }
-  function colorClass(member){
-    const g = (member.gender||"").toLowerCase();
-    const now = new Date().getFullYear();
-    const age = member.birthYear ? now - member.birthYear : null;
-    if(g.startsWith('여')) return (age!==null && age>=50) ? 'cFemale50' : 'cFemale';
-    if(g.startsWith('남')) return (age!==null && age>=50) ? 'cMale50'   : 'cMale';
+  function colorClass(m){
+    const g=(m.gender||"").toLowerCase(); const y=new Date().getFullYear();
+    const age=m.birthYear? y-m.birthYear : null;
+    if(g.startsWith('여')) return (age!==null&&age>=50)?'cFemale50':'cFemale';
+    if(g.startsWith('남')) return (age!==null&&age>=50)?'cMale50':'cMale';
     return 'cDefault';
   }
   function isExpired(m){
-    const today = new Date(todayISO()).getTime();
-    const expT  = toTime(m.expireAt);
-    return Boolean(m.expiredFlag) || (Number.isFinite(expT) && expT < today);
+    const today=new Date(todayISO()).getTime(); const expT=toTime(m.expireAt);
+    return Boolean(m.expiredFlag) || (Number.isFinite(expT) && expT<today);
   }
 
-  /* 다음 예약 캐시 */
-  const nextScheduleCache = new Map();
+  /* 다음 예약 */
+  const nextScheduleCache=new Map();
   async function fetchNextSchedule(memberId){
-    if (nextScheduleCache.has(memberId)) return nextScheduleCache.get(memberId);
+    if(nextScheduleCache.has(memberId)) return nextScheduleCache.get(memberId);
     try{
-      const qy = query(collection(db,'schedules'), where('memberId','==', memberId));
-      const snap = await getDocs(qy);
-      const today = todayISO(), now = nowHM();
-      const list = [];
-      snap.forEach(ds=>{
-        const s = ds.data();
-        const d = String(s.date||''); const st = String(s.start||'00:00');
-        if (d > today || (d===today && st >= now)) list.push({date:d,start:st});
-      });
+      const qy=query(collection(db,'schedules'),where('memberId','==',memberId));
+      const snap=await getDocs(qy);
+      const today=todayISO(), now=nowHM(); const list=[];
+      snap.forEach(ds=>{ const s=ds.data(); const d=String(s.date||''); const st=String(s.start||'00:00');
+        if(d>today || (d===today && st>=now)) list.push({date:d,start:st}); });
       list.sort((a,b)=> (a.date===b.date ? a.start.localeCompare(b.start) : a.date.localeCompare(b.date)));
-      const val = list[0] ? `${list[0].date} ${list[0].start}` : '-';
-      nextScheduleCache.set(memberId, val);
-      return val;
+      const val=list[0]?`${list[0].date} ${list[0].start}`:'-'; nextScheduleCache.set(memberId,val); return val;
     }catch(e){ console.error(e); nextScheduleCache.set(memberId,'-'); return '-'; }
   }
 
   /* State */
-  let state = { orderAsc: true, showExpiredOnly: false, members: [] };
-  let currentMemberForSheet = null;
-  let longPressTimer = null;
-  let longFired = false;
-  let openedEl = null;
+  let state={orderAsc:true, showExpiredOnly:false, members:[]};
+  let currentMemberForSheet=null, longPressTimer=null, longFired=false, openedEl=null;
+  let currentMobileMember=null;
 
-  /* 파일 열기/닫기 (인라인) */
+  /* 인라인 파일 */
   function openInline(art, member){
     if(openedEl && openedEl!==art){ openedEl.classList.remove('open'); openedEl.setAttribute('aria-expanded','false'); }
-    openedEl = art;
-    art.classList.add('open'); art.setAttribute('aria-expanded','true');
+    openedEl=art; art.classList.add('open'); art.setAttribute('aria-expanded','true');
+    const nx=art.querySelector('.f-next'); if(nx){ nx.textContent='조회 중…'; fetchNextSchedule(member.id).then(v=>{ if(art.classList.contains('open')) nx.textContent=v; }); }
+  }
+  function closeInline(){ if(!openedEl) return; openedEl.classList.remove('open'); openedEl.setAttribute('aria-expanded','false'); openedEl=null; }
 
-    // 다음 예약 채우기(열릴 때만)
-    const nx = art.querySelector('.f-next');
-    nx.textContent='조회 중…';
-    fetchNextSchedule(member.id).then(v=>{ if(art.classList.contains('open')) nx.textContent=v; });
+  /* 모바일 파일 */
+  function openMobile(member){
+    currentMobileMember=member;
+    mfTitle.textContent=`${member.name} 고객 카드`;
+    mfTrainer.textContent=member.trainer||'-';
+    mfGrade.textContent=member.grade||'-';
+    mfFirst.textContent=member.first||'-';
+    mfExpire.textContent=member.expireAt||'-';
+    mfLog.textContent=`${member.logCount||0}회`;
+    mfNext.textContent='조회 중…';
+    const pct=Math.max(0,Math.min(100,Math.round(((member.remaining||0)/(member.total||1))*100)));
+    mfRing.style.setProperty('--pct', pct);
+    mfRing.classList.toggle('low', (member.remaining||0)<=3);
+    mfRingLabel.textContent=`${member.remaining||0}/${member.total||0}`;
+
+    mfJournal.onclick=()=>location.href=`personal-training-log.html?id=${encodeURIComponent(member.id)}`;
+    mfExtend.onclick =()=>location.href=`edit-member.html?id=${encodeURIComponent(member.id)}`;
+    mfConsume.onclick=async()=>{
+      if((member.remaining||0)<=0){ alert('잔여 세션이 없습니다'); return; }
+      try{ await updateDoc(doc(db,'members',member.id),{remainingSessions:increment(-1)}); }catch(e){ console.error(e); alert('소진 처리 실패'); }
+    };
+
+    fetchNextSchedule(member.id).then(v=>{ if(currentMobileMember?.id===member.id) mfNext.textContent=v; });
+
+    glass.classList.add('show'); float.classList.add('show');
   }
-  function closeInline(){
-    if(!openedEl) return;
-    openedEl.classList.remove('open');
-    openedEl.setAttribute('aria-expanded','false');
-    openedEl = null;
-  }
-  document.addEventListener('click', (e)=>{
-    // 바인더 외부 클릭 → 닫기
-    if(openedEl && !openedEl.contains(e.target)) closeInline();
+  function closeMobile(){ currentMobileMember=null; glass.classList.remove('show'); float.classList.remove('show'); }
+  glass.addEventListener('click', closeMobile); mfClose.addEventListener('click', closeMobile);
+
+  document.addEventListener('click',(e)=>{
+    if(openedEl && !openedEl.contains(e.target) && !isMobile()) closeInline();
   });
 
-  /* Render */
+  /* 렌더 */
   function render(list){
-    shelf.innerHTML = '';
-    if(!list.length){ empty.hidden = false; return; }
-    empty.hidden = true;
+    shelf.innerHTML=''; if(!list.length){ empty.hidden=false; return; } empty.hidden=true;
 
     list.forEach(m=>{
-      const expired = isExpired(m);
-      const cls = ['binder', colorClass(m)];
-      if ((m.remaining ?? 0) <= 0) cls.push('zero');
-      if (expired) cls.push('expired');
+      const expired=isExpired(m);
+      const art=document.createElement('article');
+      art.className=['binder', colorClass(m)].concat(expired?['expired']:[]).join(' ');
+      art.tabIndex=0; art.setAttribute('role','button'); art.setAttribute('aria-label',`${m.name} 고객 카드`);
 
-      const dLeft = m.expireAt ? Math.ceil((new Date(m.expireAt) - new Date(todayISO()))/86400000) : null;
-      const stickerRecent = m.lastLog ? `<span class="sticker recent">최근 ${m.lastLog}</span>` : '';
-      const stickerExpire = (expired || (dLeft !== null && dLeft <= 7)) ? `<span class="sticker expire">만료 D-${Math.max(dLeft??0,0)}</span>` : '';
-      const stickerGrade  = m.grade ? `<span class="sticker">${escapeHtml(m.grade)}</span>` : '';
+      const dLeft=m.expireAt? Math.ceil((new Date(m.expireAt)-new Date(todayISO()))/86400000) : null;
+      const sRecent=m.lastLog?`<span class="sticker recent">최근 ${m.lastLog}</span>`:'';
+      const sExpire=(expired || (dLeft!==null && dLeft<=7))?`<span class="sticker expire">만료 D-${Math.max(dLeft??0,0)}</span>`:'';
+      const sGrade=m.grade?`<span class="sticker">${escapeHtml(m.grade)}</span>`:'';
+      const pct=Math.max(0,Math.min(100,Math.round(((m.remaining||0)/(m.total||1))*100)));
+      const low=(m.remaining||0)<=3;
 
-      const art = document.createElement('article');
-      art.className = cls.join(' ');
-      art.tabIndex = 0;
-      art.setAttribute('role','button');
-      art.setAttribute('aria-label', `${m.name} 고객 카드`);
-
-      const pct = Math.max(0, Math.min(100, Math.round(((m.remaining||0)/(m.total||1))*100)));
-      const low = (m.remaining||0)<=3;
-
-      art.innerHTML = `
-        <span class="shine" aria-hidden="true"></span>
-        <span class="under" aria-hidden="true"></span>
-
+      art.innerHTML=`
+        <span class="shine" aria-hidden="true"></span><span class="under" aria-hidden="true"></span>
         <div class="head">
-          <div class="name-wrap">
-            <div class="name">${escapeHtml(m.name)} <span class="suffix">고객님</span></div>
-            <div class="sub-sessions">(${m.total||0}/${m.remaining||0})</div>
-          </div>
-          <div class="stickers">${stickerGrade} ${stickerRecent} ${stickerExpire}</div>
+          <div class="name-wrap"><div class="name">${escapeHtml(m.name)} <span class="suffix">고객님</span></div><div class="sub-sessions">(${m.total||0}/${m.remaining||0})</div></div>
+          <div class="stickers">${sGrade} ${sRecent} ${sExpire}</div>
         </div>
-
         <div class="filePage" role="region" aria-label="고객 상세">
           <div style="display:flex; align-items:center; gap:8px;">
-            <div class="ring ${low?'low':''}" style="--pct:${pct}">
-              <div class="ring-label">${m.remaining||0}/${m.total||0}</div>
-            </div>
+            <div class="ring ${low?'low':''}" style="--pct:${pct}"><div class="ring-label">${m.remaining||0}/${m.total||0}</div></div>
             <div class="rows" style="flex:1">
               <div class="row"><span class="label">담당</span><span class="value">${escapeHtml(m.trainer||"-")}</span></div>
               <div class="row"><span class="label">등급</span><span class="value">${escapeHtml(m.grade||"-")}</span></div>
@@ -406,58 +360,36 @@
               <div class="row"><span class="label">다음예약</span><span class="value f-next">조회 중…</span></div>
             </div>
           </div>
-
-          <div class="stats" aria-label="세션 현황">
-            <div class="pill remain ${low?'low':''}">잔여 <strong>${m.remaining||0}</strong></div>
-            <div class="pill total">총 <strong>${m.total||0}</strong></div>
-          </div>
-
-          <div class="actions" aria-label="빠른 작업">
+          <div class="stats"><div class="pill remain ${low?'low':''}">잔여 <strong>${m.remaining||0}</strong></div><div class="pill total">총 <strong>${m.total||0}</strong></div></div>
+          <div class="actions">
             <button class="btn f-journal">📓 일지 열기</button>
             <button class="btn f-extend">➕ 연장 등록</button>
             <button class="btn strong f-consume">–1 소진</button>
           </div>
         </div>
-
         <div class="holes"><div class="hole"></div><div class="hole"></div><div class="hole"></div></div>
       `;
 
-      // 기본 클릭 → 인라인 파일 열기/토글 (롱프레스 직후 클릭 방지)
+      // 클릭: 모바일 → 떠오르는 파일 / 태블릿PC → 인라인
       art.addEventListener('click', ()=>{
-        if (longFired){ longFired=false; return; }
-        if(art.classList.contains('open')) closeInline(); else openInline(art,m);
+        if(longFired){ longFired=false; return; }
+        if(isMobile()) openMobile(m);
+        else { art.classList.contains('open') ? closeInline() : openInline(art,m); }
       });
 
-      // 파일 안 버튼들
-      art.querySelector('.f-journal').addEventListener('click',(e)=>{
-        e.stopPropagation(); location.href = `personal-training-log.html?id=${encodeURIComponent(m.id)}`;
-      });
-      art.querySelector('.f-extend').addEventListener('click',(e)=>{
-        e.stopPropagation(); location.href = `edit-member.html?id=${encodeURIComponent(m.id)}`;
-      });
-      art.querySelector('.f-consume').addEventListener('click', async (e)=>{
-        e.stopPropagation();
-        if ((m.remaining||0) <= 0){ alert('잔여 세션이 없습니다'); return; }
-        try{ await updateDoc(doc(db,'members',m.id), { remainingSessions: increment(-1) }); }
-        catch(err){ console.error(err); alert('소진 처리 실패'); }
+      // 인라인 내부 버튼(태블릿/PC)
+      art.querySelector('.f-journal').addEventListener('click',e=>{ e.stopPropagation(); location.href=`personal-training-log.html?id=${encodeURIComponent(m.id)}`; });
+      art.querySelector('.f-extend').addEventListener('click',e=>{ e.stopPropagation(); location.href=`edit-member.html?id=${encodeURIComponent(m.id)}`; });
+      art.querySelector('.f-consume').addEventListener('click',async e=>{
+        e.stopPropagation(); if((m.remaining||0)<=0){ alert('잔여 세션이 없습니다'); return; }
+        try{ await updateDoc(doc(db,'members',m.id),{remainingSessions:increment(-1)}); }catch(err){ console.error(err); alert('소진 처리 실패'); }
       });
 
-      // 반짝 효과
-      const addPulse = ()=> art.classList.add('pulse');
-      const removePulse = ()=> art.classList.remove('pulse');
-      art.addEventListener('pointerdown', addPulse);
-      art.addEventListener('pointerup', removePulse);
-      art.addEventListener('pointerleave', removePulse);
-      art.addEventListener('animationend', (e)=>{ if(e.animationName==='glowPulse') removePulse(); });
-
-      // 롱프레스 → 만료 분류 시트
+      // 롱프레스 → 만료 시트
       art.addEventListener('pointerdown', ()=>{
-        longFired=false;
-        longPressTimer = setTimeout(()=>{ longFired=true; openExpireSheet(m); }, 600);
-      }, {passive:true});
-      ['pointerup','pointerleave','pointercancel'].forEach(evName=>{
-        art.addEventListener(evName, ()=>{ clearTimeout(longPressTimer); longPressTimer=null; }, {passive:true});
-      });
+        longFired=false; longPressTimer=setTimeout(()=>{ longFired=true; openExpireSheet(m); },600);
+      },{passive:true});
+      ['pointerup','pointerleave','pointercancel'].forEach(ev=>{ art.addEventListener(ev,()=>{ clearTimeout(longPressTimer); longPressTimer=null; },{passive:true}); });
 
       shelf.appendChild(art);
     });
@@ -465,26 +397,22 @@
 
   /* 만료 시트 */
   function openExpireSheet(member){
-    currentMemberForSheet = member;
-    const expired = isExpired(member);
-    sheetTitle.textContent = expired ? '만료 표시 해제' : '만료 고객 분류';
-    sheetDesc.textContent  = expired ? '이 고객의 만료 표시를 해제할까요?' : '이 고객을 만료 고객으로 분류할까요?';
-    btnExpire.textContent  = expired ? '만료 표시 해제' : '만료로 분류';
-    overlay.style.display = 'block';
-    sheet.style.display   = 'block';
+    currentMemberForSheet=member;
+    const expired=isExpired(member);
+    sheetTitle.textContent=expired?'만료 표시 해제':'만료 고객 분류';
+    sheetDesc.textContent =expired?'이 고객의 만료 표시를 해제할까요?':'이 고객을 만료 고객으로 분류할까요?';
+    btnExpire.textContent =expired?'만료 표시 해제':'만료로 분류';
+    overlay.classList.add('show'); sheet.classList.add('show');
   }
-  function closeSheet(){
-    overlay.style.display = 'none';
-    sheet.style.display   = 'none';
-    currentMemberForSheet = null;
-  }
+  function closeSheet(){ overlay.classList.remove('show'); sheet.classList.remove('show'); currentMemberForSheet=null; }
   overlay.addEventListener('click', closeSheet);
   btnCancel.addEventListener('click', closeSheet);
+  btnSheetClose.addEventListener('click', closeSheet);
   btnExpire.addEventListener('click', async ()=>{
     if(!currentMemberForSheet) return;
     try{
-      const willUnset = isExpired(currentMemberForSheet);
-      await updateDoc(doc(db,'members', currentMemberForSheet.id), {
+      const willUnset=isExpired(currentMemberForSheet);
+      await updateDoc(doc(db,'members',currentMemberForSheet.id),{
         expiredFlag: willUnset ? false : true,
         expiredFlagAt: willUnset ? null : serverTimestamp()
       });
@@ -494,100 +422,51 @@
 
   /* 정렬/필터 */
   function filterSort(){
-    const kw = (qEl.value||'').trim().toLowerCase();
-    const norm = s => String(s||'').toLowerCase();
-
-    let list = state.members.filter(m=>{
-      const match = !kw || norm(m.name).includes(kw) || norm(m.trainer).includes(kw) || norm(m.grade).includes(kw);
-      const expired = isExpired(m);
-      const pass = state.showExpiredOnly ? expired : true;
-      return match && pass;
+    const kw=(qEl.value||'').trim().toLowerCase(); const norm=s=>String(s||'').toLowerCase();
+    let list=state.members.filter(m=>{
+      const match=!kw || norm(m.name).includes(kw) || norm(m.trainer).includes(kw) || norm(m.grade).includes(kw);
+      const expired=isExpired(m); const pass=state.showExpiredOnly ? expired : true; return match && pass;
     });
-
-    const by = sortSel.value;
-    const dir = state.orderAsc ? 1 : -1;
-
+    const by=sortSel.value; const dir=state.orderAsc?1:-1;
     list.sort((a,b)=>{
-      if(by==='name')   return dir * collator.compare(a.name, b.name);
-      if(by==='recent'){
-        const A = toTime(a.lastLog) || 0;
-        const B = toTime(b.lastLog) || 0;
-        return dir * (A - B);
-      }
-      if(by==='remain') return dir * ((a.remaining||0) - (b.remaining||0));
-      if(by==='first'){
-        const A = toTime(a.first) || 0;
-        const B = toTime(b.first) || 0;
-        return dir * (A - B);
-      }
-      if(by==='expire'){
-        const A = toTime(a.expireAt) || Infinity;
-        const B = toTime(b.expireAt) || Infinity;
-        return dir * (A - B);
-      }
+      if(by==='name')   return dir*collator.compare(a.name,b.name);
+      if(by==='recent'){ const A=toTime(a.lastLog)||0, B=toTime(b.lastLog)||0; return dir*(A-B); }
+      if(by==='remain') return dir*((a.remaining||0)-(b.remaining||0));
+      if(by==='first'){ const A=toTime(a.first)||0, B=toTime(b.first)||0; return dir*(A-B); }
+      if(by==='expire'){ const A=toTime(a.expireAt)||Infinity, B=toTime(b.expireAt)||Infinity; return dir*(A-B); }
       return 0;
     });
-
     render(list);
-
-    // 만료 수 카운트 업데이트
-    const expiredCount = state.members.filter(m=>isExpired(m)).length;
-    expiredToggleBtn.textContent = `${state.showExpiredOnly ? '전체 보기' : '만료 회원만 보기'} (${expiredCount})`;
+    const expiredCount=state.members.filter(m=>isExpired(m)).length;
+    expiredToggleBtn.textContent=`${state.showExpiredOnly?'전체 보기':'만료 회원만 보기'} (${expiredCount})`;
   }
-
-  orderBtn.addEventListener('click', ()=>{
-    state.orderAsc = !state.orderAsc;
-    orderBtn.textContent = state.orderAsc ? '오름차순 ↑' : '내림차순 ↓';
-    orderBtn.setAttribute('aria-pressed', String(!state.orderAsc));
-    filterSort();
-  });
+  orderBtn.addEventListener('click',()=>{ state.orderAsc=!state.orderAsc; orderBtn.textContent=state.orderAsc?'오름차순 ↑':'내림차순 ↓'; orderBtn.setAttribute('aria-pressed',String(!state.orderAsc)); filterSort(); });
   qEl.addEventListener('input', filterSort);
   sortSel.addEventListener('change', filterSort);
-  expiredToggleBtn.addEventListener('click', ()=>{
-    state.showExpiredOnly = !state.showExpiredOnly;
-    expiredToggleBtn.setAttribute('aria-pressed', String(state.showExpiredOnly));
-    filterSort();
-  });
+  expiredToggleBtn.addEventListener('click',()=>{ state.showExpiredOnly=!state.showExpiredOnly; expiredToggleBtn.setAttribute('aria-pressed',String(state.showExpiredOnly)); filterSort(); });
 
-  /* 구독 */
-  const auth = getAuth(app);
-  onAuthStateChanged(auth, (u)=>{
-    if (u) startMembers();
-    else signInAnonymously(auth).catch((e)=>{ console.error(e); empty.textContent='로그인 실패로 데이터를 볼 수 없어요.'; empty.hidden=false; });
-  });
+  /* Firestore 구독 */
+  const auth=getAuth(app);
+  onAuthStateChanged(auth,(u)=>{ if(u) start(); else signInAnonymously(auth).catch(e=>{ console.error(e); empty.textContent='로그인 실패로 데이터를 볼 수 없어요.'; empty.hidden=false; }); });
 
-  function startMembers(){
-    onSnapshot(
-      collection(db,'members'),
-      (snap)=>{
-        const list=[];
-        snap.forEach(ds=>{
-          const d=ds.data();
-          list.push({
-            id: ds.id,
-            name: d.name || "",
-            trainer: d.trainer || "",
-            grade: d.level || d.grade || "",
-            first: d.startDate || toISO(d.createdAt) || "",
-            expireAt: toISO(d.expireAt),
-            lastLog:  toISO(d.lastLogAt) || toISO(d.lastPurchaseAt),
-            logCount: d.logCount || 0,
-            remaining: d.remainingSessions ?? 0,
-            total: d.totalSessionsPurchased ?? d.totalSessions ?? 0,
-            birthday: toISO(d.birthday),
-            anniversary: toISO(d.anniversary),
-            gender: d.gender || "",
-            birthYear: d.birth ? Number(String(d.birth).slice(0,4)) : null,
-            expiredFlag: Boolean(d.expiredFlag)
-          });
+  function start(){
+    onSnapshot(collection(db,'members'),(snap)=>{
+      const list=[]; snap.forEach(ds=>{
+        const d=ds.data();
+        list.push({
+          id:ds.id, name:d.name||"", trainer:d.trainer||"", grade:d.level||d.grade||"",
+          first:d.startDate||toISO(d.createdAt)||"", expireAt:toISO(d.expireAt),
+          lastLog:toISO(d.lastLogAt)||toISO(d.lastPurchaseAt), logCount:d.logCount||0,
+          remaining:d.remainingSessions ?? 0, total:d.totalSessionsPurchased ?? d.totalSessions ?? 0,
+          gender:d.gender||"", birthYear: d.birth ? Number(String(d.birth).slice(0,4)) : null,
+          expiredFlag:Boolean(d.expiredFlag)
         });
-        state.members=list;
-        const expiredCount = state.members.filter(m=>isExpired(m)).length;
-        expiredToggleBtn.textContent = `${state.showExpiredOnly ? '전체 보기' : '만료 회원만 보기'} (${expiredCount})`;
-        filterSort();
-      },
-      (err)=>{ console.error(err); empty.textContent = '데이터를 불러오지 못했어요. (권한/네트워크 확인)'; empty.hidden = false; }
-    );
+      });
+      state.members=list;
+      const expiredCount=state.members.filter(m=>isExpired(m)).length;
+      expiredToggleBtn.textContent=`${state.showExpiredOnly?'전체 보기':'만료 회원만 보기'} (${expiredCount})`;
+      filterSort();
+    },(err)=>{ console.error(err); empty.textContent='데이터를 불러오지 못했어요. (권한/네트워크 확인)'; empty.hidden=false; });
   }
   </script>
 </body>
