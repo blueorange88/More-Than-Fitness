@@ -3,184 +3,159 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>고객 카드 – 바인더 서류철 (롱프레스 오픈)</title>
+<title>고객 카드 – 바인더 서류철</title>
 <style>
   :root{
     /* 사이즈/레이아웃 */
-    --binder-w: 240px;         /* 바인더 너비(모바일은 아래 미디어쿼리에서 줄임) */
-    --binder-overlap: -120px;  /* 겹침 정도(음수일수록 많이 겹침) */
+    --binder-w: 300px;         /* 바인더 너비 (모바일에서 자동 축소) */
+    --binder-overlap: -150px;  /* 겹침 정도(음수 = 더 겹침) */
     --shelf-pad: 22px;
 
-    /* 색상 */
+    /* 공통 색상 */
     --navy:#0B1E3A; --gold:#C8A848; --ink:#0b1220; --muted:#6b7280;
-    --line:#e5e7eb; --danger:#ef4444; --ok:#2563eb; --grid:#e5e7eb;
-
+    --line:#e5e7eb; --ok:#2563eb; --grid:#e5e7eb;
     --shelf:#f3f4f6; --shelf-edge:#e5e7eb;
   }
 
-  *{box-sizing:border-box}
-  html,body{height:100%}
+  *{box-sizing:border-box} html,body{height:100%}
   body{
     margin:0; background:linear-gradient(#fff,#fbfbfb); color:var(--ink);
     font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,sans-serif;
     -webkit-tap-highlight-color: transparent;
   }
 
-  /* ===== Header ===== */
+  /* ===== Header / Tools ===== */
   header{ position:sticky; top:0; z-index:10; background:linear-gradient(#fff,#f9fafb);
-          border-bottom:2px solid var(--gold); padding:12px 16px }
-  header h1{ margin:0; font-size:18px; color:var(--navy) }
+          border-bottom:2px solid var(--gold); padding:10px 12px }
+  header h1{ margin:0 0 10px; font-size:18px; color:var(--navy) }
+  .tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .tools input[type="search"], .tools select, .tools button{
+    border:1px solid var(--line); border-radius:10px; padding:9px 10px; background:#fff; font-size:13px;
+  }
+  .tools input[type="search"]{ flex:1; min-width:220px }
+  .tools .btn{cursor:pointer}
+  .tools .tgl{min-width:92px}
 
   /* ===== Shelf ===== */
-  .shelf-wrap{ position:relative; padding:10px 0 20px }
+  .shelf-wrap{ position:relative; padding:8px 0 20px }
   .shelf{
     position:relative; display:flex; gap:0;
-    padding: 20px var(--shelf-pad) 34px;
+    padding: 18px var(--shelf-pad) 34px;
     overflow-x:auto; overflow-y:visible; scrollbar-width:thin;
     border-top:1px solid var(--shelf-edge); border-bottom:1px solid var(--shelf-edge);
     background:var(--shelf); scroll-snap-type:x proximity;
     perspective:1200px;
   }
-  .shelf::before,.shelf::after{
-    content:""; position:sticky; width:40px; flex:0 0 40px; height:100%; pointer-events:none;
-  }
+  .shelf::before,.shelf::after{ content:""; position:sticky; width:40px; flex:0 0 40px; height:100%; pointer-events:none; }
   .shelf::before{ left:0; background:linear-gradient(90deg,#f9fafb,rgba(249,250,251,0)); }
   .shelf::after{ right:0; background:linear-gradient(270deg,#f9fafb,rgba(249,250,251,0)); }
 
   /* ===== Binder card ===== */
   .binder{
-    position:relative; width:var(--binder-w); aspect-ratio:210/297;  /* A4비율 */
+    position:relative; width:var(--binder-w); aspect-ratio:210/297;  /* A4 비율 */
     margin-left:var(--binder-overlap);
     border-radius:16px; cursor:pointer; user-select:none; outline:0;
     transform: translateZ(0) rotateY(-10deg) translateY(6px);
     transform-origin:left center; will-change:transform, filter;
     box-shadow:-8px 0 0 rgba(0,0,0,.06) inset, 0 8px 20px rgba(0,0,0,.10);
     transition: transform .28s cubic-bezier(.2,.8,.2,1), box-shadow .28s, filter .28s, z-index .28s;
-    border:1px solid rgba(0,0,0,.06); color:#0b1220;
-    scroll-snap-align:start;
-    touch-action: manipulation;
+    border:1px solid rgba(0,0,0,.06); color:#0b1220; scroll-snap-align:start; touch-action:manipulation;
   }
   .binder:first-child{ margin-left:8px; }
   .binder:hover, .binder.peek{
-    z-index:5; transform:translateY(-12px) rotateY(-2deg) scale(1.04);
+    z-index:6; transform:translateY(-14px) rotateY(-2deg) scale(1.04);
     box-shadow:-10px 0 0 rgba(255,255,255,.18) inset, 0 22px 40px rgba(0,0,0,.18);
   }
 
-  /* 배경(성별/연령 등급별) */
-  .cFemale  { background:linear-gradient(160deg,#a7f3d0,#34d399,#059669);} /* 연두 */
-  .cMale    { background:linear-gradient(160deg,#bfdbfe,#60a5fa,#2563eb);} /* 하늘 */
-  .cMale50  { background:linear-gradient(160deg,#1e293b,#0f172a,#0b1e3a);} /* 네이비 */
-  .cFemale50{ background:linear-gradient(160deg,#fbcfe8,#f472b6,#db2777);} /* 분홍 */
-  .cDefault { background:linear-gradient(160deg,#ddd6fe,#a78bfa,#7c3aed);} /* 보라 */
+  /* 컬러(요청 규칙) */
+  .cBlue { background:linear-gradient(160deg,#eaf3ff,#cfe2ff,#b0d0ff);}
+  .cPink { background:linear-gradient(160deg,#ffe8f3,#ffcfe3,#ffbad6);}
+  .cGray { background:linear-gradient(160deg,#eef0f3,#d9dde3,#c9ced6);}
 
-  /* 왼쪽 인덱스 탭 */
+  /* 왼쪽 인덱스 탭(바인더 색과 맞추기 위해 반투명) */
   .idx-tab{
-    position:absolute; left:-14px; top:16px; width:46px; height:68%;
+    position:absolute; left:-16px; top:16px; width:50px; height:68%;
     background:rgba(255,255,255,.85); border:1px solid rgba(0,0,0,.08);
     border-radius:10px; box-shadow:0 4px 10px rgba(0,0,0,.12);
     display:flex; align-items:center; justify-content:center; padding:6px;
     writing-mode:vertical-rl; text-orientation:upright; font-weight:900; letter-spacing:2px;
     color:#111827;
   }
+  .name-chip{ position:absolute; top:10px; left:70px; font-weight:900; font-size:18px; text-shadow:0 1px 0 rgba(255,255,255,.35) }
+  .grade-badge{ position:absolute; top:12px; right:12px; font-size:12px; background:rgba(255,255,255,.85); border:1px solid rgba(0,0,0,.08); padding:4px 8px; border-radius:10px; font-weight:800 }
 
-  /* 하단 "최근등록" 칩 */
+  /* 하단 “최근등록” 칩(요청: 하단만 표시) */
   .recent-chip{
     position:absolute; left:14px; bottom:10px;
     background:rgba(255,255,255,.9); color:#111827; border:1px solid rgba(0,0,0,.08);
     font-size:12px; padding:6px 10px; border-radius:12px; font-weight:800;
   }
 
-  /* 안쪽 장식(구멍/스티커) */
-  .holes{ position:absolute; left:16%; top:16%; bottom:14%; width:14px;
-          display:grid; grid-template-rows:repeat(3,1fr); align-content:space-between; gap:16%;}
+  /* 구멍 장식 */
+  .holes{ position:absolute; left:16%; top:16%; bottom:14%; width:14px; display:grid; grid-template-rows:repeat(3,1fr); gap:16%;}
   .holes i{ display:block; width:12px; height:12px; border-radius:9999px; background:rgba(0,0,0,.16); }
 
-  /* ===== Overlay(바인더가 앞으로 튀어나와 열림) ===== */
+  /* ===== Overlay(파일 앞으로, 덮개 오픈) ===== */
   .overlay{ position:fixed; inset:0; background:rgba(0,0,0,.50);
             display:none; align-items:center; justify-content:center; z-index:40; }
   .overlay.show{ display:flex; }
 
-  .file-visual{
-    width:min(92vw, 980px); aspect-ratio:210/297; position:relative;
-    transform: translateY(20px) scale(.96); opacity:0;
-    transition: transform .28s, opacity .28s; will-change:transform,opacity;
-  }
+  .file-visual{ width:min(94vw, 1100px); aspect-ratio:210/297; position:relative; transform: translateY(20px) scale(.96); opacity:0; transition: transform .28s, opacity .28s; will-change:transform,opacity; }
   .overlay.show .file-visual{ transform: translateY(0) scale(1); opacity:1; }
 
-  .fv-folder{
-    position:absolute; inset:0; border-radius:14px; background:#e5eefc;
-    box-shadow:0 18px 48px rgba(0,0,0,.35);
-    overflow:hidden; transform-style:preserve-3d;
-  }
+  /* 테마(덮개색 매칭) */
+  .theme-blue .fv-cover{ background:linear-gradient(135deg,#f4f9ff,#d7e8ff); }
+  .theme-pink .fv-cover{ background:linear-gradient(135deg,#fff1f7,#ffd5e8); }
+  .theme-gray .fv-cover{ background:linear-gradient(135deg,#f2f4f7,#d9dde3); }
 
-  /* 덮개: 오른쪽 → 왼쪽으로 열림 */
-  .fv-cover{
-    position:absolute; inset:0; background:linear-gradient(135deg,#f4f1de 0%, #e9c46a 100%);
-    border-left:1px solid rgba(0,0,0,.08);
-    transform-origin:left center; z-index:20;
-    transition: transform .6s cubic-bezier(.2,.8,.2,1);
-  }
+  .fv-folder{ position:absolute; inset:0; border-radius:14px; background:#e5eefc; box-shadow:0 18px 48px rgba(0,0,0,.35); overflow:hidden; transform-style:preserve-3d; }
+  .fv-cover{ position:absolute; inset:0; border-left:1px solid rgba(0,0,0,.08); transform-origin:left center; z-index:30; transition: transform .6s cubic-bezier(.2,.8,.2,1); }
   .file-visual.open .fv-cover{ transform: translateX(-82%) rotateY(-18deg); }
 
   /* 종이 더미 */
   .fv-paper{ position:absolute; inset:10px 12px; z-index:8; pointer-events:none; }
-  .fv-sheet{ position:absolute; inset:0; border-radius:8px; background:white; border:1px solid #e5e7eb;
-             box-shadow:0 1px 3px rgba(0,0,0,.08); }
+  .fv-sheet{ position:absolute; inset:0; border-radius:8px; background:white; border:1px solid #e5e7eb; box-shadow:0 1px 3px rgba(0,0,0,.08); }
   .fv-sheet:nth-child(1){ transform: translateX(2px); }
   .fv-sheet:nth-child(2){ transform: translateX(4px); }
   .fv-sheet:nth-child(3){ transform: translateX(6px); }
   .fv-sheet:nth-child(4){ transform: translateX(8px); }
 
-  /* 실제 컨텐츠 페이지 */
-  .fv-page{
-    position:absolute; inset:12px; z-index:12;
-    border-radius:10px; background:#fff; border:1px solid #e5e7eb;
-    box-shadow:0 1px 2px rgba(0,0,0,.06) inset;
-    opacity:0; transform:translateY(6px);
-    transition:opacity .3s .15s, transform .3s .15s;
+  /* ===== Book (좌우 책장 넘김) ===== */
+  .book{ position:absolute; inset:12px; z-index:12; perspective:1600px; }
+  .book-inner{ position:absolute; inset:0; transform-style:preserve-3d; transition: transform .7s cubic-bezier(.2,.8,.2,1); }
+  .book.flipped .book-inner{ transform: rotateY(180deg); }
+
+  .page{
+    position:absolute; inset:0; background:#fff; border:1px solid #e5e7eb; border-radius:10px;
+    backface-visibility:hidden; overflow:auto; padding:14px;
   }
-  .file-visual.open .fv-page{ opacity:1; transform:translateY(0); }
-
-  .page-scroll{ position:absolute; inset:12px; overflow:auto; }
-
-  /* 페이지 안의 그리드(좌우 스크롤 허용을 위해 최소 너비) */
-  .doc-grid{
-    display:grid; grid-template-columns: 1fr 1fr; gap:12px; min-width: 720px;
-  }
-
-  .card{ background:#fff; border:1px solid var(--grid); border-radius:12px; padding:12px;
-         box-shadow:0 2px 8px rgba(0,0,0,.08); }
+  .page.right{ transform: rotateY(180deg); }
+  .page h2{ margin:0 0 10px; font-size:16px }
+  .grid{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; min-width: 760px; }
+  .card{ background:#fff; border:1px solid var(--grid); border-radius:12px; padding:12px; box-shadow:0 2px 8px rgba(0,0,0,.08); }
   .card h3{ margin:0 0 8px; font-size:14px }
   .row{ display:flex; gap:8px; font-size:13px; margin:4px 0 }
-  .row .label{ width:68px; color:#475569; font-weight:700 }
+  .row .label{ width:78px; color:#475569; font-weight:700 }
   .pill{ display:inline-block; border:1px solid #d1d5db; background:#f9fafb; border-radius:999px; padding:6px 10px; font-size:12px; }
-  .btn{ display:inline-flex; align-items:center; justify-content:center;
-        border-radius:999px; padding:10px 14px; border:1px solid #d1d5db; cursor:pointer; background:#fff; }
+  .btn{ display:inline-flex; align-items:center; justify-content:center; border-radius:999px; padding:10px 14px; border:1px solid #d1d5db; cursor:pointer; background:#fff; }
   .btn.primary{ background:var(--navy); color:#fff; border-color:var(--navy); }
 
-  /* 닫기 버튼 */
-  .closebar{ position:absolute; left:12px; top:10px; z-index:30; display:flex; gap:8px; align-items:center; }
+  /* 닫기 */
+  .closebar{ position:absolute; left:12px; top:10px; z-index:40; display:flex; gap:8px; align-items:center; }
   .closebtn{ background:#fff; border:1px solid #d1d5db; border-radius:999px; padding:8px 12px; font-weight:800; cursor:pointer }
 
   /* 반응형 */
-  @media (max-width: 860px){
-    :root{ --binder-w: 200px; --binder-overlap: -90px; }
-  }
-  @media (max-width: 540px){
-    :root{ --binder-w: 170px; --binder-overlap: -70px; }
-    .doc-grid{ min-width: 640px; }  /* 모바일에서도 좌우 스크롤 가능 */
-  }
+  @media (max-width: 980px){ :root{ --binder-w: 260px; --binder-overlap: -130px; } }
+  @media (max-width: 720px){ :root{ --binder-w: 210px; --binder-overlap: -100px; } .grid{ min-width: 640px; } }
 
-  /* 다크 느낌 */
+  /* 다크 모드 */
   @media (prefers-color-scheme: dark){
     body{ background:linear-gradient(#0b1220,#101826); color:#e5e7eb; }
     header{ background:linear-gradient(#0f172a,#0b1220); border-bottom-color:#475569; }
     .shelf{ background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.02));
             border-top-color:#374151; border-bottom-color:#374151; }
-    .binder{ color:#eef2ff; border-color:rgba(255,255,255,.06);
-             box-shadow:-8px 0 0 rgba(0,0,0,.45) inset, 0 12px 28px rgba(0,0,0,.65); }
     .fv-folder{ background:#0f172a; }
-    .fv-page{ background:#0b1220; border-color:#303644; }
+    .page{ background:#0b1220; border-color:#303644; }
     .card{ background:#0f172a; border-color:#303644; }
     .btn{ background:#0f172a; color:#e5e7eb; border-color:#303644; }
     .btn.primary{ background:#0B1E3A; border-color:#0B1E3A; }
@@ -190,13 +165,29 @@
 </style>
 </head>
 <body>
-  <header><h1>개인 트레이닝 – 바인더 서류철</h1></header>
+  <header>
+    <h1>개인 트레이닝 – 바인더 서류철</h1>
+    <div class="tools">
+      <input id="q" type="search" placeholder="이름 / 담당 / 등급 검색" />
+      <select id="groupSel" title="소그룹(담당)"><option value="">소그룹(담당) 전체</option></select>
+      <select id="sortSel" title="정렬">
+        <option value="name">이름(가나다·영문·숫자)</option>
+        <option value="recent">최근 작성</option>
+        <option value="remain">잔여 세션</option>
+        <option value="first">최초 등록일</option>
+        <option value="expire">만료일</option>
+      </select>
+      <button id="orderBtn" class="btn tgl" aria-pressed="false">오름차순 ↑</button>
+      <button id="expiredBtn" class="btn tgl" aria-pressed="false">만료 회원만 보기 (0)</button>
+    </div>
+  </header>
 
   <section class="shelf-wrap">
     <div id="shelf" class="shelf" aria-live="polite"></div>
+    <div id="empty" style="padding:30px 14px; text-align:center; color:#6b7280; display:none">검색/필터 결과가 없어요.</div>
   </section>
 
-  <!-- ===== Overlay (파일이 화면 앞으로 나오고 덮개가 열림) ===== -->
+  <!-- ===== Overlay (파일 앞으로 나오고 덮개 오픈 + 책장 넘김) ===== -->
   <div id="overlay" class="overlay" role="dialog" aria-modal="true">
     <div class="file-visual" id="fileVisual">
       <div class="closebar">
@@ -207,16 +198,28 @@
       <div class="fv-folder">
         <!-- 종이 더미 -->
         <div class="fv-paper">
-          <div class="fv-sheet"></div>
-          <div class="fv-sheet"></div>
-          <div class="fv-sheet"></div>
-          <div class="fv-sheet"></div>
+          <div class="fv-sheet"></div><div class="fv-sheet"></div><div class="fv-sheet"></div><div class="fv-sheet"></div>
         </div>
 
-        <!-- 실제 페이지 -->
-        <div class="fv-page">
-          <div class="page-scroll">
-            <div id="fileBody" class="doc-grid"></div>
+        <!-- 책 -->
+        <div id="book" class="book">
+          <div class="book-inner">
+            <!-- Page 1 -->
+            <section class="page left">
+              <h2 id="p1Title">고객 요약</h2>
+              <div class="grid">
+                <div class="card" id="cardInfo"></div>
+                <div class="card" id="cardAction"></div>
+              </div>
+            </section>
+            <!-- Page 2 -->
+            <section class="page right">
+              <h2>레슨 현황 / 메모</h2>
+              <div class="grid">
+                <div class="card" id="cardLesson"></div>
+                <div class="card" id="cardNotes"></div>
+              </div>
+            </section>
           </div>
         </div>
 
@@ -226,128 +229,280 @@
     </div>
   </div>
 
-<script>
-/* ===== Mock members (데모) ===== */
-const members = [
-  { id:'001', name:'김민수', grade:'VIP', trainer:'A', gender:'male', birthYear:1989, recent:'2025-09-05',
-    first:'2024-01-15', expireAt:'', lastLog:'2025-09-01', remaining:8, total:10, next:'-', note:'팔꿈치 통증 주의' },
-  { id:'002', name:'이영희', grade:'일반', trainer:'B', gender:'female', birthYear:1997, recent:'2025-09-04',
-    first:'2023-11-20', expireAt:'', lastLog:'2025-09-03', remaining:44, total:50, next:'-', note:'' },
-  { id:'003', name:'손경남', grade:'VIP', trainer:'A', gender:'male', birthYear:1972, recent:'2025-09-06',
-    first:'2024-03-02', expireAt:'', lastLog:'2025-09-02', remaining:10, total:10, next:'-', note:'체형교정' },
-  { id:'004', name:'이선주', grade:'일반', trainer:'C', gender:'female', birthYear:1999, recent:'2025-09-02',
-    first:'2025-05-04', expireAt:'', lastLog:'2025-09-02', remaining:0, total:0, next:'-', note:'' },
-  { id:'005', name:'황형민', grade:'VIP', trainer:'A', gender:'male', birthYear:1974, recent:'2025-09-05',
-    first:'2024-12-01', expireAt:'', lastLog:'2025-09-05', remaining:19, total:20, next:'-', note:'무릎 재활' },
-];
+  <!-- ===== Firebase ===== -->
+  <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
+  import { getFirestore, collection, onSnapshot, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+  import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
 
-const shelf = document.getElementById('shelf');
-const overlay = document.getElementById('overlay');
-const fileVisual = document.getElementById('fileVisual');
-const fileBody = document.getElementById('fileBody');
-const ovrTitle = document.getElementById('ovrTitle');
+  /* --- Firebase config (기존 프로젝트 값 사용) --- */
+  const firebaseConfig = {
+    apiKey:"AIzaSyCjdyveDx0qFPUzmaChnEy9Ni0VjTysYnM",
+    authDomain:"more-than-fitness-f6adb.firebaseapp.com",
+    projectId:"more-than-fitness-f6adb",
+    storageBucket:"more-than-fitness-f6adb.appspot.com",
+    messagingSenderId:"993248877411",
+    appId:"1:993248877411:web:c0e6785162cf252fbcd156",
+    measurementId:"G-MK0RVFG296"
+  };
+  const app = initializeApp(firebaseConfig);
+  const db  = getFirestore(app);
+  const auth= getAuth(app);
 
-function colorClass(m){
-  const now = new Date().getFullYear();
-  const age = m.birthYear ? now - m.birthYear : null;
-  if(m.gender==='female') return (age!==null && age>=50)?'cFemale50':'cFemale';
-  if(m.gender==='male') return (age!==null && age>=50)?'cMale50':'cMale';
-  return 'cDefault';
-}
-function escapeHtml(s){ return String(s??'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' }[m])); }
+  /* ====== DOM ====== */
+  const shelf   = document.getElementById('shelf');
+  const empty   = document.getElementById('empty');
+  const qEl     = document.getElementById('q');
+  const groupSel= document.getElementById('groupSel');
+  const sortSel = document.getElementById('sortSel');
+  const orderBtn= document.getElementById('orderBtn');
+  const expiredBtn = document.getElementById('expiredBtn');
 
-function renderShelf(){
-  shelf.innerHTML='';
-  members.forEach((m, idx)=>{
-    const art = document.createElement('article');
-    art.className = `binder ${colorClass(m)}`;
-    art.setAttribute('role','button');
-    art.setAttribute('aria-label', `${m.name} 고객 카드`);
-    art.innerHTML = `
-      <div class="idx-tab">${escapeHtml(m.name)}</div>
-      <div class="holes"><i></i><i></i><i></i></div>
-      <span class="recent-chip">최근등록 ${escapeHtml(m.recent||'-')}</span>
-    `;
+  const overlay = document.getElementById('overlay');
+  const fileVisual = document.getElementById('fileVisual');
+  const ovrTitle = document.getElementById('ovrTitle');
 
-    // 짧은 클릭 → 피크 토글
-    art.addEventListener('click', ()=>{
-      if (art._longFired){ art._longFired=false; return; }
-      // 다른 카드 피크 해제
-      document.querySelectorAll('.binder.peek').forEach(b=>b.classList.remove('peek'));
-      art.classList.toggle('peek');
-      // 좌우 스크롤 보이도록 스크롤 스냅
-      art.scrollIntoView({behavior:'smooth', inline:'center', block:'nearest'});
+  const book = document.getElementById('book');
+  const cardInfo   = document.getElementById('cardInfo');
+  const cardAction = document.getElementById('cardAction');
+  const cardLesson = document.getElementById('cardLesson');
+  const cardNotes  = document.getElementById('cardNotes');
+  const p1Title    = document.getElementById('p1Title');
+
+  /* ====== Utils ====== */
+  const collator = new Intl.Collator('ko-KR',{numeric:true,sensitivity:'base'});
+  const p2 = n => String(n).padStart(2,'0');
+  const todayISO = () => { const d=new Date(); return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`; };
+  const toISO = ts => ts?.toDate ? ts.toDate().toISOString().slice(0,10) : (typeof ts==='string'?ts:'');
+  const toTime = (str)=> (str ? new Date(str).getTime() : NaN);
+  const escapeHtml = s => String(s ?? "").replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' }[m]));
+
+  function isExpired(m){
+    const today = new Date(todayISO()).getTime();
+    const expT = toTime(m.expireAt);
+    return Boolean(m.expiredFlag) || (Number.isFinite(expT) && expT < today);
+  }
+  function binderClass(m){
+    if (isExpired(m)) return 'cGray';
+    if ((m.gender||'').toLowerCase()==='female') return 'cPink';
+    // 요청: 남성 50대 이하 파스텔블루 (나이 계산 실패 시에도 블루)
+    return 'cBlue';
+  }
+  function themeClass(m){
+    if (isExpired(m)) return 'theme-gray';
+    if ((m.gender||'').toLowerCase()==='female') return 'theme-pink';
+    return 'theme-blue';
+  }
+
+  /* ====== State ====== */
+  let state = {
+    members: [],
+    orderAsc: true,
+    showExpiredOnly: false,
+    group: '' // trainer filter
+  };
+
+  /* ====== Render Shelf ====== */
+  function renderShelf(){
+    // 검색/필터
+    const kw = (qEl.value||'').trim().toLowerCase();
+    const norm = s => String(s||'').toLowerCase();
+
+    let list = state.members.filter(m=>{
+      const match = !kw || norm(m.name).includes(kw) || norm(m.trainer).includes(kw) || norm(m.grade).includes(kw);
+      const expired = isExpired(m);
+      const passExpired = state.showExpiredOnly ? expired : true;
+      const passGroup = !state.group || m.trainer===state.group;
+      return match && passExpired && passGroup;
     });
 
-    // 롱프레스 → 전체 열기
-    let timer=null;
-    const longPressMs = 600;
-    const startLP = (ev)=>{
-      if(timer) clearTimeout(timer);
-      art._longFired = false;
-      timer = setTimeout(()=>{
-        art._longFired = true;
-        openOverlay(m);
-      }, longPressMs);
-    };
-    const cancelLP = ()=>{
-      if(timer){ clearTimeout(timer); timer=null; }
-    };
-    art.addEventListener('pointerdown', startLP, {passive:true});
-    ['pointerup','pointerleave','pointercancel'].forEach(ev=> art.addEventListener(ev, cancelLP, {passive:true}));
+    // 정렬
+    const by = sortSel.value;
+    const dir = state.orderAsc ? 1 : -1;
+    list.sort((a,b)=>{
+      if(by==='name')   return dir * collator.compare(a.name, b.name);
+      if(by==='recent'){
+        const A = toTime(a.lastLog) || 0; const B = toTime(b.lastLog) || 0; return dir * (A - B);
+      }
+      if(by==='remain') return dir * ((a.remaining||0) - (b.remaining||0));
+      if(by==='first'){ const A=toTime(a.first)||0, B=toTime(b.first)||0; return dir*(A-B); }
+      if(by==='expire'){ const A=toTime(a.expireAt)||Infinity, B=toTime(b.expireAt)||Infinity; return dir*(A-B); }
+      return 0;
+    });
 
-    shelf.appendChild(art);
-  });
-}
+    // 렌더
+    shelf.innerHTML='';
+    if(!list.length){ empty.style.display='block'; return; } else empty.style.display='none';
 
-function openOverlay(member){
-  // 제목
-  ovrTitle.textContent = `${member.name} · ${member.grade||'-'}`;
+    list.forEach(m=>{
+      const art = document.createElement('article');
+      art.className = `binder ${binderClass(m)}`;
+      art.setAttribute('role','button');
+      art.setAttribute('aria-label', `${m.name} 고객 카드`);
 
-  // 페이지 안 컨텐츠 구성(기존 내용 그대로 붙여넣어도 됨)
-  fileBody.innerHTML = `
-    <div class="card">
+      art.innerHTML = `
+        <div class="idx-tab">${escapeHtml(m.name)}</div>
+        <div class="name-chip">${escapeHtml(m.name)} <span style="font-weight:800">고객님</span></div>
+        <div class="grade-badge">${escapeHtml(m.grade||'-')}</div>
+        <div class="holes"><i></i><i></i><i></i></div>
+        <span class="recent-chip">최근등록 ${escapeHtml(m.recent||'-')}</span>
+      `;
+
+      // 클릭 → 피크 토글
+      art.addEventListener('click', ()=>{
+        if (art._longFired){ art._longFired=false; return; }
+        document.querySelectorAll('.binder.peek').forEach(b=>b.classList.remove('peek'));
+        art.classList.toggle('peek');
+        art.scrollIntoView({behavior:'smooth', inline:'center', block:'nearest'});
+      });
+
+      // 롱프레스 → 오버레이 열기
+      let timer=null; const longMs=600;
+      const startLP = ()=>{ clearTimeout(timer); art._longFired=false; timer=setTimeout(()=>{ art._longFired=true; openOverlay(m); }, longMs); };
+      const cancelLP=()=>{ clearTimeout(timer); timer=null; };
+      art.addEventListener('pointerdown', startLP, {passive:true});
+      ['pointerup','pointerleave','pointercancel'].forEach(ev=> art.addEventListener(ev, cancelLP, {passive:true}));
+
+      shelf.appendChild(art);
+    });
+
+    // 만료 카운트
+    const expiredCount = state.members.filter(m=>isExpired(m)).length;
+    expiredBtn.textContent = `${state.showExpiredOnly ? '전체 보기' : '만료 회원만 보기'} (${expiredCount})`;
+  }
+
+  /* ====== Overlay ====== */
+  function openOverlay(m){
+    // 테마 반영
+    fileVisual.classList.remove('open','theme-blue','theme-pink','theme-gray');
+    fileVisual.classList.add(themeClass(m));
+    // 제목
+    ovrTitle.textContent = `${m.name} 고객님 · ${m.grade||'-'}`;
+
+    // Page 1 내용
+    p1Title.textContent = `${m.name} 고객님 요약`;
+    cardInfo.innerHTML = `
       <h3>고객정보</h3>
-      <div class="row"><span class="label">이름</span><span>${escapeHtml(member.name)}</span></div>
-      <div class="row"><span class="label">담당</span><span>${escapeHtml(member.trainer||'-')}</span></div>
-      <div class="row"><span class="label">등급</span><span>${escapeHtml(member.grade||'-')}</span></div>
-      <div class="row"><span class="label">최근등록</span><span>${escapeHtml(member.recent||'-')}</span></div>
-      <div class="row"><span class="label">만료일</span><span>${escapeHtml(member.expireAt||'-')}</span></div>
-      <div class="row"><span class="label">작성</span><span>${escapeHtml(member.logCount||0)}회</span></div>
+      <div class="row"><span class="label">이름</span><span>${escapeHtml(m.name)} 고객님</span></div>
+      <div class="row"><span class="label">담당</span><span>${escapeHtml(m.trainer||'-')}</span></div>
+      <div class="row"><span class="label">등급</span><span>${escapeHtml(m.grade||'-')}</span></div>
+      <div class="row"><span class="label">최근등록</span><span>${escapeHtml(m.recent||'-')}</span></div>
+      <div class="row"><span class="label">만료일</span><span>${escapeHtml(m.expireAt||'-')}</span></div>
+      <div class="row"><span class="label">작성</span><span>${escapeHtml(m.logCount||0)}회</span></div>
       <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap">
-        <span class="pill">잔여 <strong>${member.remaining||0}</strong></span>
-        <span class="pill">총 <strong>${member.total||0}</strong></span>
+        <span class="pill">잔여 <strong>${m.remaining||0}</strong></span>
+        <span class="pill">총 <strong>${m.total||0}</strong></span>
       </div>
-    </div>
-
-    <div class="card">
-      <h3>안내 / 액션</h3>
-      <p style="margin:0 0 10px; color:#475569; font-size:13px">바인더는 롱프레스로 열 수 있어요. 페이지가 좁으면 좌우 스크롤로 더 볼 수 있습니다.</p>
+    `;
+    cardAction.innerHTML = `
+      <h3>빠른 작업</h3>
       <div style="display:flex; gap:8px; flex-wrap:wrap">
-        <button class="btn" onclick="alert('일지 열기: ${escapeHtml(member.name)}')">📓 일지 열기</button>
-        <button class="btn" onclick="alert('연장 등록: ${escapeHtml(member.name)}')">➕ 연장 등록</button>
-        <button class="btn primary" onclick="alert('–1 소진 처리')">–1 소진</button>
+        <button class="btn" onclick="alert('일지 열기: ${escapeHtml(m.name)}')">📓 일지 열기</button>
+        <button class="btn" onclick="alert('연장 등록: ${escapeHtml(m.name)}')">➕ 연장 등록</button>
+        <button class="btn primary" id="btnConsume">–1 소진</button>
       </div>
-      ${member.note?`<div style="margin-top:10px; font-size:13px; color:#7c5200; background:#fff8e1; border:1px solid #f59e0b; padding:8px; border-radius:10px">📎 메모: ${escapeHtml(member.note)}</div>`:''}
-    </div>
-  `;
+      <p style="margin-top:10px; color:#475569; font-size:13px">팁: 좌/우 스와이프(또는 드래그)로 페이지를 넘길 수 있습니다.</p>
+    `;
 
-  // 오버레이 표시 + 덮개 오픈
-  overlay.classList.add('show');
-  // 덮개 애니메이션은 소량의 지연 후
-  requestAnimationFrame(()=> fileVisual.classList.add('open'));
-}
+    // Page 2 내용(예시)
+    cardLesson.innerHTML = `
+      <h3>레슨 현황</h3>
+      <div class="row"><span class="label">최근작성</span><span>${escapeHtml(m.lastLog||'-')}</span></div>
+      <div class="row"><span class="label">다음예약</span><span>${escapeHtml(m.next||'-')}</span></div>
+      <div class="row"><span class="label">총구매</span><span>${m.total||0} 회</span></div>
+      <div class="row"><span class="label">진행률</span><span>${m.total?Math.round(((m.total-(m.remaining||0))/m.total)*100):0}%</span></div>
+    `;
+    cardNotes.innerHTML = `
+      <h3>메모</h3>
+      <div style="font-size:13px; color:#374151">${escapeHtml(m.memo||m.note||'메모가 없습니다.')}</div>
+    `;
 
-function closeOverlay(){
-  fileVisual.classList.remove('open');
-  setTimeout(()=> overlay.classList.remove('show'), 220);
-}
+    // 소진 버튼 실제 업데이트
+    document.getElementById('btnConsume').onclick = async ()=>{
+      if ((m.remaining||0) <= 0){ alert('잔여 세션이 없습니다'); return; }
+      try{ await updateDoc(doc(db,'members',m.id), { remainingSessions: increment(-1) }); }
+      catch(err){ console.error(err); alert('소진 처리 실패'); }
+    };
 
-// 닫기 버튼/바깥 클릭
-document.getElementById('btnClose').addEventListener('click', closeOverlay);
-overlay.addEventListener('click', (e)=>{ if(e.target===overlay) closeOverlay(); });
+    // 초기 상태
+    book.classList.remove('flipped');
+    overlay.classList.add('show');
+    requestAnimationFrame(()=> fileVisual.classList.add('open'));
+  }
+  function closeOverlay(){
+    fileVisual.classList.remove('open');
+    setTimeout(()=> overlay.classList.remove('show'), 220);
+  }
+  document.getElementById('btnClose').addEventListener('click', closeOverlay);
+  overlay.addEventListener('click', (e)=>{ if(e.target===overlay) closeOverlay(); });
 
-renderShelf();
-</script>
+  // 스와이프 제스처로 책장 넘김
+  (function bindSwipe(){
+    let sx=0, dx=0;
+    const start = (e)=>{ sx = (e.touches?e.touches[0].clientX:e.clientX); dx=0; };
+    const move  = (e)=>{ if(!sx) return; const x=(e.touches?e.touches[0].clientX:e.clientX); dx=x-sx; };
+    const end   = ()=>{ if(Math.abs(dx)>40){ if(dx<0) book.classList.add('flipped'); else book.classList.remove('flipped'); } sx=0; dx=0; };
+    ['touchstart','mousedown'].forEach(ev=> book.addEventListener(ev, start));
+    ['touchmove','mousemove'].forEach(ev=> book.addEventListener(ev, move));
+    ['touchend','mouseup','mouseleave'].forEach(ev=> book.addEventListener(ev, end));
+  })();
+
+  /* ====== Controls ====== */
+  orderBtn.addEventListener('click', ()=>{ state.orderAsc=!state.orderAsc; orderBtn.textContent=state.orderAsc?'오름차순 ↑':'내림차순 ↓'; orderBtn.setAttribute('aria-pressed', String(!state.orderAsc)); renderShelf(); });
+  expiredBtn.addEventListener('click', ()=>{ state.showExpiredOnly=!state.showExpiredOnly; expiredBtn.setAttribute('aria-pressed', String(state.showExpiredOnly)); renderShelf(); });
+  sortSel.addEventListener('change', renderShelf);
+  qEl.addEventListener('input', renderShelf);
+  groupSel.addEventListener('change', ()=>{ state.group = groupSel.value; renderShelf(); });
+
+  /* ====== Data (Firestore 구독) ====== */
+  onAuthStateChanged(auth, (u)=>{
+    if (u) startMembers();
+    else signInAnonymously(auth).catch((e)=>{ console.error(e); empty.textContent='로그인 실패로 데이터를 볼 수 없어요.'; empty.style.display='block'; });
+  });
+
+  function startMembers(){
+    onSnapshot(
+      collection(db,'members'),
+      (snap)=>{
+        const list=[]; const trainersSet=new Set();
+        snap.forEach(ds=>{
+          const d=ds.data();
+          const m={
+            id: ds.id,
+            name: d.name || "",
+            trainer: d.trainer || "",
+            grade: d.level || d.grade || "",
+            first: d.startDate || toISO(d.createdAt) || "",
+            recent: toISO(d.lastPurchaseAt) || toISO(d.createdAt) || "", /* 최근 등록(구매) */
+            expireAt: toISO(d.expireAt),
+            lastLog:  toISO(d.lastLogAt),
+            remaining: d.remainingSessions ?? 0,
+            total: d.totalSessionsPurchased ?? d.totalSessions ?? 0,
+            gender: d.gender || "",
+            birthYear: d.birthYear || null,
+            memo: d.memo || "",
+            expiredFlag: Boolean(d.expiredFlag),
+            next: d.nextSchedule || "-"
+          };
+          list.push(m);
+          if(m.trainer) trainersSet.add(m.trainer);
+        });
+        state.members = list;
+
+        // 소그룹(담당) 드롭다운 갱신
+        const cur = groupSel.value;
+        groupSel.innerHTML = `<option value="">소그룹(담당) 전체</option>` + [...trainersSet].sort(collator.compare).map(t=>`<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
+        if ([...trainersSet].includes(cur)) groupSel.value = cur; else state.group='';
+
+        // 만료 카운트 버튼 텍스트
+        const expiredCount = state.members.filter(m=>isExpired(m)).length;
+        expiredBtn.textContent = `${state.showExpiredOnly ? '전체 보기' : '만료 회원만 보기'} (${expiredCount})`;
+
+        renderShelf();
+      },
+      (err)=>{ console.error(err); empty.textContent = '데이터를 불러오지 못했어요. (권한/네트워크 확인)'; empty.style.display='block'; }
+    );
+  }
+  </script>
 </body>
 </html>
