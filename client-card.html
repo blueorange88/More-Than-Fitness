@@ -29,12 +29,12 @@
   .tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
   .tools input[type="search"]{ flex:1; min-width:220px; border:1px solid var(--line); border-radius:12px;
     padding:10px 12px; font-size:14px; background:#fff; }
-  .tools .group{display:flex;gap:8px; align-items:center; font-size:13px; color:var(--navy)}
+  .tools .group{display:flex;gap:8px; align-items:center; font-size:13px; color:#navy}
   .tools select, .tools button{ border:1px solid var(--line); border-radius:10px; padding:8px 10px; background:#fff; font-size:13px; cursor:pointer; }
   .tools button.tgl{min-width:92px}
   .back{ margin-left:auto; background:#0B1E3A; color:#fff; font-weight:700; }
 
-  /* ===== Shelf ===== */
+  /* ===== Shelf / Shadows ===== */
   .shelf-wrap{position:relative; padding:18px 0 28px}
   .shelf-wrap::before{ content:""; position:absolute; left:0; right:0; top:6px; height:18px; pointer-events:none;
     background:radial-gradient(80% 14px at 50% 0, rgba(0,0,0,.18), rgba(0,0,0,0) 70%); filter: blur(2px); }
@@ -54,7 +54,7 @@
   }
   .shelf::after{ left:auto; right:0; background:linear-gradient(270deg,#f9fafb,rgba(249,250,251,0)); }
 
-  /* ===== Binder ===== */
+  /* ===== Binder (cards) ===== */
   @keyframes breathe { 0%,100%{filter:saturate(1) brightness(1)} 50%{filter:saturate(1.08) brightness(1.05)} }
   @keyframes glowPulse { 0%,100%{ box-shadow:-10px 0 0 rgba(255,255,255,.18) inset, 0 22px 40px rgba(0,0,0,.22); }
                         50%    { box-shadow:-12px 0 0 rgba(255,255,255,.24) inset, 0 28px 60px rgba(0,0,0,.28); } }
@@ -124,6 +124,11 @@
   .row .label{width:66px; color:#334155; font-weight:700}
   .row .value{flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 
+  /* 모바일에서 상단 '등록일' 숨김 */
+  @media (max-width:540px){
+    .row.r-first{ display:none; }
+  }
+
   /* 링/통계/액션 */
   .ring{ --pct:0; width:84px; height:84px; border-radius:50%;
     background:conic-gradient(var(--ok) calc(var(--pct)*1%), var(--track) 0);
@@ -139,7 +144,7 @@
   .pill.remain.low{border-color:#ef4444; background:#fee2e2; color:#991b1b}
   .pill.total{border-color:#d1d5db; background:#f9fafb}
 
-  /* 최근 등록일: 바인더 하단 고정 */
+  /* 하단: 최근 등록 */
   .foot-date{
     position:absolute; left:36px; right:10px; bottom:12px;
     font-size:11px; font-weight:800; color:#334155;
@@ -157,7 +162,7 @@
   .btn.strong{ background:#0B1E3A; color:#fff; }
   .btn:active{ transform:translateY(1px); }
 
-  /* === 변경: 왼쪽 인덱스 탭 (바인더 색과 매칭) === */
+  /* 왼쪽 인덱스 탭 (바인더 색과 동기화) */
   .edge-tab{
     position:absolute; left:-16px; top:46px; width:22px; height:92px;
     background:linear-gradient(180deg,var(--tab-bg-start), var(--tab-bg-end));
@@ -169,25 +174,30 @@
   .binder:hover .edge-tab{ transform:rotate(0deg) translateX(-2px); filter:brightness(1.05); }
   .edge-tab:active{ transform:translateX(-3px); }
 
-  /* === NEW: 파일 오버레이(덮개가 오른→왼쪽으로 열림 + 3D 펼침) === */
+  /* ===== 파일 오버레이 ===== */
   .file-overlay{ position:fixed; inset:0; background:rgba(0,0,0,.38); display:none; z-index:1100; }
   .file-overlay.open{ display:block; }
+
+  /* 시트: 우측에서 슬라이드 + 내부 가로스크롤 허용 */
   .file-sheet{
-    position:absolute; top:0; right:0; bottom:0; width:min(560px,92vw);
+    position:absolute; top:0; right:0; bottom:0; width:min(620px,94vw);
     background:#fff; border-left:1px solid var(--line); border-radius:12px 0 0 12px;
     transform:translateX(100%); transition:transform .42s cubic-bezier(.2,.7,.2,1);
-    overflow:auto;
+    overflow:auto; /* 세로/가로 모두 스크롤 허용 */
   }
   .file-overlay.open .file-sheet{ transform:translateX(0); }
 
-  /* 상단 비주얼: 실제 폴더가 펼쳐지는 3D 연출 */
-  .file-visual{ position:relative; height:160px; margin:14px auto 6px; width:min(500px,86vw); perspective:1500px; }
+  /* 상단 비주얼: 폴더가 앞으로 나오며 → 덮개 오픈 */
+  .file-visual{ position:relative; margin:14px auto 10px; width:min(520px,90vw); aspect-ratio: 210 / 297; perspective:1500px;
+    opacity:0; transform:translateX(18%) scale(.92) rotateY(-8deg); transition:opacity .3s, transform .42s cubic-bezier(.2,.7,.2,1); }
+  .file-overlay.open .file-visual{ opacity:1; transform:translateX(0) scale(1) rotateY(0); }
+
   .fv-folder{
     position:absolute; inset:0; border-radius:10px; background:linear-gradient(160deg,#bfdbfe,#60a5fa,#2563eb);
-    box-shadow:0 10px 26px rgba(0,0,0,.16); transform-style:preserve-3d;
+    box-shadow:0 10px 26px rgba(0,0,0,.16); transform-style:preserve-3d; overflow:hidden;
   }
   .fv-tab{
-    position:absolute; left:-18px; top:20px; width:26px; height:96px;
+    position:absolute; left:-18px; top:18px; width:26px; height:96px;
     background:linear-gradient(180deg,var(--tab-bg-start), var(--tab-bg-end));
     border:2px solid var(--tab-bg-end); border-right:none; border-radius:10px 0 0 10px;
     writing-mode:vertical-rl; text-orientation:mixed; color:#fff; font-weight:900; font-size:11px;
@@ -206,8 +216,7 @@
   .fv-sheet:nth-child(2){ transform:translateX(4px); }
   .fv-sheet:nth-child(3){ transform:translateX(6px); }
   .fv-sheet:nth-child(4){ transform:translateX(8px); }
-
-  /* 오픈 상태(덮개가 오른→왼쪽으로 젖혀지고, 종이도 살짝 펼침) */
+  /* 덮개/종이 펼침 */
   .file-visual.open .fv-cover{ transform:translateX(-76%) rotateY(-14deg); }
   .file-visual.open .fv-sheet:nth-child(1){ transform:translateX(-2px) rotateY(3deg); }
   .file-visual.open .fv-sheet:nth-child(2){ transform:translateX(-1px) rotateY(2deg); }
@@ -216,19 +225,16 @@
 
   .sheet-head{ display:flex; align-items:center; gap:10px; padding:0 14px; }
   .sheet-title{ margin:0; font-size:16px; font-weight:900; }
-  .sheet-body{ padding:12px 14px 22px; }
-  .sheet-actions{ display:flex; gap:8px; margin-top:12px; }
-  .sheet-actions .btn{ border-radius:10px; box-shadow:none; }
+  .sheet-body{ padding:10px 14px 22px; overflow-x:auto; }
+  /* 내용 그리드: 화면보다 넓게 → 가로 스크롤 */
+  .doc-grid{ display:grid; grid-template-columns: 320px 360px; gap:12px; min-width: 720px; }
+  .doc-card{ background:#fafafa; border:1px solid #ebebeb; border-radius:12px; padding:12px; }
+  .doc-card h4{ margin:0 0 8px; font-size:14px; font-weight:900; color:#0b1220; }
+  .doc-card .kv{ display:grid; grid-template-columns:86px 1fr; gap:6px; font-size:12px; }
+  .doc-chiprow{ display:flex; gap:8px; flex-wrap:wrap }
+  .doc-chip{ border:1px solid var(--line); background:#fff; border-radius:999px; padding:6px 10px; font-size:12px; }
 
-  /* Empty */
-  .empty{padding:40px 16px; text-align:center; color:var(--muted)}
-
-  /* 오버레이 & 액션시트(원본 유지) */
-  .overlay{ position:fixed; inset:0; background:rgba(0,0,0,.35); display:none; z-index:40; }
-  .sheet{ position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); width:320px; max-width:90%; background:#fff;
-    border-radius:14px; padding:16px; box-shadow:0 18px 48px rgba(0,0,0,.35); z-index:41; display:none; }
-
-  /* 반응형 */
+  /* 모바일 튜닝 */
   @media (max-width: 860px){
     :root{ --binder-w: 260px; --binder-h: 440px; --binder-overlap: -120px; }
     .btn{font-size:12px}
@@ -238,7 +244,8 @@
     .btn{padding:12px 14px}
     .edge-tab{ height:80px; font-size:10px; left:-14px; }
     .file-sheet{ width:96vw; }
-    .file-visual{ height:140px; }
+    .file-visual{ width:92vw; }
+    .doc-grid{ grid-template-columns: 1fr; min-width: 640px; } /* 모바일도 좌우 스크롤 허용 */
   }
 
   @media (prefers-color-scheme: dark){
@@ -257,6 +264,9 @@
     .row .label{ color:#cbd5e1; }
     .sub-sessions{ color:#cbd5e1; }
     .file-sheet{ background:#0f172a; border-left-color:#273044; }
+    .doc-card{ background:#121b2a; border-color:#273044; }
+    .doc-card h4{ color:#e5e7eb; }
+    .doc-chip{ background:#101826; border-color:#273044; color:#e5e7eb; }
     .fv-cover{ background:linear-gradient(135deg,#152036,#2a3a5a); border-left-color:#273044; }
   }
 </style>
@@ -287,7 +297,7 @@
     <div id="empty" class="empty" hidden>검색 결과가 없어요.</div>
   </section>
 
-  <!-- 롱프레스 액션시트 (원본 유지) -->
+  <!-- 롱프레스 액션시트 -->
   <div id="overlay" class="overlay"></div>
   <div id="sheet" class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
     <h3 id="sheetTitle">만료 고객 분류</h3>
@@ -298,7 +308,7 @@
     </div>
   </div>
 
-  <!-- NEW: 파일 디테일 오버레이 -->
+  <!-- 파일 디테일 오버레이 -->
   <div id="fileOverlay" class="file-overlay" aria-hidden="true">
     <div class="file-sheet" role="dialog" aria-modal="true" aria-labelledby="fileTitle">
       <div class="sheet-head" style="margin-top:10px;">
@@ -306,7 +316,7 @@
         <h3 id="fileTitle" class="sheet-title"></h3>
       </div>
 
-      <!-- 펼쳐지는 폴더 비주얼 -->
+      <!-- A4 비율 폴더 비주얼 (앞으로 나와서 → 덮개 오픈) -->
       <div id="fileVisual" class="file-visual">
         <div class="fv-folder">
           <div class="fv-tab" id="fvTab">이름</div>
@@ -321,12 +331,8 @@
       </div>
 
       <div class="sheet-body">
-        <div id="fileBody"></div>
-        <div class="sheet-actions">
-          <button class="btn" id="goJournal">📓 일지 열기</button>
-          <button class="btn" id="goEdit">📝 연장/수정</button>
-          <button class="btn strong" id="doConsume">–1 소진</button>
-        </div>
+        <!-- 내용은 화면을 넘길 수 있음 → 좌우 스크롤 -->
+        <div id="fileBody" class="doc-grid"></div>
       </div>
     </div>
   </div>
@@ -365,7 +371,7 @@
   const sheetTitle = document.getElementById('sheetTitle');
   const sheetDesc  = document.getElementById('sheetDesc');
 
-  // NEW: 파일 오버레이
+  // 파일 오버레이
   const fileOverlay = document.getElementById('fileOverlay');
   const fileTitle   = document.getElementById('fileTitle');
   const fileBody    = document.getElementById('fileBody');
@@ -433,9 +439,8 @@
   let longFired = false;
   let openOverlayId = null;
 
-  /* NEW: 오버레이 열기/닫기 */
+  /* 오버레이 색 동기화 */
   function applyColorVars(elem, cls){
-    // 바인더 색상 클래스에 정의한 --tab-bg-start / --tab-bg-end 변수를 오버레이 비주얼에도 복제
     const probe = document.createElement('div');
     probe.className = 'binder '+cls;
     probe.style.position='absolute'; probe.style.visibility='hidden';
@@ -448,30 +453,44 @@
     elem.style.setProperty('--tab-bg-end', end.trim());
   }
 
+  /* 오버레이 열기/닫기 */
   function openFileOverlay(m){
     openOverlayId = m.id;
 
     const cls = colorClass(m);
-    applyColorVars(fileVisual, cls); // 컬러 동기화
+    applyColorVars(fileVisual, cls);
     fileTitle.textContent = `${m.name} · ${m.level || m.grade || '일반'}`;
     fvTab.textContent = (m.name||'').slice(0,6);
 
+    // 보기 좋은 레이아웃(좌측 정보 / 우측 레슨/진도)
     fileBody.innerHTML = `
-      <div style="display:grid;grid-template-columns:1fr;gap:10px">
-        <div style="display:flex;gap:10px;align-items:center">
-          <div style="font-size:28px">📁</div>
-          <div>
-            <div style="font-weight:900">${escapeHtml(m.name)} 고객 파일</div>
-            <div style="font-size:12px;color:#475569">담당 ${escapeHtml(m.trainer||'-')} · 최초등록 ${m.first||'-'} · 만료 ${m.expireAt||'-'}</div>
-          </div>
+      <div class="doc-card">
+        <h4>👤 고객정보</h4>
+        <div class="kv">
+          <div>이름</div><div>${escapeHtml(m.name)}</div>
+          <div>담당</div><div>${escapeHtml(m.trainer||'-')}</div>
+          <div>등급</div><div>${escapeHtml(m.level||m.grade||'-')}</div>
+          <div>최근등록</div><div>${m.recentReg || '-'}</div>
+          <div>만료일</div><div>${m.expireAt||'-'}</div>
+          <div>작성</div><div>${m.logCount||0}회</div>
         </div>
+        <div style="margin-top:10px" class="doc-chiprow">
+          <div class="doc-chip">잔여 <strong>${m.remaining||0}</strong></div>
+          <div class="doc-chip">총 <strong>${m.total||0}</strong></div>
+          <div id="nx-line" class="doc-chip">다음예약 조회중…</div>
+        </div>
+      </div>
 
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:2px">
-          <div class="pill remain ${((m.remaining||0)<=3)?'low':''}">잔여 <strong>${m.remaining||0}</strong></div>
-          <div class="pill total">총 <strong>${m.total||0}</strong></div>
-          <div class="pill">작성 ${m.logCount||0}회</div>
-          <div class="pill">등급 ${escapeHtml(m.level||m.grade||'-')}</div>
-          <div id="nx-line" class="pill">다음예약 조회중…</div>
+      <div class="doc-card">
+        <h4>📓 안내</h4>
+        <div style="font-size:12px; line-height:1.6; color:#374151">
+          바인더 왼쪽 탭으로 고객을 식별할 수 있어요.<br/>
+          우측 상단 ‘닫기’로 빠르게 닫고, 내용은 좌우 스크롤로 더 볼 수 있어요.
+        </div>
+        <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap">
+          <button class="btn" id="goJournal" style="flex:1 0 160px">📓 일지 열기</button>
+          <button class="btn" id="goEdit" style="flex:1 0 160px">📝 연장/수정</button>
+          <button class="btn strong" id="doConsume" style="flex:1 0 160px">–1 소진</button>
         </div>
       </div>
     `;
@@ -485,18 +504,20 @@
       catch(err){ console.error(err); alert('소진 처리 실패'); }
     };
 
-    // 다음 예약
     fetchNextSchedule(m.id).then(nx=>{
       const el=document.getElementById('nx-line'); if(el) el.textContent = `다음예약 ${nx}`;
     });
 
-    // 오버레이 오픈 + 폴더 덮개 애니메이션
     fileOverlay.classList.add('open');
     fileOverlay.setAttribute('aria-hidden','false');
     document.body.style.overflow='hidden';
+
+    // 슬라이드 인 후 덮개 열기
     fileVisual.classList.remove('open');
-    // 다음 프레임에 open 클래스 부여(트랜지션 트리거)
-    requestAnimationFrame(()=> requestAnimationFrame(()=> fileVisual.classList.add('open')));
+    requestAnimationFrame(()=> {
+      // 살짝 지연 후 덮개 펼침(더 자연스러운 연출)
+      setTimeout(()=> fileVisual.classList.add('open'), 160);
+    });
   }
   function closeFileOverlay(){
     openOverlayId = null;
@@ -508,13 +529,14 @@
   fileClose.addEventListener('click', closeFileOverlay);
   document.addEventListener('keydown',(e)=>{ if(e.key==='Escape' && fileOverlay.classList.contains('open')) closeFileOverlay(); });
 
-  /* Render helpers */
+  /* 만료 여부 */
   function isExpired(m){
     const today = new Date(todayISO()).getTime();
     const expT  = toTime(m.expireAt);
     return Boolean(m.expiredFlag) || (Number.isFinite(expT) && expT < today);
   }
 
+  /* 렌더 */
   function render(list){
     shelf.innerHTML = '';
     if(!list.length){ empty.hidden = false; return; }
@@ -563,7 +585,7 @@
             <div class="rows" style="flex:1">
               <div class="row"><span class="label">담당</span><span class="value">${escapeHtml(m.trainer||"-")}</span></div>
               <div class="row"><span class="label">등급</span><span class="value">${escapeHtml(m.level||m.grade||"-")}</span></div>
-              <div class="row"><span class="label">등록일</span><span class="value">${m.first||"-"}</span></div>
+              <div class="row r-first"><span class="label">등록일</span><span class="value">${m.first||"-"}</span></div>
               <div class="row"><span class="label">만료일</span><span class="value">${m.expireAt||"-"}</span></div>
               <div class="row"><span class="label">작성</span><span class="value">${m.logCount||0}회</span></div>
               <div class="row"><span class="label">다음예약</span><span class="value" id="nx-${m.id}">조회 중…</span></div>
@@ -582,10 +604,10 @@
           <button class="btn strong" aria-label="세션 소진" data-act="consume">–1 소진</button>
         </div>
 
-        <div class="foot-date"><span class="dot"></span> 최근 등록일: <strong>${m.first || '-'}</strong></div>
+        <div class="foot-date"><span class="dot"></span> 최근 등록: <strong>${m.recentReg || m.first || '-'}</strong></div>
       `;
 
-      // 버튼 동작
+      // 액션
       art.querySelector('[data-act="journal"]').addEventListener('click', (e)=>{
         e.stopPropagation(); location.href = `personal-training-log.html?id=${encodeURIComponent(m.id)}`;
       });
@@ -599,17 +621,14 @@
         catch(err){ console.error(err); alert('소진 처리 실패'); }
       });
 
-      // 왼쪽 인덱스 탭 클릭 → 오버레이
+      // 왼쪽 인덱스 탭 / 더블클릭 → 오버레이
       art.querySelector('.edge-tab').addEventListener('click',(ev)=>{ ev.stopPropagation(); openFileOverlay(m); });
-
-      // 더블클릭/더블탭 → 오버레이
       art.addEventListener('dblclick', (e)=>{ e.stopPropagation(); openFileOverlay(m); });
 
-      // 단일 클릭은 펄스만
+      // 단일 클릭 펄스
       art.addEventListener('click', ()=>{
         if (longFired){ longFired=false; return; }
-        art.classList.add('pulse');
-        setTimeout(()=>art.classList.remove('pulse'), 500);
+        art.classList.add('pulse'); setTimeout(()=>art.classList.remove('pulse'), 500);
       });
 
       // 다음 예약은 호버/포커스 시 계산
@@ -695,7 +714,7 @@
     filterSort();
   });
 
-  /* 액션시트 열기/닫기/처리 */
+  /* 만료 시트 */
   function openExpireSheet(member){
     currentMemberForSheet = member;
     const expired = isExpired(member);
@@ -738,6 +757,13 @@
         const list=[];
         snap.forEach(ds=>{
           const d=ds.data();
+          // 최근 등록(재등록/구매) → 여러 필드 후보 중 최신 우선
+          const recentReg =
+            toISO(d.recentRegistrationAt) ||
+            toISO(d.lastRegisterAt) ||
+            toISO(d.lastReenrollAt) ||
+            toISO(d.lastPurchaseAt) ||
+            ""; // 없으면 빈값 → 아래에서 first로 폴백
           list.push({
             id: ds.id,
             name: d.name || "",
@@ -745,6 +771,7 @@
             grade: d.level || d.grade || "",
             level: d.level || "",
             first: d.startDate || toISO(d.createdAt) || "",
+            recentReg,
             expireAt: toISO(d.expireAt),
             lastLog:  toISO(d.lastLogAt) || toISO(d.lastPurchaseAt),
             logCount: d.logCount || 0,
@@ -759,7 +786,7 @@
         });
         state.members=list;
 
-        // 오버레이가 열려있으면 내용 동기화
+        // 오버레이 열림 상태면 동기화
         if (openOverlayId){
           const m = state.members.find(x=>x.id===openOverlayId);
           if (m) openFileOverlay(m);
