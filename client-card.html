@@ -68,11 +68,12 @@
     background:linear-gradient(160deg, #9ec5ff 0%, #6aa0ff 55%, #3a6ddf 100%);
     border:1px solid rgba(0,0,0,.06); color:#0b1220; scroll-snap-align:start;
   }
-  .cFemale  { background:linear-gradient(160deg,#a7f3d0,#34d399,#059669);}
-  .cMale    { background:linear-gradient(160deg,#bfdbfe,#60a5fa,#2563eb);}
-  .cMale50  { background:linear-gradient(160deg,#1e293b,#0f172a,#0b1e3a);}
-  .cFemale50{ background:linear-gradient(160deg,#fbcfe8,#f472b6,#db2777);}
-  .cDefault { background:linear-gradient(160deg,#ddd6fe,#a78bfa,#7c3aed);}
+  .cFemale  { --tab-bg-start:#34d399; --tab-bg-end:#059669; background:linear-gradient(160deg,#a7f3d0,#34d399,#059669); }
+  .cMale    { --tab-bg-start:#60a5fa; --tab-bg-end:#2563eb; background:linear-gradient(160deg,#bfdbfe,#60a5fa,#2563eb); }
+  .cMale50  { --tab-bg-start:#0f172a; --tab-bg-end:#0b1e3a; background:linear-gradient(160deg,#1e293b,#0f172a,#0b1e3a); }
+  .cFemale50{ --tab-bg-start:#f472b6; --tab-bg-end:#db2777; background:linear-gradient(160deg,#fbcfe8,#f472b6,#db2777); }
+  .cDefault { --tab-bg-start:#a78bfa; --tab-bg-end:#7c3aed; background:linear-gradient(160deg,#ddd6fe,#a78bfa,#7c3aed); }
+
   .binder:first-child{ margin-left:8px; }
   .binder:hover, .binder:focus-visible{
     z-index:9; transform:translateY(-14px) rotateY(-2deg) scale(1.04);
@@ -112,7 +113,7 @@
   .sticker.recent{ background:#ecfeff; border-color:#a5f3fc; color:#0e7490; }
   .sticker.expire{ background:var(--danger-bg); border-color:var(--danger); color:#991b1b; }
 
-  .panel{ position:absolute; right:10px; top:70px; bottom:12px; left:36px;
+  .panel{ position:absolute; right:10px; top:70px; bottom:52px; left:36px;
     background:rgba(255,255,255,.78); border:1px solid rgba(0,0,0,.08); border-radius:12px; padding:12px; overflow:hidden;
     box-shadow:0 6px 14px rgba(0,0,0,.08);
     transform:translateZ(30px) translateX(8px) rotateY(6deg); opacity:.0;
@@ -138,7 +139,16 @@
   .pill.remain.low{border-color:#ef4444; background:#fee2e2; color:#991b1b}
   .pill.total{border-color:#d1d5db; background:#f9fafb}
 
-  .actions{ position:absolute; left:36px; right:10px; bottom:14px; display:flex; gap:10px; opacity:0; transform:translateY(6px);
+  /* 최근 등록일: 바인더 하단 고정 */
+  .foot-date{
+    position:absolute; left:36px; right:10px; bottom:12px;
+    font-size:11px; font-weight:800; color:#334155;
+    background:rgba(255,255,255,.8); padding:6px 10px; border-radius:10px; border:1px solid #e5e7eb;
+    display:flex; align-items:center; gap:6px;
+  }
+  .foot-date .dot{ width:6px; height:6px; border-radius:50%; background:#22c55e; }
+
+  .actions{ position:absolute; left:36px; right:10px; bottom:54px; display:flex; gap:10px; opacity:0; transform:translateY(6px);
     transition:opacity .2s, transform .2s; }
   .binder:hover .actions, .binder:focus-visible .actions{ opacity:1; transform:translateY(0); }
   .btn{ flex:1; padding:10px 12px; border-radius:999px; background:rgba(255,255,255,.78); border:1px solid rgba(0,0,0,.08);
@@ -147,18 +157,19 @@
   .btn.strong{ background:#0B1E3A; color:#fff; }
   .btn:active{ transform:translateY(1px); }
 
-  /* === 새로 추가: 옆면 인덱스 탭 === */
+  /* === 변경: 왼쪽 인덱스 탭 (바인더 색과 매칭) === */
   .edge-tab{
-    position:absolute; right:-16px; top:46px; width:22px; height:92px;
-    background:linear-gradient(180deg,#d4a574,#c19660); border:2px solid #a0692e; border-left:none;
-    border-radius:0 10px 10px 0; writing-mode:vertical-rl; text-orientation:mixed;
-    font-weight:900; font-size:11px; color:#4a2e16; display:flex; align-items:center; justify-content:center;
-    box-shadow:0 3px 8px rgba(0,0,0,.12); transform:rotate(2deg); transition:transform .2s, filter .2s; user-select:none;
+    position:absolute; left:-16px; top:46px; width:22px; height:92px;
+    background:linear-gradient(180deg,var(--tab-bg-start), var(--tab-bg-end));
+    border:2px solid var(--tab-bg-end); border-right:none;
+    border-radius:10px 0 0 10px; writing-mode:vertical-rl; text-orientation:mixed;
+    font-weight:900; font-size:11px; color:#ffffff; display:flex; align-items:center; justify-content:center;
+    box-shadow:0 3px 8px rgba(0,0,0,.12); transform:rotate(-2deg); transition:transform .2s, filter .2s; user-select:none;
   }
-  .binder:hover .edge-tab{ transform:rotate(0deg) translateX(2px); filter:brightness(1.05); }
-  .edge-tab:active{ transform:translateX(3px); }
+  .binder:hover .edge-tab{ transform:rotate(0deg) translateX(-2px); filter:brightness(1.05); }
+  .edge-tab:active{ transform:translateX(-3px); }
 
-  /* === 새로 추가: 파일 오버레이(덮개 오른→왼쪽 오픈) === */
+  /* === NEW: 파일 오버레이(덮개가 오른→왼쪽으로 열림 + 3D 펼침) === */
   .file-overlay{ position:fixed; inset:0; background:rgba(0,0,0,.38); display:none; z-index:1100; }
   .file-overlay.open{ display:block; }
   .file-sheet{
@@ -168,19 +179,51 @@
     overflow:auto;
   }
   .file-overlay.open .file-sheet{ transform:translateX(0); }
-  .sheet-cover{
-    position:absolute; inset:0; background:linear-gradient(135deg,#f4f1de 0%, #e9c46a 100%); border-left:2px solid #d4a574;
-    transform-origin:right center; transform:translateX(0); transition:transform .6s cubic-bezier(.175,.885,.32,1.275); pointer-events:none;
+
+  /* 상단 비주얼: 실제 폴더가 펼쳐지는 3D 연출 */
+  .file-visual{ position:relative; height:160px; margin:14px auto 6px; width:min(500px,86vw); perspective:1500px; }
+  .fv-folder{
+    position:absolute; inset:0; border-radius:10px; background:linear-gradient(160deg,#bfdbfe,#60a5fa,#2563eb);
+    box-shadow:0 10px 26px rgba(0,0,0,.16); transform-style:preserve-3d;
   }
-  .file-overlay.open .sheet-cover{ transform:translateX(-100%); }
-  .sheet-body{ position:relative; padding:16px 14px 22px; }
+  .fv-tab{
+    position:absolute; left:-18px; top:20px; width:26px; height:96px;
+    background:linear-gradient(180deg,var(--tab-bg-start), var(--tab-bg-end));
+    border:2px solid var(--tab-bg-end); border-right:none; border-radius:10px 0 0 10px;
+    writing-mode:vertical-rl; text-orientation:mixed; color:#fff; font-weight:900; font-size:11px;
+    display:flex; align-items:center; justify-content:center; box-shadow:0 3px 8px rgba(0,0,0,.12);
+  }
+  .fv-cover{
+    position:absolute; inset:0; border-radius:10px; background:linear-gradient(135deg,#f4f1de,#e9c46a);
+    border-left:2px solid #d4a574; transform-origin:left center; transform:translateX(0) rotateY(0);
+    transition:transform .8s cubic-bezier(.175,.885,.32,1.275);
+    box-shadow:-2px 0 10px rgba(0,0,0,.12);
+  }
+  .fv-paper{ position:absolute; inset:8px; pointer-events:none; }
+  .fv-sheet{ position:absolute; inset:0; background:#fff; border:1px solid #e5e7eb; border-radius:6px;
+             box-shadow:0 1px 3px rgba(0,0,0,.08); transform-origin:left center; transition:transform .6s ease; }
+  .fv-sheet:nth-child(1){ transform:translateX(2px); }
+  .fv-sheet:nth-child(2){ transform:translateX(4px); }
+  .fv-sheet:nth-child(3){ transform:translateX(6px); }
+  .fv-sheet:nth-child(4){ transform:translateX(8px); }
+
+  /* 오픈 상태(덮개가 오른→왼쪽으로 젖혀지고, 종이도 살짝 펼침) */
+  .file-visual.open .fv-cover{ transform:translateX(-76%) rotateY(-14deg); }
+  .file-visual.open .fv-sheet:nth-child(1){ transform:translateX(-2px) rotateY(3deg); }
+  .file-visual.open .fv-sheet:nth-child(2){ transform:translateX(-1px) rotateY(2deg); }
+  .file-visual.open .fv-sheet:nth-child(3){ transform:translateX(0) rotateY(1deg); }
+  .file-visual.open .fv-sheet:nth-child(4){ transform:translateX(1px) rotateY(0deg); }
+
+  .sheet-head{ display:flex; align-items:center; gap:10px; padding:0 14px; }
+  .sheet-title{ margin:0; font-size:16px; font-weight:900; }
+  .sheet-body{ padding:12px 14px 22px; }
   .sheet-actions{ display:flex; gap:8px; margin-top:12px; }
   .sheet-actions .btn{ border-radius:10px; box-shadow:none; }
 
   /* Empty */
   .empty{padding:40px 16px; text-align:center; color:var(--muted)}
 
-  /* 오버레이 & 액션시트(기존) */
+  /* 오버레이 & 액션시트(원본 유지) */
   .overlay{ position:fixed; inset:0; background:rgba(0,0,0,.35); display:none; z-index:40; }
   .sheet{ position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); width:320px; max-width:90%; background:#fff;
     border-radius:14px; padding:16px; box-shadow:0 18px 48px rgba(0,0,0,.35); z-index:41; display:none; }
@@ -193,8 +236,9 @@
   @media (max-width: 540px){
     :root{ --binder-w: 200px; --binder-h: 360px; --binder-overlap: -90px; }
     .btn{padding:12px 14px}
-    .edge-tab{ height:80px; font-size:10px; right:-14px; }
+    .edge-tab{ height:80px; font-size:10px; left:-14px; }
     .file-sheet{ width:96vw; }
+    .file-visual{ height:140px; }
   }
 
   @media (prefers-color-scheme: dark){
@@ -213,7 +257,7 @@
     .row .label{ color:#cbd5e1; }
     .sub-sessions{ color:#cbd5e1; }
     .file-sheet{ background:#0f172a; border-left-color:#273044; }
-    .sheet-cover{ background:linear-gradient(135deg,#152036,#2a3a5a); border-left-color:#273044; }
+    .fv-cover{ background:linear-gradient(135deg,#152036,#2a3a5a); border-left-color:#273044; }
   }
 </style>
 </head>
@@ -257,13 +301,32 @@
   <!-- NEW: 파일 디테일 오버레이 -->
   <div id="fileOverlay" class="file-overlay" aria-hidden="true">
     <div class="file-sheet" role="dialog" aria-modal="true" aria-labelledby="fileTitle">
-      <div class="sheet-cover" aria-hidden="true"></div>
-      <div class="sheet-body">
-        <div style="display:flex;align-items:center;gap:10px;">
-          <button id="fileClose" class="btn" style="flex:0 0 auto;">닫기</button>
-          <h3 id="fileTitle" style="margin:0;font-size:16px;font-weight:900;"></h3>
+      <div class="sheet-head" style="margin-top:10px;">
+        <button id="fileClose" class="btn" style="flex:0 0 auto;">닫기</button>
+        <h3 id="fileTitle" class="sheet-title"></h3>
+      </div>
+
+      <!-- 펼쳐지는 폴더 비주얼 -->
+      <div id="fileVisual" class="file-visual">
+        <div class="fv-folder">
+          <div class="fv-tab" id="fvTab">이름</div>
+          <div class="fv-paper">
+            <div class="fv-sheet"></div>
+            <div class="fv-sheet"></div>
+            <div class="fv-sheet"></div>
+            <div class="fv-sheet"></div>
+          </div>
+          <div class="fv-cover"></div>
         </div>
-        <div id="fileBody" style="margin-top:10px;"></div>
+      </div>
+
+      <div class="sheet-body">
+        <div id="fileBody"></div>
+        <div class="sheet-actions">
+          <button class="btn" id="goJournal">📓 일지 열기</button>
+          <button class="btn" id="goEdit">📝 연장/수정</button>
+          <button class="btn strong" id="doConsume">–1 소진</button>
+        </div>
       </div>
     </div>
   </div>
@@ -307,6 +370,8 @@
   const fileTitle   = document.getElementById('fileTitle');
   const fileBody    = document.getElementById('fileBody');
   const fileClose   = document.getElementById('fileClose');
+  const fileVisual  = document.getElementById('fileVisual');
+  const fvTab       = document.getElementById('fvTab');
 
   /* Utils */
   const collator = new Intl.Collator('ko-KR',{numeric:true,sensitivity:'base'});
@@ -341,7 +406,7 @@
   }
 
   /* 다음 예약 캐시 */
-  const nextScheduleCache = new Map(); // id -> "YYYY-MM-DD HH:MM" | '-'
+  const nextScheduleCache = new Map();
   async function fetchNextSchedule(memberId){
     if (nextScheduleCache.has(memberId)) return nextScheduleCache.get(memberId);
     try{
@@ -366,41 +431,50 @@
   let currentMemberForSheet = null;
   let longPressTimer = null;
   let longFired = false;
+  let openOverlayId = null;
 
   /* NEW: 오버레이 열기/닫기 */
-  let openOverlayId = null;
+  function applyColorVars(elem, cls){
+    // 바인더 색상 클래스에 정의한 --tab-bg-start / --tab-bg-end 변수를 오버레이 비주얼에도 복제
+    const probe = document.createElement('div');
+    probe.className = 'binder '+cls;
+    probe.style.position='absolute'; probe.style.visibility='hidden';
+    document.body.appendChild(probe);
+    const cs = getComputedStyle(probe);
+    const start = cs.getPropertyValue('--tab-bg-start') || '#60a5fa';
+    const end   = cs.getPropertyValue('--tab-bg-end')   || '#2563eb';
+    document.body.removeChild(probe);
+    elem.style.setProperty('--tab-bg-start', start.trim());
+    elem.style.setProperty('--tab-bg-end', end.trim());
+  }
+
   function openFileOverlay(m){
     openOverlayId = m.id;
+
+    const cls = colorClass(m);
+    applyColorVars(fileVisual, cls); // 컬러 동기화
     fileTitle.textContent = `${m.name} · ${m.level || m.grade || '일반'}`;
+    fvTab.textContent = (m.name||'').slice(0,6);
+
     fileBody.innerHTML = `
-      <div style="display:grid;grid-template-columns:1fr;gap:8px">
+      <div style="display:grid;grid-template-columns:1fr;gap:10px">
         <div style="display:flex;gap:10px;align-items:center">
-          <div style="font-size:28px">📓</div>
+          <div style="font-size:28px">📁</div>
           <div>
             <div style="font-weight:900">${escapeHtml(m.name)} 고객 파일</div>
-            <div style="font-size:12px;color:#475569">담당 ${escapeHtml(m.trainer||'-')} · 등록 ${m.first||'-'} · 만료 ${m.expireAt||'-'}</div>
+            <div style="font-size:12px;color:#475569">담당 ${escapeHtml(m.trainer||'-')} · 최초등록 ${m.first||'-'} · 만료 ${m.expireAt||'-'}</div>
           </div>
         </div>
 
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:2px">
           <div class="pill remain ${((m.remaining||0)<=3)?'low':''}">잔여 <strong>${m.remaining||0}</strong></div>
           <div class="pill total">총 <strong>${m.total||0}</strong></div>
           <div class="pill">작성 ${m.logCount||0}회</div>
           <div class="pill">등급 ${escapeHtml(m.level||m.grade||'-')}</div>
-        </div>
-
-        <div id="nx-line" style="font-size:12px;color:#334155;margin-top:2px">다음예약: 조회 중…</div>
-
-        <div class="sheet-actions">
-          <button class="btn" id="goJournal">📓 일지 열기</button>
-          <button class="btn" id="goEdit">📝 연장/수정</button>
-          <button class="btn strong" id="doConsume">–1 소진</button>
+          <div id="nx-line" class="pill">다음예약 조회중…</div>
         </div>
       </div>
     `;
-    fileOverlay.classList.add('open');
-    fileOverlay.setAttribute('aria-hidden','false');
-    document.body.style.overflow='hidden';
 
     // 버튼 이벤트
     document.getElementById('goJournal').onclick = ()=> location.href = `personal-training-log.html?id=${encodeURIComponent(m.id)}`;
@@ -413,8 +487,16 @@
 
     // 다음 예약
     fetchNextSchedule(m.id).then(nx=>{
-      const el=document.getElementById('nx-line'); if(el) el.textContent = `다음예약: ${nx}`;
+      const el=document.getElementById('nx-line'); if(el) el.textContent = `다음예약 ${nx}`;
     });
+
+    // 오버레이 오픈 + 폴더 덮개 애니메이션
+    fileOverlay.classList.add('open');
+    fileOverlay.setAttribute('aria-hidden','false');
+    document.body.style.overflow='hidden';
+    fileVisual.classList.remove('open');
+    // 다음 프레임에 open 클래스 부여(트랜지션 트리거)
+    requestAnimationFrame(()=> requestAnimationFrame(()=> fileVisual.classList.add('open')));
   }
   function closeFileOverlay(){
     openOverlayId = null;
@@ -440,15 +522,12 @@
 
     list.forEach(m=>{
       const expired = isExpired(m);
-      const cls = ['binder', colorClass(m)];
+      const cls = colorClass(m);
       const lowRemain = (m.remaining ?? 0) <= 3;
-      if ((m.remaining ?? 0) <= 0) cls.push('zero');
-      if (expired) cls.push('expired');
-
-      const shortTab = (m.name||'').slice(0,6); // 옆면 탭에 표시
+      const shortTab = (m.name||'').slice(0,6);
 
       const art = document.createElement('article');
-      art.className = cls.join(' ');
+      art.className = ['binder', cls, expired?'expired':''].join(' ').trim();
       art.tabIndex = 0;
       art.setAttribute('role','button');
       art.setAttribute('aria-label', `${m.name} 고객 카드`);
@@ -502,9 +581,11 @@
           <button class="btn" aria-label="연장 등록" data-act="extend">➕ 연장 등록</button>
           <button class="btn strong" aria-label="세션 소진" data-act="consume">–1 소진</button>
         </div>
+
+        <div class="foot-date"><span class="dot"></span> 최근 등록일: <strong>${m.first || '-'}</strong></div>
       `;
 
-      // === 버튼 동작(원본 유지) ===
+      // 버튼 동작
       art.querySelector('[data-act="journal"]').addEventListener('click', (e)=>{
         e.stopPropagation(); location.href = `personal-training-log.html?id=${encodeURIComponent(m.id)}`;
       });
@@ -518,21 +599,20 @@
         catch(err){ console.error(err); alert('소진 처리 실패'); }
       });
 
-      // === 변경: 카드 클릭 즉시 이동 제거 / 두번 탭·클릭시 오버레이 열기 ===
-      // 인덱스 탭 클릭 → 즉시 오버레이
+      // 왼쪽 인덱스 탭 클릭 → 오버레이
       art.querySelector('.edge-tab').addEventListener('click',(ev)=>{ ev.stopPropagation(); openFileOverlay(m); });
 
-      // 더블클릭(데스크탑)
+      // 더블클릭/더블탭 → 오버레이
       art.addEventListener('dblclick', (e)=>{ e.stopPropagation(); openFileOverlay(m); });
 
-      // 단일 클릭은 펄스만 (너무 부자연스러운 이동 방지)
+      // 단일 클릭은 펄스만
       art.addEventListener('click', ()=>{
         if (longFired){ longFired=false; return; }
         art.classList.add('pulse');
         setTimeout(()=>art.classList.remove('pulse'), 500);
       });
 
-      // 다음 예약은 호버/포커스 시 계산 (캐시 사용)
+      // 다음 예약은 호버/포커스 시 계산
       let fetched = false;
       const ensureNext = async ()=>{
         if (fetched) return; fetched = true;
@@ -543,7 +623,7 @@
       art.addEventListener('mouseenter', ensureNext, {passive:true});
       art.addEventListener('focus', ensureNext, {passive:true});
 
-      // 롱프레스 → 만료 분류 시트 (원본 유지)
+      // 롱프레스 → 만료 분류 시트
       art.addEventListener('pointerdown', ()=>{
         longFired=false;
         longPressTimer = setTimeout(()=>{ longFired=true; openExpireSheet(m); }, 600);
@@ -595,7 +675,6 @@
 
     render(list);
 
-    // 만료 수 카운트 업데이트
     const expiredCount = state.members.filter(m=>isExpired(m)).length;
     expiredToggleBtn.textContent = `${state.showExpiredOnly ? '전체 보기' : '만료 회원만 보기'} (${expiredCount})`;
   }
@@ -616,7 +695,7 @@
     filterSort();
   });
 
-  /* 액션시트 열기/닫기/처리 (원본 유지) */
+  /* 액션시트 열기/닫기/처리 */
   function openExpireSheet(member){
     currentMemberForSheet = member;
     const expired = isExpired(member);
@@ -680,13 +759,12 @@
         });
         state.members=list;
 
-        // 오버레이가 열려있고 해당 멤버가 갱신되면 내용도 갱신
+        // 오버레이가 열려있으면 내용 동기화
         if (openOverlayId){
           const m = state.members.find(x=>x.id===openOverlayId);
           if (m) openFileOverlay(m);
         }
 
-        // 만료 버튼 카운트 초기 업데이트
         const expiredCount = state.members.filter(m=>isExpired(m)).length;
         expiredToggleBtn.textContent = `${state.showExpiredOnly ? '전체 보기' : '만료 회원만 보기'} (${expiredCount})`;
         filterSort();
