@@ -965,6 +965,14 @@
       if(tasks.length>0){ const t=document.getElementById('toast'); t.textContent=`어제 (${target}) 자동 소진 ${tasks.length}건`; t.style.opacity=1; setTimeout(()=>t.style.opacity=0,1700); }
     }catch(e){ console.error(e); }
   };
+
+    /////위젯////
+    <mtf-next-lessons limit="2"></mtf-next-lessons>
+
+<mtf-schedule week-offset="0" start="06" end="21"></mtf-schedule>
+<mtf-schedule week-offset="1" start="06" end="21"></mtf-schedule>
+<mtf-schedule week-offset="-1" start="06" end="21"></mtf-schedule>
   </script>
+  <script type="module" src="/mtf-widgets.js"></script>
 </body>
 </html>
