@@ -6,15 +6,32 @@
 <title>고객 카드 – 바인더 선반</title>
 <style>
   :root{
+    /* 모바일 기본값(폰 중심) */
+    --binder-w: clamp(320px, 88vw, 460px);
+    --binder-h: auto; /* aspect-ratio로 제어 */
+    --binder-overlap: calc(var(--binder-w) * -0.46);
+
     --navy:#0B1E3A; --gold:#C8A848; --ink:#0b1220; --muted:#6b7280;
     --line:#e5e7eb; --danger:#ef4444; --danger-bg:#fee2e2;
     --ok:#2563eb; --track:#e5e7eb;
     --shelf:#f3f4f6; --shelf-edge:#e5e7eb;
-
-    /* 바인더 크기/겹침 (A4 비율 적용) */
-    --binder-w: 360px;       /* 데스크톱 기본 폭 */
-    --binder-overlap: -180px;
   }
+
+  /* 태블릿 이상 */
+  @media (min-width: 600px){
+    :root{
+      --binder-w: clamp(360px, 64vw, 520px);
+      --binder-overlap: calc(var(--binder-w) * -0.5);
+    }
+  }
+  /* 데스크톱 이상 */
+  @media (min-width: 1024px){
+    :root{
+      --binder-w: 440px;
+      --binder-overlap: -180px;
+    }
+  }
+
   *{box-sizing:border-box}
   body{
     margin:0; background:linear-gradient(#fff,#fbfbfb); color:var(--ink);
@@ -39,7 +56,7 @@
   .shelf-wrap::before{ content:""; position:absolute; left:0; right:0; top:6px; height:18px; pointer-events:none;
     background:radial-gradient(80% 14px at 50% 0, rgba(0,0,0,.18), rgba(0,0,0,0) 70%); filter: blur(2px); }
   .shelf-wrap::after{ content:""; position:absolute; left:0; right:0; bottom:2px; height:24px; pointer-events:none;
-    background:radial-gradient(70% 18px at 50% 100%, rgba(0,0,0,.22), rgba(0,0,0,0) 70%); filter: blur(2px); }
+    background:radial-gradient(70% 18px at 50% 100%, rgba(0,0,0,.22), rgba(0,0,0,0) 70%); filter: blur(3px); }
   .shelf{
     position:relative; display:flex; gap:0; padding:26px 22px;
     overflow-x:auto; overflow-y:visible; scrollbar-width:thin;
@@ -54,41 +71,52 @@
   }
   .shelf::after{ left:auto; right:0; background:linear-gradient(270deg,#f9fafb,rgba(249,250,251,0)); }
 
-  /* ===== Binder ===== */
-  @keyframes breathe { 0%,100%{filter:saturate(1) brightness(1)} 50%{filter:saturate(1.08) brightness(1.05)} }
+  /* ===== Binder (cards) ===== */
+  @keyframes breathe { 0%,100%{filter:saturate(1) brightness(1)} 50%{filter:saturate(1.06) brightness(1.04)} }
   @keyframes glowPulse { 0%,100%{ box-shadow:-10px 0 0 rgba(255,255,255,.18) inset, 0 22px 40px rgba(0,0,0,.22); }
                         50%    { box-shadow:-12px 0 0 rgba(255,255,255,.24) inset, 0 28px 60px rgba(0,0,0,.28); } }
   .binder{
-    position:relative;
-    width:var(--binder-w);
-    aspect-ratio: 210 / 297;            /* A4 비율 유지: 가로/세로 */
-    margin-left:var(--binder-overlap);
+    position:relative; width:var(--binder-w); aspect-ratio:210/297; margin-left:var(--binder-overlap);
     border-radius:16px; cursor:pointer; user-select:none; outline:0;
     transform:translateZ(0) rotateY(-12deg) translateY(6px);
     transform-origin:left center; will-change:transform, filter;
     box-shadow:-8px 0 0 rgba(0,0,0,.06) inset, 0 8px 20px rgba(0,0,0,.08);
     transition:transform .28s cubic-bezier(.2,.8,.2,1), box-shadow .28s, filter .28s, z-index .28s;
-    background:linear-gradient(160deg, #9ec5ff 0%, #6aa0ff 55%, #3a6ddf 100%);
-    border:1px solid rgba(0,0,0,.06); color:#0b1220; scroll-snap-align:start;
+    color:#0b1220; scroll-snap-align:start;
+
+    /* 기본 색(파스텔블루) - 남성 기본 */
+    --c-start:#d9ecff; --c-mid:#bfe0ff; --c-end:#8cc4ff;
+    --tab-start:#bfe0ff; --tab-end:#8cc4ff;
+    background:linear-gradient(160deg, var(--c-start), var(--c-mid), var(--c-end));
+    border:1px solid rgba(0,0,0,.06);
   }
-  /* 색상 분류 */
-  .cMale   { --tab-bg-start:#a7c8ff; --tab-bg-end:#6aa0ff; background:linear-gradient(160deg,#dbe9ff,#a7c8ff,#6aa0ff); }
-  .cFemale { --tab-bg-start:#ffc1d9; --tab-bg-end:#ff88b2; background:linear-gradient(160deg,#ffe6f0,#ffc1d9,#ff88b2); }
-  .cExpired{ --tab-bg-start:#b9c0c7; --tab-bg-end:#9aa3ab; background:linear-gradient(160deg,#e6e9ec,#cfd4d9,#9aa3ab); filter:saturate(.9) contrast(.96); }
+  /* 여성(핑크) */
+  .cFemale{
+    --c-start:#ffe0ee; --c-mid:#ffc2da; --c-end:#ff97bd;
+    --tab-start:#ffc2da; --tab-end:#ff97bd;
+    background:linear-gradient(160deg, var(--c-start), var(--c-mid), var(--c-end));
+  }
+  /* 만료(멜란지 그레이) */
+  .cExpired{
+    --c-start:#e6e7ea; --c-mid:#cfd2d6; --c-end:#a8acb1;
+    --tab-start:#cfd2d6; --tab-end:#a8acb1;
+    background:linear-gradient(160deg, var(--c-start), var(--c-mid), var(--c-end));
+    filter:saturate(.9);
+  }
 
   .binder:first-child{ margin-left:8px; }
   .binder:hover, .binder:focus-visible{
     z-index:9; transform:translateY(-14px) rotateY(-2deg) scale(1.04);
     box-shadow:-10px 0 0 rgba(255,255,255,.18) inset, 0 22px 40px rgba(0,0,0,.22);
-    animation:breathe 2.6s ease-in-out infinite;
+    animation:breathe 2.3s ease-in-out infinite;
   }
   .binder::before{ content:""; position:absolute; left:0; top:0; bottom:0; width:24px; border-radius:16px 0 0 16px;
     background:linear-gradient(180deg, rgba(255,255,255,.22), rgba(0,0,0,.1)); box-shadow:2px 0 6px rgba(0,0,0,.12) inset; }
   .binder::after{
     content:""; position:absolute; inset:0; pointer-events:none; border-radius:16px;
     background:
-      radial-gradient(28px 28px at calc(100% - 10px) 10px, rgba(255,255,255,.6), rgba(255,255,255,0) 70%) top right / 40% 40% no-repeat,
-      radial-gradient(22px 22px at 12px calc(100% - 12px), rgba(255,255,255,.35), rgba(255,255,255,0) 70%) bottom left / 35% 35% no-repeat;
+      radial-gradient(28px 28px at calc(100% - 10px) 10px, rgba(255,255,255,.55), rgba(255,255,255,0) 70%) top right / 40% 40% no-repeat,
+      radial-gradient(22px 22px at 12px calc(100% - 12px), rgba(255,255,255,.32), rgba(255,255,255,0) 70%) bottom left / 35% 35% no-repeat;
     opacity:.0; transition:opacity .25s ease;
   }
   .binder:hover::after, .binder:focus-visible::after{ opacity:1; }
@@ -101,11 +129,11 @@
   .binder:hover .under, .binder:focus-visible .under{ opacity:.9; transform: translateY(2px) scale(1.06); }
   .binder.pulse{ animation:glowPulse 1.1s ease-in-out 1; }
 
-  /* 왼쪽 인덱스 탭(고객님 포함) */
+  /* 왼쪽 인덱스 탭 (바인더 색과 동기화) */
   .edge-tab{
-    position:absolute; left:-16px; top:46px; width:22px; height:98px;
-    background:linear-gradient(180deg,var(--tab-bg-start), var(--tab-bg-end));
-    border:2px solid var(--tab-bg-end); border-right:none;
+    position:absolute; left:-16px; top:46px; width:22px; height:100px;
+    background:linear-gradient(180deg,var(--tab-start), var(--tab-end));
+    border:2px solid var(--tab-end); border-right:none;
     border-radius:10px 0 0 10px; writing-mode:vertical-rl; text-orientation:mixed;
     font-weight:900; font-size:11px; color:#ffffff; display:flex; align-items:center; justify-content:center;
     box-shadow:0 3px 8px rgba(0,0,0,.12); transform:rotate(-2deg); transition:transform .2s, filter .2s; user-select:none;
@@ -113,145 +141,115 @@
   .binder:hover .edge-tab{ transform:rotate(0deg) translateX(-2px); filter:brightness(1.05); }
   .edge-tab:active{ transform:translateX(-3px); }
 
-  /* 바인더 전면 상단 스트립(단일 터치로 토글) */
+  /* 터치하면 잠깐 보이는 타이틀 스트립(검정) */
   .title-strip{
-    position:absolute; left:32px; right:12px; top:12px;
-    background:rgba(255,255,255,.9); border:1px solid #e5e7eb; border-radius:12px;
-    padding:8px 10px; font-weight:900; font-size:14px; color:#0b1220;
-    display:none; align-items:center; justify-content:space-between; gap:8px;
-    box-shadow:0 6px 14px rgba(0,0,0,.08);
+    position:absolute; top:10px; left:32px; right:10px;
+    background:rgba(0,0,0,.78); color:#fff; border-radius:10px; padding:6px 10px; font-weight:900; font-size:12px;
+    display:inline-flex; align-items:center; justify-content:center;
+    opacity:0; transform:translateY(-6px); pointer-events:none; transition:.25s;
   }
-  .title-strip .small{font-size:12px; color:#374151; font-weight:800}
+  .title-strip.show{ opacity:1; transform:translateY(0); }
 
-  /* 패널/행(hover 전용, 모바일은 사실상 보조 요소) */
-  .panel{ position:absolute; right:10px; top:64px; bottom:54px; left:36px;
-    background:rgba(255,255,255,.78); border:1px solid rgba(0,0,0,.08); border-radius:12px; padding:12px; overflow:hidden;
-    box-shadow:0 6px 14px rgba(0,0,0,.08);
-    transform:translateZ(30px) translateX(8px) rotateY(6deg); opacity:.0;
-    transition:opacity .25s, transform .28s; backdrop-filter: blur(6px); }
-  .binder:hover .panel, .binder:focus-visible .panel{ opacity:1; transform:translateZ(60px) translateX(0) rotateY(0); }
-  .rows{font-size:13px; color:#374151; display:grid; gap:6px; margin-top:10px}
-  .row{display:flex; gap:6px}
-  .row .label{width:66px; color:#334155; font-weight:700}
-  .row .value{flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-  .row.r-first{ display:none; } /* 모바일/데스크톱 모두 상단 등록일 숨김 */
-
-  /* 링/통계/액션 */
-  .ring{ --pct:0; width:74px; height:74px; border-radius:50%;
-    background:conic-gradient(var(--ok) calc(var(--pct)*1%), var(--track) 0);
-    display:grid; place-items:center; margin:2px 8px 6px auto; border:6px solid rgba(255,255,255,.6);
-    box-shadow:0 2px 10px rgba(0,0,0,.08) inset, 0 6px 14px rgba(0,0,0,.08); }
-  .ring.low{ --ok:#ef4444; }
-  .ring .ring-label{background:#fff; border-radius:999px; padding:6px 8px; font-size:12px; font-weight:900; border:1px solid #e5e7eb}
-  .stats{display:flex; gap:8px; flex-wrap:wrap; margin-top:10px}
-  .pill{border:1px solid var(--line); padding:6px 10px; border-radius:999px; font-size:12px; background:#fff}
-  .pill strong{font-weight:900}
-  .pill.remain{border-color:#60a5fa; background:#eff6ff}
-  .pill.remain.low{border-color:#ef4444; background:#fee2e2; color:#991b1b}
-  .pill.total{border-color:#d1d5db; background:#f9fafb}
-
-  /* 바닥: 최근 등록일(하단 고정) */
+  /* 하단 최근 등록(모바일 유지) */
   .foot-date{
-    position:absolute; left:36px; right:10px; bottom:12px;
+    position:absolute; left:36px; right:10px; bottom:10px;
     font-size:11px; font-weight:800; color:#334155;
-    background:rgba(255,255,255,.88); padding:6px 10px; border-radius:10px; border:1px solid #e5e7eb;
+    background:rgba(255,255,255,.86); padding:6px 10px; border-radius:10px; border:1px solid #e5e7eb;
     display:flex; align-items:center; gap:6px;
   }
   .foot-date .dot{ width:6px; height:6px; border-radius:50%; background:#22c55e; }
 
-  .actions{ position:absolute; left:36px; right:10px; bottom:54px; display:flex; gap:10px; opacity:0; transform:translateY(6px);
-    transition:opacity .2s, transform .2s; }
-  .binder:hover .actions, .binder:focus-visible .actions{ opacity:1; transform:translateY(0); }
-  .btn{ flex:1; padding:10px 12px; border-radius:999px; background:rgba(255,255,255,.78); border:1px solid rgba(0,0,0,.08);
-    backdrop-filter: blur(6px); color:#0B1E3A; font-weight:800; font-size:13px; display:flex; align-items:center; justify-content:center; gap:8px;
+  /* ===== 중앙 오버레이(롱프레스) ===== */
+  .overlay{ position:fixed; inset:0; background:rgba(0,0,0,.45); display:none; z-index:1100; }
+  .overlay.open{ display:block; }
+  .modal-wrap{
+    position:absolute; inset:0; display:grid; place-items:center;
+    padding:14px; overflow:auto;
+  }
+  .binder-modal{
+    width:min(560px, 94vw); aspect-ratio:210/297; position:relative;
+    opacity:0; transform:translateY(8%) scale(.94); transition:opacity .3s, transform .42s cubic-bezier(.2,.7,.2,1);
+  }
+  .overlay.open .binder-modal{ opacity:1; transform:translateY(0) scale(1); }
+
+  .bm-folder{
+    position:absolute; inset:0; border-radius:12px;
+    /* 여기서도 바인더 색과 100% 동기화 */
+    --m-start:#d9ecff; --m-mid:#bfe0ff; --m-end:#8cc4ff;
+    --m-tab-start:#bfe0ff; --m-tab-end:#8cc4ff;
+    background:linear-gradient(160deg,var(--m-start), var(--m-mid), var(--m-end));
+    box-shadow:0 12px 28px rgba(0,0,0,.25);
+    overflow:hidden; transform-style:preserve-3d;
+  }
+  .bm-tab{
+    position:absolute; left:-18px; top:18px; width:26px; height:110px;
+    background:linear-gradient(180deg,var(--m-tab-start), var(--m-tab-end));
+    border:2px solid var(--m-tab-end); border-right:none; border-radius:10px 0 0 10px;
+    writing-mode:vertical-rl; text-orientation:mixed; color:#fff; font-weight:900; font-size:11px;
+    display:flex; align-items:center; justify-content:center; box-shadow:0 3px 8px rgba(0,0,0,.12);
+  }
+  /* 종이 */
+  .bm-paper{ position:absolute; inset:10px; pointer-events:none; }
+  .bm-sheet{ position:absolute; inset:0; background:#fff; border:1px solid #e5e7eb; border-radius:8px;
+             box-shadow:0 1px 3px rgba(0,0,0,.12); transform-origin:left center; transition:transform .6s ease; }
+  .bm-sheet:nth-child(1){ transform:translateX(2px); }
+  .bm-sheet:nth-child(2){ transform:translateX(4px); }
+  .bm-sheet:nth-child(3){ transform:translateX(6px); }
+  .bm-sheet:nth-child(4){ transform:translateX(8px); }
+
+  /* 덮개: 바인더와 같은 색 */
+  .bm-cover{
+    position:absolute; inset:0; border-radius:12px;
+    background:linear-gradient(160deg,var(--m-start), var(--m-mid), var(--m-end));
+    border-left:2px solid rgba(0,0,0,.08); transform-origin:left center;
+    transform:translateX(0) rotateY(0); transition:transform .9s cubic-bezier(.175,.885,.32,1.275);
+    box-shadow:-4px 0 14px rgba(0,0,0,.18) inset;
+  }
+  /* 열렸을 때 */
+  .opened .bm-cover{ transform:translateX(-78%) rotateY(-16deg); }
+  .opened .bm-sheet:nth-child(1){ transform:translateX(-2px) rotateY(3deg); }
+  .opened .bm-sheet:nth-child(2){ transform:translateX(-1px) rotateY(2deg); }
+  .opened .bm-sheet:nth-child(3){ transform:translateX(0) rotateY(1deg); }
+  .opened .bm-sheet:nth-child(4){ transform:translateX(1px) rotateY(0); }
+
+  /* 속지 내용 */
+  .bm-body{
+    position:absolute; left:14px; right:14px; top:18px; bottom:60px; /* 아래 버튼 영역 남김 */
+    overflow:auto; padding:10px;
+  }
+  /* 내용 그리드: 좌우로 좀 넓게 해서 가로 스크롤 가능 */
+  .doc-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; min-width: 640px; }
+  @media (max-width:600px){ .doc-grid{ grid-template-columns: 1fr; min-width: 560px; } }
+  .doc-card{ background:#fafafa; border:1px solid #e9edf3; border-radius:12px; padding:12px; }
+  .doc-card h4{ margin:0 0 8px; font-size:14px; font-weight:900; color:#0b1220; }
+  .kv{ display:grid; grid-template-columns:86px 1fr; gap:6px; font-size:12px; }
+  .chips{ display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+  .chip{ border:1px solid var(--line); background:#fff; border-radius:999px; padding:6px 10px; font-size:12px; }
+
+  /* 진행 링 */
+  .ring{ --pct:0; width:84px; height:84px; border-radius:50%;
+    background:conic-gradient(var(--ok) calc(var(--pct)*1%), var(--track) 0);
+    display:grid; place-items:center; margin-left:auto; border:6px solid rgba(255,255,255,.6);
+    box-shadow:0 2px 10px rgba(0,0,0,.08) inset, 0 6px 14px rgba(0,0,0,.08); }
+  .ring.low{ --ok:#ef4444; }
+  .ring .ring-label{background:#fff; border-radius:999px; padding:6px 8px; font-size:12px; font-weight:900; border:1px solid #e5e7eb}
+
+  /* 하단 버튼 줄(속지 안쪽) */
+  .bm-actions{
+    position:absolute; left:12px; right:12px; bottom:12px;
+    display:flex; gap:8px; flex-wrap:wrap;
+  }
+  .btn{ flex:1 0 140px; padding:10px 12px; border-radius:999px; border:1px solid rgba(0,0,0,.08);
+    background:#0f172a; color:#fff; font-weight:800; font-size:13px; display:flex; align-items:center; justify-content:center; gap:8px;
     box-shadow:0 8px 18px rgba(11,30,58,.18); cursor:pointer; }
-  .btn.strong{ background:#0B1E3A; color:#fff; }
+  .btn.light{ background:#fff; color:#0B1E3A; }
+  .btn.warn{ background:#ef4444; border-color:#ef4444; color:#fff; }
   .btn:active{ transform:translateY(1px); }
 
-  /* ===== 파일 오버레이(중앙 3D) ===== */
-  .file-overlay{ position:fixed; inset:0; background:rgba(0,0,0,.48); display:none; z-index:1100; }
-  .file-overlay.open{ display:block; }
+  /* Empty */
+  .empty{padding:40px 16px; text-align:center; color:var(--muted)}
 
-  .file-stage{
-    position:absolute; inset:0; display:grid; place-items:center; padding:18px;
-  }
-  /* 바인더 비주얼: 앞으로 튀어나옴 + 덮개 열림 */
-  .file-visual{
-    position:relative; width:min(92vw, 740px); aspect-ratio:210/297; max-height:88vh;
-    perspective:1600px; opacity:0; transform:translateY(6%) scale(.94) rotateY(-8deg);
-    transition:opacity .35s, transform .5s cubic-bezier(.2,.7,.2,1);
-  }
-  .file-overlay.open .file-visual{ opacity:1; transform:translateY(0) scale(1) rotateY(0); }
-
-  .fv-folder{
-    position:absolute; inset:0; border-radius:14px; background:linear-gradient(160deg,#dbe9ff,#a7c8ff,#6aa0ff);
-    box-shadow:0 14px 36px rgba(0,0,0,.26); transform-style:preserve-3d; overflow:hidden;
-  }
-  .fv-tab{
-    position:absolute; left:-20px; top:20px; width:28px; height:108px;
-    background:linear-gradient(180deg,var(--tab-bg-start), var(--tab-bg-end));
-    border:2px solid var(--tab-bg-end); border-right:none; border-radius:10px 0 0 10px;
-    writing-mode:vertical-rl; text-orientation:mixed; color:#fff; font-weight:900; font-size:12px;
-    display:flex; align-items:center; justify-content:center; box-shadow:0 4px 10px rgba(0,0,0,.16);
-  }
-  .fv-cover{
-    position:absolute; inset:0; border-radius:14px; background:linear-gradient(135deg,#f4f1de,#e9c46a);
-    border-left:2px solid #d4a574; transform-origin:left center; transform:translateX(0) rotateY(0);
-    transition:transform .8s cubic-bezier(.175,.885,.32,1.275);
-    box-shadow:-2px 0 12px rgba(0,0,0,.16);
-  }
-  .fv-paper{ position:absolute; inset:10px; pointer-events:none; }
-  .fv-sheet{ position:absolute; inset:0; background:#fff; border:1px solid #e5e7eb; border-radius:8px;
-             box-shadow:0 1px 3px rgba(0,0,0,.08); transform-origin:left center; transition:transform .6s ease; }
-  .fv-sheet:nth-child(1){ transform:translateX(2px); }
-  .fv-sheet:nth-child(2){ transform:translateX(4px); }
-  .fv-sheet:nth-child(3){ transform:translateX(6px); }
-  .fv-sheet:nth-child(4){ transform:translateX(8px); }
-  /* 덮개/종이 펼침 */
-  .file-visual.open .fv-cover{ transform:translateX(-78%) rotateY(-16deg); }
-  .file-visual.open .fv-sheet:nth-child(1){ transform:translateX(-2px) rotateY(3deg); }
-  .file-visual.open .fv-sheet:nth-child(2){ transform:translateX(-1px) rotateY(2deg); }
-  .file-visual.open .fv-sheet:nth-child(3){ transform:translateX(0) rotateY(1deg); }
-  .file-visual.open .fv-sheet:nth-child(4){ transform:translateX(1px) rotateY(0deg); }
-
-  /* 스프레드(2쪽) */
-  .spread{
-    position:absolute; inset:16px 14px; display:grid; grid-template-columns:1fr 1fr; gap:12px;
-    opacity:0; transform:translateY(6px); transition:opacity .3s .15s, transform .35s .15s;
-  }
-  .file-visual.open .spread{ opacity:1; transform:translateY(0); }
-  .page{
-    background:#fff; border:1px solid #e5e7eb; border-radius:10px; padding:14px 12px; overflow:auto;
-    box-shadow:0 8px 20px rgba(0,0,0,.08);
-    transform-origin: center left; backface-visibility:hidden;
-  }
-  .page.hinge-right{ transform-origin:center right; }
-  /* 페이지 넘김 모션 */
-  .turn-right .left{ transform:rotateY(-170deg); transition:transform .6s ease; }
-  .turn-left  .right{ transform:rotateY(170deg);  transition:transform .6s ease; }
-
-  .spread-head{
-    position:absolute; left:20px; right:20px; top:-12px;
-    display:flex; align-items:center; justify-content:space-between;
-  }
-  .ghost-btn{
-    background:rgba(255,255,255,.9); border:1px solid #e5e7eb; border-radius:999px; padding:8px 10px; font-weight:800; cursor:pointer;
-    box-shadow:0 6px 14px rgba(0,0,0,.08);
-  }
-
-  /* 모바일 튜닝 */
-  @media (max-width: 860px){
-    :root{ --binder-w: 320px; --binder-overlap: -140px; }
-    .btn{font-size:12px}
-  }
-  @media (max-width: 540px){
-    :root{ --binder-w: min(88vw, 360px); --binder-overlap: -90px; } /* 모바일: 넓게 보이도록 확대 */
-    .edge-tab{ height:90px; font-size:10px; left:-14px; }
-    .spread{ inset:14px 10px; gap:8px; }
-    .page{ padding:12px 10px; }
-  }
-
-  /* 다크 모드 */
+  /* 다크 */
   @media (prefers-color-scheme: dark){
     body{ background:linear-gradient(#0b1220,#101826); color:#e5e7eb; }
     header{ background:linear-gradient(#0f172a,#0b1220); border-bottom-color:#475569; }
@@ -260,11 +258,19 @@
             border-top-color:#374151; border-bottom-color:#374151; }
     .binder{ color:#eef2ff; border-color:rgba(255,255,255,.06);
              box-shadow:-8px 0 0 rgba(0,0,0,.45) inset, 0 12px 28px rgba(0,0,0,.65); }
-    .panel{ background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.1); }
-    .btn{ background:rgba(255,255,255,.12); border-color:rgba(255,255,255,.18); color:#e5e7eb; }
-    .btn.strong{ background:#0B1E3A; }
-    .page{ background:#0f172a; border-color:#273044; }
-    .fv-cover{ background:linear-gradient(135deg,#152036,#2a3a5a); border-left-color:#273044; }
+    .edge-tab{ color:#fff; }
+    .foot-date{ background:rgba(16,24,38,.86); color:#e5e7eb; border-color:#273044; }
+    .overlay{ background:rgba(0,0,0,.55); }
+    .bm-folder{ box-shadow:0 14px 36px rgba(0,0,0,.45); }
+    .doc-card{ background:#121b2a; border-color:#273044; }
+    .doc-card h4{ color:#e5e7eb; }
+    .chip{ background:#101826; border-color:#273044; color:#e5e7eb; }
+    .btn.light{ background:#0f172a; color:#e5e7eb; border-color:#273044; }
+  }
+
+  /* 모바일에서 헤더 이름영역 숨김(인덱스탭으로 식별) */
+  @media (max-width: 600px){
+    .name-wrap { display:none; }
   }
 </style>
 </head>
@@ -284,12 +290,6 @@
         </select>
         <button id="orderBtn" class="tgl" aria-pressed="false">오름차순 ↑</button>
       </div>
-      <div class="group">
-        소그룹:
-        <select id="groupSel" aria-label="소그룹">
-          <option value="">전체</option>
-        </select>
-      </div>
       <button id="expiredToggle" class="expired-toggle" aria-pressed="false">만료 회원만 보기 (0)</button>
       <button id="btnDash" class="back" onclick="location.href='dashboard.html'">대시보드로</button>
     </div>
@@ -300,535 +300,385 @@
     <div id="empty" class="empty" hidden>검색 결과가 없어요.</div>
   </section>
 
-  <!-- 롱프레스: 만료 분류 시트 -->
-  <div id="overlay" class="overlay" style="position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;z-index:1200"></div>
-  <div id="sheet" class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" style="display:none">
-    <h3 id="sheetTitle">만료 고객 분류</h3>
-    <p id="sheetDesc">이 고객을 만료 고객으로 분류할까요?</p>
-    <div class="rowbtns" style="display:flex;gap:8px">
-      <button id="btnExpire" class="danger" style="flex:1;padding:10px;border-radius:10px;border:1px solid var(--line);background:#ef4444;color:#fff">만료로 분류</button>
-      <button id="btnCancel" class="cancel" style="flex:1;padding:10px;border-radius:10px;border:1px solid var(--line);background:#fff">취소</button>
-    </div>
-  </div>
+  <!-- 롱프레스 시 중앙 오버레이 -->
+  <div id="overlay" class="overlay" aria-hidden="true">
+    <div class="modal-wrap">
+      <div id="binderModal" class="binder-modal">
+        <div id="bmFolder" class="bm-folder">
+          <div id="bmTab" class="bm-tab">고객님</div>
+          <div class="bm-paper">
+            <div class="bm-sheet"></div><div class="bm-sheet"></div>
+            <div class="bm-sheet"></div><div class="bm-sheet"></div>
+          </div>
+          <div id="bmCover" class="bm-cover"></div>
 
-  <!-- 파일 오버레이(중앙에서 열림) -->
-  <div id="fileOverlay" class="file-overlay" aria-hidden="true">
-    <div class="file-stage">
-      <div id="fileVisual" class="file-visual">
-        <div class="fv-folder" id="fvFolder">
-          <div class="fv-tab" id="fvTab">고객님</div>
-          <div class="fv-paper">
-            <div class="fv-sheet"></div>
-            <div class="fv-sheet"></div>
-            <div class="fv-sheet"></div>
-            <div class="fv-sheet"></div>
+          <div class="bm-body">
+            <div id="bmBodyGrid" class="doc-grid"></div>
           </div>
 
-          <!-- 스프레드(좌/우 2페이지) -->
-          <div id="spread" class="spread">
-            <div class="spread-head">
-              <button id="prevPg" class="ghost-btn">◀︎</button>
-              <div style="display:flex;gap:8px;align-items:center">
-                <div id="overlayRing" class="ring"><div class="ring-label" id="ringLbl">0/0</div></div>
-                <button id="goJournal" class="ghost-btn">📓 일지</button>
-                <button id="goEdit" class="ghost-btn">📝 연장</button>
-                <button id="doConsume" class="ghost-btn">–1 소진</button>
-                <button id="fileClose" class="ghost-btn">닫기 ✕</button>
-              </div>
-              <button id="nextPg" class="ghost-btn">▶︎</button>
-            </div>
-
-            <section class="page left" id="pageL">
-              <h3 style="margin:0 0 8px;font-size:16px;font-weight:900" id="pgTitleL">고객정보</h3>
-              <div style="font-size:13px;display:grid;grid-template-columns:92px 1fr;gap:6px" id="infoGrid">
-                <!-- 동적 채움 -->
-              </div>
-              <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap" id="chipsL"></div>
-            </section>
-
-            <section class="page right hinge-right" id="pageR">
-              <h3 style="margin:0 0 8px;font-size:16px;font-weight:900">레슨/메모</h3>
-              <div style="font-size:13px;line-height:1.6" id="memoBox">
-                고객별 레슨 기록/메모 요약이 여기에 표시됩니다.
-              </div>
-              <div style="margin-top:10px;font-size:12px;color:#64748b" id="nextLine">다음예약: 조회중…</div>
-            </section>
+          <div class="bm-actions">
+            <button id="btnJournal" class="btn light">📓 운동일지</button>
+            <button id="btnExtend"  class="btn light">📝 연장/수정</button>
+            <button id="btnConsume" class="btn warn">–1 소진</button>
+            <button id="btnClose"   class="btn">닫기</button>
           </div>
-
-          <div class="fv-cover"></div>
         </div>
       </div>
     </div>
   </div>
 
-  <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
-  import { getFirestore, collection, onSnapshot, doc, updateDoc, increment,
-           query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
-  import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
+<script type="module">
+/* ===== Firebase ===== */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
+import { getFirestore, collection, onSnapshot, doc, updateDoc, increment,
+         query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
 
-  /* Firebase */
-  const firebaseConfig = {
-    apiKey:"AIzaSyCjdyveDx0qFPUzmaChnEy9Ni0VjTysYnM",
-    authDomain:"more-than-fitness-f6adb.firebaseapp.com",
-    projectId:"more-than-fitness-f6adb",
-    storageBucket:"more-than-fitness-f6adb.appspot.com",
-    messagingSenderId:"993248877411",
-    appId:"1:993248877411:web:c0e6785162cf252fbcd156",
-    measurementId:"G-MK0RVFG296"
-  };
-  const app = initializeApp(firebaseConfig);
-  const db  = getFirestore(app);
-  const auth = getAuth(app);
+const firebaseConfig = {
+  apiKey:"AIzaSyCjdyveDx0qFPUzmaChnEy9Ni0VjTysYnM",
+  authDomain:"more-than-fitness-f6adb.firebaseapp.com",
+  projectId:"more-than-fitness-f6adb",
+  storageBucket:"more-than-fitness-f6adb.appspot.com",
+  messagingSenderId:"993248877411",
+  appId:"1:993248877411:web:c0e6785162cf252fbcd156",
+  measurementId:"G-MK0RVFG296"
+};
+const app  = initializeApp(firebaseConfig);
+const db   = getFirestore(app);
+const auth = getAuth(app);
 
-  /* DOM 참조 */
-  const shelf    = document.getElementById('shelf');
-  const empty    = document.getElementById('empty');
-  const qEl      = document.getElementById('q');
-  const sortSel  = document.getElementById('sortBy');
-  const orderBtn = document.getElementById('orderBtn');
-  const expiredToggleBtn = document.getElementById('expiredToggle');
-  const groupSel = document.getElementById('groupSel');
+/* ===== DOM ===== */
+const shelf    = document.getElementById('shelf');
+const empty    = document.getElementById('empty');
+const qEl      = document.getElementById('q');
+const sortSel  = document.getElementById('sortBy');
+const orderBtn = document.getElementById('orderBtn');
+const expiredToggleBtn = document.getElementById('expiredToggle');
 
-  const overlay  = document.getElementById('overlay');
-  const sheet    = document.getElementById('sheet');
-  const btnExpire= document.getElementById('btnExpire');
-  const btnCancel= document.getElementById('btnCancel');
-  const sheetTitle = document.getElementById('sheetTitle');
-  const sheetDesc  = document.getElementById('sheetDesc');
+/* Overlay */
+const overlay   = document.getElementById('overlay');
+const bmFolder  = document.getElementById('bmFolder');
+const bmCover   = document.getElementById('bmCover');
+const bmTab     = document.getElementById('bmTab');
+const bmBodyGrid= document.getElementById('bmBodyGrid');
+const btnJournal= document.getElementById('btnJournal');
+const btnExtend = document.getElementById('btnExtend');
+const btnConsume= document.getElementById('btnConsume');
+const btnClose  = document.getElementById('btnClose');
 
-  // 파일 오버레이(중앙)
-  const fileOverlay = document.getElementById('fileOverlay');
-  const fileVisual  = document.getElementById('fileVisual');
-  const fvTab       = document.getElementById('fvTab');
-  const pageL       = document.getElementById('pageL');
-  const pageR       = document.getElementById('pageR');
-  const infoGrid    = document.getElementById('infoGrid');
-  const chipsL      = document.getElementById('chipsL');
-  const memoBox     = document.getElementById('memoBox');
-  const nextLine    = document.getElementById('nextLine');
-  const prevPg      = document.getElementById('prevPg');
-  const nextPg      = document.getElementById('nextPg');
-  const goJournal   = document.getElementById('goJournal');
-  const goEdit      = document.getElementById('goEdit');
-  const doConsume   = document.getElementById('doConsume');
-  const fileClose   = document.getElementById('fileClose');
-  const overlayRing = document.getElementById('overlayRing');
-  const ringLbl     = document.getElementById('ringLbl');
+/* ===== Utils ===== */
+const collator = new Intl.Collator('ko-KR',{numeric:true,sensitivity:'base'});
+const escapeHtml = s => String(s ?? "").replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' }[m]));
+const p2 = n => String(n).padStart(2,'0');
+const todayISO = () => { const d = new Date(); return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`; };
+const nowHM = () => { const d=new Date(); return `${p2(d.getHours())}:${p2(d.getMinutes())}`; };
+const toISO = ts => ts?.toDate ? ts.toDate().toISOString().slice(0,10) : (typeof ts==='string' ? ts : "");
+const toTime = (str)=> (str ? new Date(str).getTime() : NaN);
 
-  /* 유틸 */
-  const collator = new Intl.Collator('ko-KR',{numeric:true,sensitivity:'base'});
-  const escapeHtml = s => String(s ?? "").replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' }[m]));
-  const p2 = n => String(n).padStart(2,'0');
-  const todayISO = () => { const d = new Date(); return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`; };
-  const nowHM = () => { const d=new Date(); return `${p2(d.getHours())}:${p2(d.getMinutes())}`; };
-  const toISO = ts => ts?.toDate ? ts.toDate().toISOString().slice(0,10) : (typeof ts==='string' ? ts : "");
-  const toTime = (str)=> (str ? new Date(str).getTime() : NaN);
+/* Gender normalize */
+function normGender(g){
+  g = (g||'').toString().trim().toLowerCase();
+  if(/^(f|여|female|woman|girl)/.test(g)) return 'female';
+  if(/^(m|남|male|man|boy)/.test(g))     return 'male';
+  return '';
+}
 
-  function colorClass(m){
-    if (isExpired(m)) return 'cExpired';
-    if ((m.gender||'').toLowerCase()==='female') return 'cFemale';
-    if ((m.gender||'').toLowerCase()==='male')   return 'cMale';
-    return 'cMale'; // 기본 파스텔 블루
-  }
-  function calcPct(rem, total){
-    const t = total || 0, r = rem || 0;
-    return t>0 ? Math.max(0, Math.min(100, Math.round((r/t)*100))) : 0;
-  }
+/* 색상 동기화: 바인더 클래스 → 오버레이 변수 */
+function applyModalColorsFromBinderClass(cls){
+  // 임시 노드로 해당 클래스의 CSS 변수를 읽음
+  const probe = document.createElement('div');
+  probe.className = 'binder '+cls;
+  probe.style.position='absolute'; probe.style.visibility='hidden';
+  document.body.appendChild(probe);
+  const cs = getComputedStyle(probe);
+  const start = cs.getPropertyValue('--c-start').trim();
+  const mid   = cs.getPropertyValue('--c-mid').trim();
+  const end   = cs.getPropertyValue('--c-end').trim();
+  const tstart= cs.getPropertyValue('--tab-start').trim();
+  const tend  = cs.getPropertyValue('--tab-end').trim();
+  document.body.removeChild(probe);
 
-  function isExpired(m){
-    const today = new Date(todayISO()).getTime();
-    const expT  = toTime(m.expireAt);
-    return Boolean(m.expiredFlag) || (Number.isFinite(expT) && expT < today);
-  }
+  bmFolder.style.setProperty('--m-start', start||'#d9ecff');
+  bmFolder.style.setProperty('--m-mid'  , mid  ||'#bfe0ff');
+  bmFolder.style.setProperty('--m-end'  , end  ||'#8cc4ff');
+  bmFolder.style.setProperty('--m-tab-start', tstart||'#bfe0ff');
+  bmFolder.style.setProperty('--m-tab-end'  , tend  ||'#8cc4ff');
+}
 
-  /* 다음 예약 캐시 */
-  const nextScheduleCache = new Map();
-  async function fetchNextSchedule(memberId){
-    if (nextScheduleCache.has(memberId)) return nextScheduleCache.get(memberId);
-    try{
-      const qy = query(collection(db,'schedules'), where('memberId','==', memberId));
-      const snap = await getDocs(qy);
-      const today = todayISO(), now = nowHM();
-      const list = [];
-      snap.forEach(ds=>{
-        const s = ds.data();
-        const d = String(s.date||''); const st = String(s.start||'00:00');
-        if (d > today || (d===today && st >= now)) list.push({date:d,start:st});
-      });
-      list.sort((a,b)=> (a.date===b.date ? a.start.localeCompare(b.start) : a.date.localeCompare(b.date)));
-      const val = list[0] ? `${list[0].date} ${list[0].start}` : '-';
-      nextScheduleCache.set(memberId, val);
-      return val;
-    }catch(e){ console.error(e); nextScheduleCache.set(memberId,'-'); return '-'; }
-  }
+/* 다음 예약 캐시 */
+const nextScheduleCache = new Map();
+async function fetchNextSchedule(memberId){
+  if (nextScheduleCache.has(memberId)) return nextScheduleCache.get(memberId);
+  try{
+    const qy = query(collection(db,'schedules'), where('memberId','==', memberId));
+    const snap = await getDocs(qy);
+    const today = todayISO(), now = nowHM();
+    const list = [];
+    snap.forEach(ds=>{
+      const s = ds.data();
+      const d = String(s.date||''); const st = String(s.start||'00:00');
+      if (d > today || (d===today && st >= now)) list.push({date:d,start:st});
+    });
+    list.sort((a,b)=> (a.date===b.date ? a.start.localeCompare(b.start) : a.date.localeCompare(b.date)));
+    const val = list[0] ? `${list[0].date} ${list[0].start}` : '-';
+    nextScheduleCache.set(memberId, val);
+    return val;
+  }catch(e){ console.error(e); nextScheduleCache.set(memberId,'-'); return '-'; }
+}
 
-  /* 상태 */
-  let state = { orderAsc: true, showExpiredOnly: false, members: [], groupFilter:"" };
-  let currentMemberForSheet = null;
-  let longPressTimer = null;
-  let longFired = false;
-  let openOverlayId = null;
-  let turning = 0; // 0 기본, 1 오른쪽 넘김, -1 왼쪽 넘김
+/* ===== State ===== */
+let state = { orderAsc: true, showExpiredOnly: false, members: [] };
+let longPressTimer = null;
+let openMember = null;  // 오버레이에 표시 중인 멤버
 
-  /* 그룹 드롭다운 채움 */
-  function fillGroupOptions(members){
-    const set = new Set();
-    members.forEach(m=>{ if(m.group) set.add(String(m.group)); });
-    const cur = groupSel.value;
-    groupSel.innerHTML = `<option value="">전체</option>` + [...set].sort().map(g=>`<option value="${escapeHtml(g)}">${escapeHtml(g)}</option>`).join('');
-    if ([...set].includes(cur)) groupSel.value = cur;
-  }
+/* ===== Render ===== */
+function isExpired(m){
+  const today = new Date(todayISO()).getTime();
+  const expT  = toTime(m.expireAt);
+  return Boolean(m.expiredFlag) || (Number.isFinite(expT) && expT < today);
+}
 
-  /* 오버레이 열기 */
-  function openOverlay(m){
-    openOverlayId = m.id;
-    // 탭 색 동기화
-    const cls = colorClass(m);
-    // 임시 엘리먼트로 CSS 변수 읽어오기
-    const probe = document.createElement('div');
-    probe.className = 'binder '+cls; probe.style.position='absolute'; probe.style.visibility='hidden';
-    document.body.appendChild(probe);
-    const cs = getComputedStyle(probe);
-    const start = cs.getPropertyValue('--tab-bg-start') || '#a7c8ff';
-    const end   = cs.getPropertyValue('--tab-bg-end')   || '#6aa0ff';
-    document.body.removeChild(probe);
-    fileVisual.style.setProperty('--tab-bg-start', start.trim());
-    fileVisual.style.setProperty('--tab-bg-end', end.trim());
+function render(list){
+  shelf.innerHTML = '';
+  if(!list.length){ empty.hidden = false; return; }
+  empty.hidden = true;
 
-    // 탭 라벨(고객님 포함)
-    fvTab.textContent = `${m.name}고객님`;
+  list.forEach(m=>{
+    const expired = isExpired(m);
+    const cls = expired ? 'cExpired' : (m.gender==='female' ? 'cFemale' : ''); // 기본(남성/기타)=파스텔블루
+    const shortTab = `${m.name} 고객님`; // 인덱스탭에 고객님까지 표기
+    const total = m.total||0, remain = m.remaining||0;
 
-    // 링/버튼 상태
-    const pct = calcPct(m.remaining, m.total);
-    overlayRing.classList.toggle('low', (m.remaining||0)<=3);
-    overlayRing.style.setProperty('--pct', pct);
-    ringLbl.textContent = `${m.remaining||0}/${m.total||0}`;
+    const art = document.createElement('article');
+    art.className = ['binder', cls].join(' ').trim();
+    art.tabIndex = 0;
+    art.setAttribute('role','button');
+    art.setAttribute('aria-label', `${m.name} 고객 카드`);
 
-    goJournal.onclick = ()=> location.href = `personal-training-log.html?id=${encodeURIComponent(m.id)}`;
-    goEdit.onclick    = ()=> location.href = `edit-member.html?id=${encodeURIComponent(m.id)}`;
-    doConsume.onclick = async ()=>{
-      if ((m.remaining||0) <= 0){ alert('잔여 세션이 없습니다'); return; }
-      try{ await updateDoc(doc(db,'members',m.id), { remainingSessions: increment(-1) }); }
-      catch(err){ console.error(err); alert('소진 처리 실패'); }
-    };
+    art.innerHTML = `
+      <span class="shine" aria-hidden="true"></span>
+      <span class="under" aria-hidden="true"></span>
+      <div class="edge-tab" role="button">${escapeHtml(shortTab)}</div>
 
-    // 좌측 페이지 내용
-    infoGrid.innerHTML = `
-      <div>이름</div><div>${escapeHtml(m.name)} 고객님</div>
-      <div>담당</div><div>${escapeHtml(m.trainer||'-')}</div>
-      <div>등급</div><div>${escapeHtml(m.level||m.grade||'-')}</div>
-      <div>최근등록</div><div>${m.recentReg || m.first || '-'}</div>
-      <div>만료일</div><div>${m.expireAt||'-'}</div>
-      <div>작성</div><div>${m.logCount||0}회</div>
+      <div class="title-strip" aria-hidden="true">${escapeHtml(m.name)} 고객님 (${total}/${remain})</div>
+
+      <!-- (상단 이름 영역은 모바일에서 숨김, 데스크톱에서만 살짝 보이도록 남겨둠) -->
+      <div class="name-wrap" style="position:absolute; top:8px; left:36px; right:10px; color:#0b1220;">
+        <div style="font-weight:900;">${escapeHtml(m.name)} 고객님</div>
+      </div>
+
+      <div class="foot-date"><span class="dot"></span> 최근 등록: <strong>${m.recentReg || m.first || '-'}</strong></div>
     `;
-    chipsL.innerHTML = `
-      <div class="pill">잔여 <strong>${m.remaining||0}</strong></div>
-      <div class="pill">총 <strong>${m.total||0}</strong></div>
-      ${m.group ? `<div class="pill">그룹 <strong>${escapeHtml(m.group)}</strong></div>` : ``}
-    `;
-    memoBox.textContent = (m.memo && String(m.memo).trim()) ? m.memo : '레슨 기록/메모가 아직 없어요. 일지에서 작성해 주세요.';
 
-    nextLine.textContent = '다음예약: 조회중…';
-    fetchNextSchedule(m.id).then(nx=> nextLine.textContent = `다음예약: ${nx}`);
+    /* === 인터랙션 === */
 
-    // 오버레이 표시 + 덮개 열기
-    fileOverlay.classList.add('open');
-    fileOverlay.setAttribute('aria-hidden','false');
-    document.body.style.overflow='hidden';
-    fileVisual.classList.remove('open');
-    turning = 0; spread.classList.remove('turn-left','turn-right');
+    // 1) 짧게 터치 → 타이틀 스트립 잠깐 노출
+    let hideTimer=null;
+    art.addEventListener('click', ()=>{
+      // 롱프레스 직후 클릭 방지
+      if (art._lpJustFired){ art._lpJustFired=false; return; }
+      const ts = art.querySelector('.title-strip');
+      ts.classList.add('show');
+      clearTimeout(hideTimer);
+      hideTimer = setTimeout(()=> ts.classList.remove('show'), 2000);
+      // 살짝 반짝
+      art.classList.add('pulse'); setTimeout(()=>art.classList.remove('pulse'), 500);
+    });
 
-    requestAnimationFrame(()=> setTimeout(()=> fileVisual.classList.add('open'), 140));
-  }
-  function closeOverlay(){
-    openOverlayId = null;
-    fileOverlay.classList.remove('open');
-    fileOverlay.setAttribute('aria-hidden','true');
-    document.body.style.overflow='';
-  }
-  fileOverlay.addEventListener('click',(e)=>{ if(e.target===fileOverlay) closeOverlay(); });
-  fileClose.addEventListener('click', closeOverlay);
-  document.addEventListener('keydown',(e)=>{ if(e.key==='Escape' && fileOverlay.classList.contains('open')) closeOverlay(); });
+    // 2) 롱프레스 → 중앙 오버레이 열기
+    const openOverlay = async ()=>{
+      openMember = m;
+      // 색상 동기화
+      applyModalColorsFromBinderClass(cls);
+      // 탭 텍스트
+      bmTab.textContent = `${m.name} 고객님`;
+      // 내용 구성
+      const nx = await fetchNextSchedule(m.id);
+      const pct = total>0 ? Math.round((remain/total)*100) : 0;
+      const ringLow = remain<=3;
 
-  /* 좌/우 페이지 넘김 */
-  const spread = document.getElementById('spread');
-  prevPg.addEventListener('click', ()=>{ turning = -1; spread.classList.remove('turn-right'); spread.classList.add('turn-left'); });
-  nextPg.addEventListener('click', ()=>{ turning = 1;  spread.classList.remove('turn-left');  spread.classList.add('turn-right'); });
-
-  // 스와이프 지원
-  let sx=0, sy=0, swiping=false;
-  fileVisual.addEventListener('pointerdown', (e)=>{ sx=e.clientX; sy=e.clientY; swiping=true; });
-  window.addEventListener('pointerup', (e)=>{
-    if(!swiping) return; swiping=false;
-    const dx=e.clientX-sx, dy=e.clientY-sy;
-    if(Math.abs(dx)>50 && Math.abs(dx)>Math.abs(dy)){
-      if(dx>0) prevPg.click(); else nextPg.click();
-    }
-  });
-
-  /* 렌더 */
-  function render(list){
-    shelf.innerHTML = '';
-    if(!list.length){ empty.hidden = false; return; }
-    empty.hidden = true;
-
-    list.forEach(m=>{
-      const expired = isExpired(m);
-      const cls = colorClass(m);
-      const lowRemain = (m.remaining ?? 0) <= 3;
-      const tabText = `${(m.name||'')}고객님`;
-
-      const art = document.createElement('article');
-      art.className = ['binder', cls, expired?'expired':''].join(' ').trim();
-      art.tabIndex = 0;
-      art.setAttribute('role','button');
-      art.setAttribute('aria-label', `${m.name} 고객 카드`);
-
-      // 상단 스트립(처음엔 숨김: 단일 터치로 토글)
-      const titleStrip = document.createElement('div');
-      titleStrip.className = 'title-strip';
-      titleStrip.innerHTML = `
-        <span>${escapeHtml(m.name)} 고객님</span>
-        <span class="small">(${m.total||0}/${m.remaining||0})</span>
-      `;
-
-      const dLeft = m.expireAt ? Math.ceil((new Date(m.expireAt) - new Date(todayISO()))/86400000) : null;
-      let stickerHtml = m.grade ? `<span class="sticker">${escapeHtml(m.grade)}</span>` : '';
-      if (m.lastLog) stickerHtml = `<span class="sticker">최근 ${m.lastLog}</span>`;
-      if (expired || (dLeft !== null && dLeft <= 7)) stickerHtml = `<span class="sticker" style="background:var(--danger-bg);border-color:var(--danger);color:#991b1b">만료 D-${Math.max(dLeft??0,0)}</span>`;
-
-      art.innerHTML = `
-        <span class="shine" aria-hidden="true"></span>
-        <span class="under" aria-hidden="true"></span>
-        <div class="edge-tab" role="button" aria-label="파일 열기 탭">${escapeHtml(tabText)}</div>
-
-        <div class="panel">
-          <div style="display:flex; align-items:center; gap:8px;">
-            <div class="ring ${lowRemain?'low':''}" style="--pct:${calcPct(m.remaining,m.total)}">
-              <div class="ring-label">${m.remaining||0}/${m.total||0}</div>
-            </div>
-            <div class="rows" style="flex:1">
-              <div class="row"><span class="label">담당</span><span class="value">${escapeHtml(m.trainer||"-")}</span></div>
-              <div class="row"><span class="label">등급</span><span class="value">${escapeHtml(m.level||m.grade||"-")}</span></div>
-              <div class="row"><span class="label">만료일</span><span class="value">${m.expireAt||"-"}</span></div>
-              <div class="row"><span class="label">작성</span><span class="value">${m.logCount||0}회</span></div>
-              <div class="row"><span class="label">다음예약</span><span class="value" id="nx-${m.id}">조회 중…</span></div>
-            </div>
+      bmBodyGrid.innerHTML = `
+        <div class="doc-card">
+          <h4>👤 고객정보</h4>
+          <div class="kv">
+            <div>이름</div><div>${escapeHtml(m.name)} 고객님</div>
+            <div>담당</div><div>${escapeHtml(m.trainer||'-')}</div>
+            <div>등급</div><div>${escapeHtml(m.level||m.grade||'-')}</div>
+            <div>최근등록</div><div>${m.recentReg || '-'}</div>
+            <div>만료일</div><div>${m.expireAt||'-'}</div>
+            <div>작성</div><div>${m.logCount||0}회</div>
           </div>
-          <div class="stats" aria-label="세션 현황">
-            <div class="pill remain ${lowRemain?'low':''}">잔여 <strong>${m.remaining||0}</strong></div>
-            <div class="pill total">총 <strong>${m.total||0}</strong></div>
-            ${m.group ? `<div class="pill">그룹 <strong>${escapeHtml(m.group)}</strong></div>` : ``}
+          <div class="chips">
+            <div class="chip">다음예약 <strong>${nx}</strong></div>
+            <div class="chip">잔여 <strong>${remain}</strong></div>
+            <div class="chip">총 <strong>${total}</strong></div>
           </div>
-          <div class="stickers" style="position:absolute;top:10px;right:10px">${stickerHtml}</div>
         </div>
 
-        <div class="actions" aria-label="빠른 작업">
-          <button class="btn" aria-label="일지 열기" data-act="journal">📓 일지</button>
-          <button class="btn" aria-label="연장 등록" data-act="extend">📝 연장</button>
-          <button class="btn strong" aria-label="세션 소진" data-act="consume">–1 소진</button>
+        <div class="doc-card" style="display:flex; gap:10px; align-items:center">
+          <div style="flex:1">
+            <h4>📊 세션 진행</h4>
+            <div style="font-size:12px; color:#374151; line-height:1.6">
+              현재 잔여/총: <strong>${remain}/${total}</strong><br/>
+              최근 작성: <strong>${m.lastLog || '-'}</strong><br/>
+              비고: 필요한 메모를 여기에 표시할 수 있어요.
+            </div>
+          </div>
+          <div class="ring ${ringLow?'low':''}" style="--pct:${Math.max(0,Math.min(100,pct))}">
+            <div class="ring-label">${remain}/${total}</div>
+          </div>
         </div>
-
-        <div class="foot-date"><span class="dot"></span> 최근 등록: <strong>${m.recentReg || m.first || '-'}</strong></div>
       `;
-      art.appendChild(titleStrip);
 
-      /* 액션 바인딩 */
-      art.querySelector('[data-act="journal"]').addEventListener('click', (e)=>{
-        e.stopPropagation(); location.href = `personal-training-log.html?id=${encodeURIComponent(m.id)}`;
-      });
-      art.querySelector('[data-act="extend"]').addEventListener('click', (e)=>{
-        e.stopPropagation(); location.href = `edit-member.html?id=${encodeURIComponent(m.id)}`;
-      });
-      art.querySelector('[data-act="consume"]').addEventListener('click', async (e)=>{
-        e.stopPropagation();
-        if ((m.remaining||0) <= 0){ alert('잔여 세션이 없습니다'); return; }
+      // 버튼 핸들러
+      btnJournal.onclick = ()=> location.href = `personal-training-log.html?id=${encodeURIComponent(m.id)}`;
+      btnExtend.onclick  = ()=> location.href = `edit-member.html?id=${encodeURIComponent(m.id)}`;
+      btnConsume.onclick = async ()=>{
+        if (remain<=0){ alert('잔여 세션이 없습니다'); return; }
         try{ await updateDoc(doc(db,'members',m.id), { remainingSessions: increment(-1) }); }
         catch(err){ console.error(err); alert('소진 처리 실패'); }
-      });
-
-      // 단일 터치 → 상단 스트립 토글(토스트 아님)
-      art.addEventListener('click', ()=>{
-        if (longFired){ longFired=false; return; }
-        titleStrip.style.display = (titleStrip.style.display==='flex'?'none':'flex');
-        art.classList.add('pulse'); setTimeout(()=>art.classList.remove('pulse'), 500);
-      });
-
-      // 왼쪽 탭: 탭 클릭으로 바로 열기
-      art.querySelector('.edge-tab').addEventListener('click',(ev)=>{ ev.stopPropagation(); openOverlay(m); });
-
-      // 롱프레스 → 오버레이(중앙) 열기
-      art.addEventListener('pointerdown', ()=>{
-        longFired=false;
-        longPressTimer = setTimeout(()=>{ longFired=true; openOverlay(m); }, 600);
-      }, {passive:true});
-      ['pointerup','pointerleave','pointercancel'].forEach(evName=>{
-        art.addEventListener(evName, ()=>{
-          clearTimeout(longPressTimer); longPressTimer=null;
-        }, {passive:true});
-      });
-
-      // 다음예약은 호버/포커스 시 계산 (모바일도 첫 포커스에 계산)
-      let fetched = false;
-      const ensureNext = async ()=>{
-        if (fetched) return; fetched = true;
-        const nx = await fetchNextSchedule(m.id);
-        const tgt = art.querySelector(`#nx-${m.id}`);
-        if (tgt) tgt.textContent = nx;
       };
-      art.addEventListener('mouseenter', ensureNext, {passive:true});
-      art.addEventListener('focus', ensureNext, {passive:true});
-      art.addEventListener('pointerdown', ensureNext, {passive:true});
+      btnClose.onclick   = closeOverlay;
 
-      shelf.appendChild(art);
-    });
-  }
+      // 열기
+      overlay.classList.add('open');
+      overlay.setAttribute('aria-hidden','false');
+      document.body.style.overflow='hidden';
+      // 덮개 오픈 모션
+      bmFolder.classList.remove('opened');
+      setTimeout(()=> bmFolder.classList.add('opened'), 160);
+    };
 
-  function filterSort(){
-    const kw = (qEl.value||'').trim().toLowerCase();
-    const norm = s => String(s||'').toLowerCase();
-
-    let list = state.members.filter(m=>{
-      const match = !kw || norm(m.name).includes(kw) || norm(m.trainer).includes(kw) || norm(m.grade).includes(kw) || norm(m.level).includes(kw);
-      const expired = isExpired(m);
-      const passExp = state.showExpiredOnly ? expired : true;
-      const passGroup = state.groupFilter ? String(m.group||'')===state.groupFilter : true;
-      return match && passExp && passGroup;
-    });
-
-    const by = sortSel.value;
-    const dir = state.orderAsc ? 1 : -1;
-
-    list.sort((a,b)=>{
-      if(by==='name')   return dir * collator.compare(a.name, b.name);
-      if(by==='recent'){
-        const A = toTime(a.lastLog) || 0;
-        const B = toTime(b.lastLog) || 0;
-        return dir * (A - B);
-      }
-      if(by==='remain') return dir * ((a.remaining||0) - (b.remaining||0));
-      if(by==='first'){
-        const A = toTime(a.first) || 0;
-        const B = toTime(b.first) || 0;
-        return dir * (A - B);
-      }
-      if(by==='expire'){
-        const A = toTime(a.expireAt) || Infinity;
-        const B = toTime(b.expireAt) || Infinity;
-        return dir * (A - B);
-      }
-      return 0;
+    art.addEventListener('pointerdown', ()=>{
+      art._lpJustFired = false;
+      longPressTimer = setTimeout(()=>{
+        art._lpJustFired = true;
+        openOverlay();
+      }, 550);
+    }, {passive:true});
+    ['pointerup','pointerleave','pointercancel'].forEach(evName=>{
+      art.addEventListener(evName, ()=>{ clearTimeout(longPressTimer); longPressTimer=null; }, {passive:true});
     });
 
-    render(list);
+    // 인덱스 탭 탭 → 즉시 열기(접근성)
+    art.querySelector('.edge-tab').addEventListener('click',(e)=>{ e.stopPropagation(); openOverlay(); });
 
-    const expiredCount = state.members.filter(m=>isExpired(m)).length;
-    expiredToggleBtn.textContent = `${state.showExpiredOnly ? '전체 보기' : '만료 회원만 보기'} (${expiredCount})`;
-  }
-
-  orderBtn.addEventListener('click', ()=>{
-    state.orderAsc = !state.orderAsc;
-    orderBtn.textContent = state.orderAsc ? '오름차순 ↑' : '내림차순 ↓';
-    orderBtn.setAttribute('aria-pressed', String(!state.orderAsc));
-    filterSort();
+    shelf.appendChild(art);
   });
-  qEl.addEventListener('input', filterSort);
-  sortSel.addEventListener('change', filterSort);
-  groupSel.addEventListener('change', (e)=>{ state.groupFilter = e.target.value; filterSort(); });
+}
 
-  // 만료 회원 토글
-  expiredToggleBtn.addEventListener('click', ()=>{
-    state.showExpiredOnly = !state.showExpiredOnly;
-    expiredToggleBtn.setAttribute('aria-pressed', String(state.showExpiredOnly));
-    filterSort();
-  });
+function closeOverlay(){
+  overlay.classList.remove('open');
+  overlay.setAttribute('aria-hidden','true');
+  document.body.style.overflow='';
+  bmFolder.classList.remove('opened');
+  openMember=null;
+}
+// 배경 탭 시 닫기
+overlay.addEventListener('click',(e)=>{ if(e.target===overlay) closeOverlay(); });
+document.addEventListener('keydown',(e)=>{ if(e.key==='Escape' && overlay.classList.contains('open')) closeOverlay(); });
 
-  /* 만료 분류 시트 */
-  function openExpireSheet(member){
-    currentMemberForSheet = member;
-    const expired = isExpired(member);
-    sheetTitle.textContent = expired ? '만료 표시 해제' : '만료 고객 분류';
-    sheetDesc.textContent  = expired ? '이 고객의 만료 표시를 해제할까요?' : '이 고객을 만료 고객으로 분류할까요?';
-    btnExpire.textContent  = expired ? '만료 표시 해제' : '만료로 분류';
-    overlay.style.display = 'block';
-    sheet.style.display   = 'block';
-  }
-  function closeSheet(){
-    overlay.style.display = 'none';
-    sheet.style.display   = 'none';
-    currentMemberForSheet = null;
-  }
-  overlay.addEventListener('click', closeSheet);
-  btnCancel.addEventListener('click', closeSheet);
-  btnExpire.addEventListener('click', async ()=>{
-    if(!currentMemberForSheet) return;
-    try{
-      const willUnset = isExpired(currentMemberForSheet);
-      await updateDoc(doc(db,'members', currentMemberForSheet.id), {
-        expiredFlag: willUnset ? false : true,
-        expiredFlagAt: willUnset ? null : serverTimestamp()
-      });
-    }catch(e){ console.error(e); alert('처리 실패'); }
-    closeSheet();
+/* ===== Filter/Sort ===== */
+function filterSort(){
+  const kw = (qEl.value||'').trim().toLowerCase();
+  const norm = s => String(s||'').toLowerCase();
+
+  let list = state.members.filter(m=>{
+    const match = !kw || norm(m.name).includes(kw) || norm(m.trainer).includes(kw) || norm(m.grade).includes(kw);
+    const expired = isExpired(m);
+    const pass = state.showExpiredOnly ? expired : true;
+    return match && pass;
   });
 
-  /* 구독 */
-  onAuthStateChanged(auth, (u)=>{
-    if (u) startMembers();
-    else signInAnonymously(auth).catch((e)=>{ console.error(e); empty.textContent='로그인 실패로 데이터를 볼 수 없어요.'; empty.hidden=false; });
+  const by = sortSel.value;
+  const dir = state.orderAsc ? 1 : -1;
+
+  list.sort((a,b)=>{
+    if(by==='name')   return dir * collator.compare(a.name, b.name);
+    if(by==='recent'){
+      const A = toTime(a.lastLog) || 0;
+      const B = toTime(b.lastLog) || 0;
+      return dir * (A - B);
+    }
+    if(by==='remain') return dir * ((a.remaining||0) - (b.remaining||0));
+    if(by==='first'){
+      const A = toTime(a.first) || 0;
+      const B = toTime(b.first) || 0;
+      return dir * (A - B);
+    }
+    if(by==='expire'){
+      const A = toTime(a.expireAt) || Infinity;
+      const B = toTime(b.expireAt) || Infinity;
+      return dir * (A - B);
+    }
+    return 0;
   });
 
-  function startMembers(){
-    onSnapshot(
-      collection(db,'members'),
-      (snap)=>{
-        const list=[];
-        snap.forEach(ds=>{
-          const d=ds.data();
-          // 최근 등록(재등록/구매) → 최신 필드 우선
-          const recentReg =
-            toISO(d.recentRegistrationAt) ||
-            toISO(d.lastRegisterAt) ||
-            toISO(d.lastReenrollAt) ||
-            toISO(d.lastPurchaseAt) ||
-            ""; // 없으면 빈값 → 아래에서 first로 폴백
-          list.push({
-            id: ds.id,
-            name: d.name || "",
-            trainer: d.trainer || "",
-            grade: d.level || d.grade || "",
-            level: d.level || "",
-            first: d.startDate || toISO(d.createdAt) || "",
-            recentReg,
-            expireAt: toISO(d.expireAt),
-            lastLog:  toISO(d.lastLogAt) || toISO(d.lastPurchaseAt),
-            logCount: d.logCount || 0,
-            remaining: d.remainingSessions ?? 0,
-            total: d.totalSessionsPurchased ?? d.totalSessions ?? 0,
-            birthday: toISO(d.birthday),
-            anniversary: toISO(d.anniversary),
-            expiredFlag: Boolean(d.expiredFlag),
-            gender: (d.gender || '').toLowerCase(),   // 'male' | 'female'
-            group: d.group || ""
-          });
+  render(list);
+
+  const expiredCount = state.members.filter(m=>isExpired(m)).length;
+  expiredToggleBtn.textContent = `${state.showExpiredOnly ? '전체 보기' : '만료 회원만 보기'} (${expiredCount})`;
+}
+
+orderBtn.addEventListener('click', ()=>{
+  state.orderAsc = !state.orderAsc;
+  orderBtn.textContent = state.orderAsc ? '오름차순 ↑' : '내림차순 ↓';
+  orderBtn.setAttribute('aria-pressed', String(!state.orderAsc));
+  filterSort();
+});
+qEl.addEventListener('input', filterSort);
+sortSel.addEventListener('change', filterSort);
+
+expiredToggleBtn.addEventListener('click', ()=>{
+  state.showExpiredOnly = !state.showExpiredOnly;
+  expiredToggleBtn.setAttribute('aria-pressed', String(state.showExpiredOnly));
+  filterSort();
+});
+
+/* ===== Firestore 구독 ===== */
+onAuthStateChanged(auth, (u)=>{
+  if (u) startMembers();
+  else signInAnonymously(auth).catch((e)=>{ console.error(e); empty.textContent='로그인 실패로 데이터를 볼 수 없어요.'; empty.hidden=false; });
+});
+
+function startMembers(){
+  onSnapshot(
+    collection(db,'members'),
+    (snap)=>{
+      const list=[];
+      snap.forEach(ds=>{
+        const d=ds.data();
+        const recentReg =
+          toISO(d.recentRegistrationAt) ||
+          toISO(d.lastRegisterAt) ||
+          toISO(d.lastReenrollAt) ||
+          toISO(d.lastPurchaseAt) ||
+          ""; // 폴백은 첫등록일
+        list.push({
+          id: ds.id,
+          name: d.name || "",
+          trainer: d.trainer || "",
+          grade: d.level || d.grade || "",
+          level: d.level || "",
+          first: d.startDate || toISO(d.createdAt) || "",
+          recentReg,
+          expireAt: toISO(d.expireAt),
+          lastLog:  toISO(d.lastLogAt) || toISO(d.lastPurchaseAt),
+          logCount: d.logCount || 0,
+          remaining: d.remainingSessions ?? 0,
+          total: d.totalSessionsPurchased ?? d.totalSessions ?? 0,
+          birthday: toISO(d.birthday),
+          anniversary: toISO(d.anniversary),
+          expiredFlag: Boolean(d.expiredFlag),
+          gender: normGender(d.gender) /* ← 등록 데이터와 연동(여/Female/여자 모두 인식) */
         });
-        state.members=list;
-        fillGroupOptions(list);
-
-        // 열려있던 오버레이가 있으면 최신 데이터로 갱신
-        if (openOverlayId){
-          const m = state.members.find(x=>x.id===openOverlayId);
-          if (m) openOverlay(m);
-        }
-
-        const expiredCount = state.members.filter(m=>isExpired(m)).length;
-        expiredToggleBtn.textContent = `${state.showExpiredOnly ? '전체 보기' : '만료 회원만 보기'} (${expiredCount})`;
-        filterSort();
-      },
-      (err)=>{ console.error(err); empty.textContent = '데이터를 불러오지 못했어요. (권한/네트워크 확인)'; empty.hidden = false; }
-    );
-  }
-  </script>
+      });
+      state.members=list;
+      filterSort();
+    },
+    (err)=>{ console.error(err); empty.textContent = '데이터를 불러오지 못했어요. (권한/네트워크 확인)'; empty.hidden = false; }
+  );
+}
+</script>
 </body>
 </html>
