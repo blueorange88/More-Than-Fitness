@@ -360,15 +360,16 @@ const orderBtn = document.getElementById('orderBtn');
 const expiredToggleBtn = document.getElementById('expiredToggle');
 
 /* Overlay */
-const overlay   = document.getElementById('overlay');
-const bmFolder  = document.getElementById('bmFolder');
-const bmCover   = document.getElementById('bmCover');
-const bmTab     = document.getElementById('bmTab');
-const bmBodyGrid= document.getElementById('bmBodyGrid');
-const btnJournal= document.getElementById('btnJournal');
-const btnExtend = document.getElementById('btnExtend');
-const btnConsume= document.getElementById('btnConsume');
-const btnClose  = document.getElementById('btnClose');
+const overlay    = document.getElementById('overlay');
+const binderModal= document.getElementById('binderModal'); /* ← 추가 */
+const bmFolder   = document.getElementById('bmFolder');
+const bmCover    = document.getElementById('bmCover');
+const bmTab      = document.getElementById('bmTab');
+const bmBodyGrid = document.getElementById('bmBodyGrid');
+const btnJournal = document.getElementById('btnJournal');
+const btnExtend  = document.getElementById('btnExtend');
+const btnConsume = document.getElementById('btnConsume');
+const btnClose   = document.getElementById('btnClose');
 
 /* ===== Utils ===== */
 const collator = new Intl.Collator('ko-KR',{numeric:true,sensitivity:'base'});
@@ -578,11 +579,28 @@ function closeOverlay(){
   bmFolder.classList.remove('opened');
   openMember=null;
 }
-// 배경 탭 시 닫기
-overlay.addEventListener('click',(e)=>{ if(e.target===overlay) closeOverlay(); });
+
+/* === 외부 탭(모달 바깥) 닫힘 처리 - 추가 === */
+/* 바탕 아무 곳이나(모달 바깥) 탭/클릭 시 닫기 */
+overlay.addEventListener('click', (e)=>{
+  if (!binderModal.contains(e.target)) closeOverlay();
+});
+/* 드래그/터치 시작 시점에도 동작하도록(모바일 안정성) */
+overlay.addEventListener('pointerdown', (e)=>{
+  if (!binderModal.contains(e.target)) closeOverlay();
+});
+/* 모달 내부는 이벤트 전파 막아 오동작 방지 */
+binderModal.addEventListener('click', (e)=> e.stopPropagation());
+
+/* ESC */
 document.addEventListener('keydown',(e)=>{ if(e.key==='Escape' && overlay.classList.contains('open')) closeOverlay(); });
 
 /* ===== Filter/Sort ===== */
+function isExpired(m){
+  const today = new Date(todayISO()).getTime();
+  const expT  = toTime(m.expireAt);
+  return Boolean(m.expiredFlag) || (Number.isFinite(expT) && expT < today);
+}
 function filterSort(){
   const kw = (qEl.value||'').trim().toLowerCase();
   const norm = s => String(s||'').toLowerCase();
