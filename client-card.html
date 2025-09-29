@@ -150,14 +150,18 @@
   }
   .title-strip.show{ opacity:1; transform:translateY(0); }
 
-  /* 하단 최근 등록(모바일 유지) */
+  /* 하단 최근 등록 (모바일 작게 + 한 줄) */
   .foot-date{
     position:absolute; left:36px; right:10px; bottom:10px;
     font-size:11px; font-weight:800; color:#334155;
     background:rgba(255,255,255,.86); padding:6px 10px; border-radius:10px; border:1px solid #e5e7eb;
     display:flex; align-items:center; gap:6px;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   }
   .foot-date .dot{ width:6px; height:6px; border-radius:50%; background:#22c55e; }
+  @media (max-width:600px){
+    .foot-date{ font-size:10px; padding:5px 8px; bottom:8px; }
+  }
 
   /* ===== 중앙 오버레이(롱프레스) ===== */
   .overlay{ position:fixed; inset:0; background:rgba(0,0,0,.45); display:none; z-index:1100; }
@@ -174,7 +178,7 @@
 
   .bm-folder{
     position:absolute; inset:0; border-radius:12px;
-    /* 여기서도 바인더 색과 100% 동기화 */
+    /* 바인더 색과 100% 동기화 */
     --m-start:#d9ecff; --m-mid:#bfe0ff; --m-end:#8cc4ff;
     --m-tab-start:#bfe0ff; --m-tab-end:#8cc4ff;
     background:linear-gradient(160deg,var(--m-start), var(--m-mid), var(--m-end));
@@ -212,11 +216,14 @@
   .opened .bm-sheet:nth-child(3){ transform:translateX(0) rotateY(1deg); }
   .opened .bm-sheet:nth-child(4){ transform:translateX(1px) rotateY(0); }
 
-  /* 속지 내용 */
+  /* 속지 내용: 열림 70%쯤부터 서서히 표시 */
   .bm-body{
     position:absolute; left:14px; right:14px; top:18px; bottom:60px; /* 아래 버튼 영역 남김 */
     overflow:auto; padding:10px;
+    opacity:0; transition:opacity .38s ease; /* 페이드 */
   }
+  .reveal .bm-body{ opacity:1; } /* JS에서 70% 타이밍에 .reveal 추가 */
+
   /* 내용 그리드: 좌우로 좀 넓게 해서 가로 스크롤 가능 */
   .doc-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; min-width: 640px; }
   @media (max-width:600px){ .doc-grid{ grid-template-columns: 1fr; min-width: 560px; } }
@@ -357,6 +364,7 @@ const expiredToggleBtn = document.getElementById('expiredToggle');
 
 /* Overlay */
 const overlay   = document.getElementById('overlay');
+const binderModal = document.getElementById('binderModal');
 const bmFolder  = document.getElementById('bmFolder');
 const bmCover   = document.getElementById('bmCover');
 const bmTab     = document.getElementById('bmTab');
@@ -385,7 +393,6 @@ function normGender(g){
 
 /* 색상 동기화: 바인더 클래스 → 오버레이 변수 */
 function applyModalColorsFromBinderClass(cls){
-  // 임시 노드로 해당 클래스의 CSS 변수를 읽음
   const probe = document.createElement('div');
   probe.className = 'binder '+cls;
   probe.style.position='absolute'; probe.style.visibility='hidden';
@@ -446,7 +453,7 @@ function render(list){
   list.forEach(m=>{
     const expired = isExpired(m);
     const cls = expired ? 'cExpired' : (m.gender==='female' ? 'cFemale' : ''); // 기본(남성/기타)=파스텔블루
-    const shortTab = `${m.name} 고객님`; // 인덱스탭에 고객님까지 표기
+    const shortTab = `${m.name} 고객님`;
     const total = m.total||0, remain = m.remaining||0;
 
     const art = document.createElement('article');
@@ -462,7 +469,6 @@ function render(list){
 
       <div class="title-strip" aria-hidden="true">${escapeHtml(m.name)} 고객님 (${total}/${remain})</div>
 
-      <!-- (상단 이름 영역은 모바일에서 숨김, 데스크톱에서만 살짝 보이도록 남겨둠) -->
       <div class="name-wrap" style="position:absolute; top:8px; left:36px; right:10px; color:#0b1220;">
         <div style="font-weight:900;">${escapeHtml(m.name)} 고객님</div>
       </div>
@@ -475,24 +481,20 @@ function render(list){
     // 1) 짧게 터치 → 타이틀 스트립 잠깐 노출
     let hideTimer=null;
     art.addEventListener('click', ()=>{
-      // 롱프레스 직후 클릭 방지
       if (art._lpJustFired){ art._lpJustFired=false; return; }
       const ts = art.querySelector('.title-strip');
       ts.classList.add('show');
       clearTimeout(hideTimer);
       hideTimer = setTimeout(()=> ts.classList.remove('show'), 2000);
-      // 살짝 반짝
       art.classList.add('pulse'); setTimeout(()=>art.classList.remove('pulse'), 500);
     });
 
-    // 2) 롱프레스 → 중앙 오버레이 열기
+    // 2) 롱프레스 → 중앙 오버레이 열기 (내용 70% 시점 페이드인)
     const openOverlay = async ()=>{
       openMember = m;
-      // 색상 동기화
       applyModalColorsFromBinderClass(cls);
-      // 탭 텍스트
       bmTab.textContent = `${m.name} 고객님`;
-      // 내용 구성
+
       const nx = await fetchNextSchedule(m.id);
       const pct = total>0 ? Math.round((remain/total)*100) : 0;
       const ringLow = remain<=3;
@@ -544,9 +546,15 @@ function render(list){
       overlay.classList.add('open');
       overlay.setAttribute('aria-hidden','false');
       document.body.style.overflow='hidden';
-      // 덮개 오픈 모션
-      bmFolder.classList.remove('opened');
-      setTimeout(()=> bmFolder.classList.add('opened'), 160);
+
+      // 덮개 오픈 시작 (약간 지연해서 자연스러움)
+      bmFolder.classList.remove('opened','reveal');
+      const OPEN_DELAY = 160;         // 시작 지연
+      const COVER_MS   = 900;         // 덮개 열리는 CSS 시간과 동일
+      const REVEAL_AT  = Math.round(COVER_MS * 0.70); // 70% 지점 (원하면 0.9로 바꾸면 90%)
+
+      setTimeout(()=> bmFolder.classList.add('opened'), OPEN_DELAY);
+      setTimeout(()=> bmFolder.classList.add('reveal'), OPEN_DELAY + REVEAL_AT);
     };
 
     art.addEventListener('pointerdown', ()=>{
@@ -560,7 +568,7 @@ function render(list){
       art.addEventListener(evName, ()=>{ clearTimeout(longPressTimer); longPressTimer=null; }, {passive:true});
     });
 
-    // 인덱스 탭 탭 → 즉시 열기(접근성)
+    // 인덱스 탭 탭 → 즉시 열기
     art.querySelector('.edge-tab').addEventListener('click',(e)=>{ e.stopPropagation(); openOverlay(); });
 
     shelf.appendChild(art);
@@ -571,14 +579,24 @@ function closeOverlay(){
   overlay.classList.remove('open');
   overlay.setAttribute('aria-hidden','true');
   document.body.style.overflow='';
-  bmFolder.classList.remove('opened');
+  bmFolder.classList.remove('opened','reveal');
   openMember=null;
 }
-// 배경 탭 시 닫기
-overlay.addEventListener('click',(e)=>{ if(e.target===overlay) closeOverlay(); });
+
+/* 🔸배경 탭하면 닫기: 바인더 영역 외 클릭 시 닫힘 */
+overlay.addEventListener('click',(e)=>{
+  const insideBinder = e.target.closest('#binderModal');
+  if(!insideBinder) closeOverlay();
+});
 document.addEventListener('keydown',(e)=>{ if(e.key==='Escape' && overlay.classList.contains('open')) closeOverlay(); });
 
 /* ===== Filter/Sort ===== */
+function isExpired(m){
+  const today = new Date(todayISO()).getTime();
+  const expT  = toTime(m.expireAt);
+  return Boolean(m.expiredFlag) || (Number.isFinite(expT) && expT < today);
+}
+
 function filterSort(){
   const kw = (qEl.value||'').trim().toLowerCase();
   const norm = s => String(s||'').toLowerCase();
@@ -628,7 +646,6 @@ orderBtn.addEventListener('click', ()=>{
 });
 qEl.addEventListener('input', filterSort);
 sortSel.addEventListener('change', filterSort);
-
 expiredToggleBtn.addEventListener('click', ()=>{
   state.showExpiredOnly = !state.showExpiredOnly;
   expiredToggleBtn.setAttribute('aria-pressed', String(state.showExpiredOnly));
@@ -653,7 +670,7 @@ function startMembers(){
           toISO(d.lastRegisterAt) ||
           toISO(d.lastReenrollAt) ||
           toISO(d.lastPurchaseAt) ||
-          ""; // 폴백은 첫등록일
+          "";
         list.push({
           id: ds.id,
           name: d.name || "",
@@ -670,7 +687,7 @@ function startMembers(){
           birthday: toISO(d.birthday),
           anniversary: toISO(d.anniversary),
           expiredFlag: Boolean(d.expiredFlag),
-          gender: normGender(d.gender) /* ← 등록 데이터와 연동(여/Female/여자 모두 인식) */
+          gender: normGender(d.gender)
         });
       });
       state.members=list;
