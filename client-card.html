@@ -11,9 +11,9 @@
     --ok:#2563eb; --track:#e5e7eb;
     --shelf:#f3f4f6; --shelf-edge:#e5e7eb;
 
-    --binder-w: 320px;
-    --binder-h: 520px;
-    --binder-overlap: -180px;
+    --binder-w: 360px;     /* 바인더 좀 더 크게 */
+    --binder-h: 580px;
+    --binder-overlap: -200px;
   }
   *{box-sizing:border-box}
   body{
@@ -22,6 +22,7 @@
     -webkit-tap-highlight-color: transparent;
   }
 
+  /* ===== Header / Tools ===== */
   header{ position:sticky; top:0; z-index:20; background:linear-gradient(#fff,#f9fafb);
     border-bottom:2px solid var(--gold); padding:14px 16px 12px; }
   header h1{margin:0 0 10px; font-size:18px; color:#0B1E3A;}
@@ -32,11 +33,14 @@
   .tools button.tgl{min-width:92px}
   .back{ margin-left:auto; background:#0B1E3A; color:#fff; font-weight:700; }
 
+  /* ===== Shelf ===== */
   .shelf-wrap{position:relative; padding:18px 0 28px}
-  .shelf{ position:relative; display:flex; gap:0; padding:26px 22px;
+  .shelf{
+    position:relative; display:flex; gap:0; padding:26px 22px;
     overflow-x:auto; overflow-y:visible; scrollbar-width:thin;
     perspective:1200px; border-top:1px solid var(--shelf-edge); border-bottom:1px solid var(--shelf-edge);
-    background:var(--shelf); scroll-snap-type:x proximity; }
+    background:var(--shelf); scroll-snap-type:x proximity;
+  }
   .shelf::before, .shelf::after{ content:""; position:sticky; width:40px; flex:0 0 40px; height:100%; pointer-events:none; }
   .shelf::before{ left:0; background:linear-gradient(90deg,#f9fafb,rgba(249,250,251,0)); }
   .shelf::after{ right:0; background:linear-gradient(270deg,#f9fafb,rgba(249,250,251,0)); }
@@ -53,7 +57,7 @@
     box-shadow:-8px 0 0 rgba(0,0,0,.06) inset, 0 8px 20px rgba(0,0,0,.08);
     transition:transform .28s cubic-bezier(.2,.8,.2,1), box-shadow .28s, filter .28s, z-index .28s;
     border:1px solid rgba(0,0,0,.06); color:#0b1220; scroll-snap-align:start;
-    background:linear-gradient(160deg,#bfdbfe,#60a5fa,#2563eb);
+    background:linear-gradient(160deg,#eaf3ff,#cfe2ff,#b0d0ff); /* 기본 남성 파스텔 블루 */
   }
   .cFemale  { --tab-bg-start:#ffb9d0; --tab-bg-end:#ff7fb3; background:linear-gradient(160deg,#ffe8f3,#ffcfe3,#ffbad6); }
   .cMale    { --tab-bg-start:#9ac6ff; --tab-bg-end:#3676ff; background:linear-gradient(160deg,#eaf3ff,#cfe2ff,#b0d0ff); }
@@ -87,7 +91,7 @@
   .sticker.recent{ background:#ecfeff; border-color:#a5f3fc; color:#0e7490; }
   .sticker.expire{ background:var(--danger-bg); border-color:var(--danger); color:#991b1b; }
 
-  /* 왼쪽 인덱스 탭: 이름 + '고객님' */
+  /* 왼쪽 인덱스 탭 */
   .edge-tab{
     position:absolute; left:-16px; top:46px; width:22px; height:92px;
     background:linear-gradient(180deg,var(--tab-bg-start), var(--tab-bg-end));
@@ -143,26 +147,27 @@
   .btn.strong{ background:#0B1E3A; color:#fff; }
   .btn:active{ transform:translateY(1px); }
 
-  /* ===== 파일 오버레이 ===== */
-  .file-overlay{ position:fixed; inset:0; background:rgba(0,0,0,.38); display:none; z-index:1100; }
-  .file-overlay.open{ display:block; }
-  .file-sheet{
-    position:absolute; top:0; right:0; bottom:0; width:min(620px,94vw);
-    background:#fff; border-left:1px solid var(--line); border-radius:12px 0 0 12px;
-    transform:translateX(100%); transition:transform .42s cubic-bezier(.2,.7,.2,1);
-    overflow:auto;
+  /* 탭/탭-터치 퀵뷰 */
+  .peek{
+    position:absolute; left:50%; bottom:10px; transform:translateX(-50%) translateY(8px);
+    background:#fff; color:#111; font-weight:900; font-size:12px; border:1px solid #e5e7eb; border-radius:999px; padding:6px 10px;
+    box-shadow:0 6px 16px rgba(0,0,0,.18); opacity:0; pointer-events:none; transition:opacity .2s, transform .2s;
+    white-space:nowrap;
   }
-  .file-overlay.open .file-sheet{ transform:translateX(0); }
+  .peek.show{ opacity:1; transform:translateX(-50%) translateY(0); }
 
-  .sheet-head{ display:flex; align-items:center; gap:10px; padding:12px 14px 0 14px; }
-  .sheet-title{ margin:0; font-size:16px; font-weight:900; }
-  .pagebtn{ margin-left:auto; display:flex; gap:6px }
-  .pagebtn button{ border:1px solid var(--line); background:#fff; border-radius:12px; padding:8px 12px; font-weight:800; cursor:pointer }
+  /* ===== 풀스크린 파일 오버레이 (가운데로 튀어나옴) ===== */
+  .file-overlay{ position:fixed; inset:0; background:rgba(0,0,0,.45); display:none; z-index:1100; }
+  .file-overlay.open{ display:block; }
+  .file-stage{
+    position:absolute; inset:0; display:grid; place-items:center;
+    transform:translateY(8%) scale(.92); opacity:0; transition:transform .4s cubic-bezier(.2,.8,.2,1), opacity .3s;
+  }
+  .file-overlay.open .file-stage{ transform:translateY(0) scale(1); opacity:1; }
 
-  /* 앞쪽 비주얼 */
-  .file-visual{ position:relative; margin:10px auto 8px; width:min(520px,90vw); aspect-ratio: 210 / 297; perspective:1500px;
-    opacity:0; transform:translateX(18%) scale(.92) rotateY(-8deg); transition:opacity .3s, transform .42s cubic-bezier(.2,.7,.2,1); }
-  .file-overlay.open .file-visual{ opacity:1; transform:translateX(0) scale(1) rotateY(0); }
+  /* A4 비율: 가로 더 길게 (모바일 98vw) */
+  .file-visual{ position:relative; width:min(880px,88vw); aspect-ratio:210 / 297; perspective:1500px; }
+  @media (max-width:540px){ .file-visual{ width:98vw; } } /* 모바일 가로 폭 크게 */
 
   .fv-folder{ position:absolute; inset:0; border-radius:10px; background:linear-gradient(160deg,#bfdbfe,#60a5fa,#2563eb);
     box-shadow:0 10px 26px rgba(0,0,0,.16); transform-style:preserve-3d; overflow:hidden; }
@@ -187,7 +192,7 @@
   .fv-sheet:nth-child(3){ transform:translateX(6px); }
   .fv-sheet:nth-child(4){ transform:translateX(8px); }
 
-  /* 책(두 페이지) */
+  /* 두 페이지(책) */
   .book{ position:absolute; inset:8px; z-index:40; perspective:1600px; }
   .book-inner{ position:absolute; inset:0; transform-style:preserve-3d; transition: transform .7s cubic-bezier(.2,.8,.2,1); }
   .book.flipped .book-inner{ transform: rotateY(180deg); }
@@ -196,36 +201,28 @@
     backface-visibility:hidden; overflow:auto; padding:14px;
   }
   .page.right{ transform: rotateY(180deg); }
-  .grid{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; min-width: 760px; }
+
+  /* 페이지 내용 레이아웃 */
+  .grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  @media (max-width:880px){ .grid{ grid-template-columns:1fr; } } /* 좁을 때 세로 스택 */
   .card{ background:#fafafa; border:1px solid #ebebeb; border-radius:12px; padding:12px; }
   .card h3{ margin:0 0 8px; font-size:14px; font-weight:900; color:#0b1220; }
   .row2{ display:flex; gap:8px; font-size:13px; margin:4px 0 }
   .row2 .label{ width:78px; color:#475569; font-weight:700 }
   .pill2{ display:inline-block; border:1px solid #d1d5db; background:#fff; border-radius:999px; padding:6px 10px; font-size:12px; }
 
-  .sheet-body{ padding:6px 14px 22px; overflow-x:auto; }
-  .doc-grid{ display:grid; grid-template-columns: 320px 360px; gap:12px; min-width: 720px; }
-  .doc-card{ background:#fafafa; border:1px solid #ebebeb; border-radius:12px; padding:12px; }
-  .doc-card h4{ margin:0 0 8px; font-size:14px; font-weight:900; color:#0b1220; }
-  .doc-card .kv{ display:grid; grid-template-columns:86px 1fr; gap:6px; font-size:12px; }
-  .doc-chiprow{ display:flex; gap:8px; flex-wrap:wrap }
-  .doc-chip{ border:1px solid var(--line); background:#fff; border-radius:999px; padding:6px 10px; font-size:12px; }
+  /* 덮개 펼침 (태블릿은 좀 더 크게) */
+  .file-overlay.open .fv-cover{ transform:translateX(-76%) rotateY(-14deg); }
+  @media (min-width:768px){ .file-overlay.open .fv-cover{ transform:translateX(-85%) rotateY(-18deg); } }
 
-  /* 덮개 펼침(태블릿은 더 크게 열어 가려짐 방지) */
-  .file-visual.open .fv-cover{ transform:translateX(-76%) rotateY(-14deg); }
-  @media (min-width: 768px){ .file-visual.open .fv-cover{ transform:translateX(-85%) rotateY(-18deg); } }
-
-  @media (max-width: 860px){
-    :root{ --binder-w: 260px; --binder-h: 440px; --binder-overlap: -120px; }
+  /* 닫기/페이지 버튼 */
+  .floating{
+    position:absolute; top:10px; right:12px; z-index:60; display:flex; gap:6px;
   }
-  @media (max-width: 540px){
-    :root{ --binder-w: 200px; --binder-h: 360px; --binder-overlap: -90px; }
-    .edge-tab{ height:80px; font-size:10px; left:-14px; }
-    .file-sheet{ width:96vw; }
-    .file-visual{ width:92vw; }
-    .doc-grid{ grid-template-columns: 1fr; min-width: 640px; }
-  }
+  .floating .btn{ padding:8px 12px; border-radius:12px; }
+  .floating .btn.secondary{ background:#fff; }
 
+  /* 다크 */
   @media (prefers-color-scheme: dark){
     body{ background:linear-gradient(#0b1220,#101826); color:#e5e7eb; }
     header{ background:linear-gradient(#0f172a,#0b1220); border-bottom-color:#475569; }
@@ -241,11 +238,20 @@
     .btn.strong{ background:#0B1E3A; }
     .row .label{ color:#cbd5e1; }
     .sub-sessions{ color:#cbd5e1; }
-    .file-sheet{ background:#0f172a; border-left-color:#273044; }
-    .doc-card{ background:#121b2a; border-color:#273044; }
-    .doc-card h4{ color:#e5e7eb; }
-    .doc-chip{ background:#101826; border-color:#273044; color:#e5e7eb; }
+    .card{ background:#121b2a; border-color:#273044; }
+    .card h3{ color:#e5e7eb; }
+    .pill2{ background:#0f172a; border-color:#273044; color:#e5e7eb; }
     .fv-cover{ background:linear-gradient(135deg,#152036,#2a3a5a); border-left-color:#273044; }
+    .peek{ background:#0f172a; color:#fff; border-color:#273044; }
+  }
+
+  /* 반응형 바인더 크기 */
+  @media (max-width: 860px){
+    :root{ --binder-w: 300px; --binder-h: 500px; --binder-overlap: -150px; }
+  }
+  @media (max-width: 540px){
+    :root{ --binder-w: 230px; --binder-h: 400px; --binder-overlap: -100px; }
+    .edge-tab{ height:80px; font-size:10px; left:-14px; }
   }
 </style>
 </head>
@@ -272,19 +278,9 @@
     <div id="empty" class="empty" hidden>검색 결과가 없어요.</div>
   </section>
 
-  <!-- 파일 디테일 오버레이 -->
+  <!-- 풀스크린 파일 오버레이 (가운데) -->
   <div id="fileOverlay" class="file-overlay" aria-hidden="true">
-    <div class="file-sheet" role="dialog" aria-modal="true" aria-labelledby="fileTitle">
-      <div class="sheet-head">
-        <button id="fileClose" class="btn" style="flex:0 0 auto;">닫기</button>
-        <h3 id="fileTitle" class="sheet-title"></h3>
-        <div class="pagebtn">
-          <button id="btnPrev">◀︎ 1페이지</button>
-          <button id="btnNext">2페이지 ▶︎</button>
-        </div>
-      </div>
-
-      <!-- 폴더 연출 + 내부 책 -->
+    <div class="file-stage">
       <div id="fileVisual" class="file-visual">
         <div class="fv-folder">
           <div class="fv-tab" id="fvTab">고객님</div>
@@ -313,11 +309,14 @@
           </div>
 
           <div class="fv-cover"></div>
-        </div>
-      </div>
 
-      <div class="sheet-body">
-        <div id="fileBody" class="doc-grid"></div>
+          <!-- 떠있는 버튼 -->
+          <div class="floating">
+            <button id="btnPrev" class="btn secondary">◀︎ 1페이지</button>
+            <button id="btnNext" class="btn secondary">2페이지 ▶︎</button>
+            <button id="fileClose" class="btn">닫기</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -351,8 +350,6 @@
 
   // Overlay elements
   const fileOverlay = document.getElementById('fileOverlay');
-  const fileTitle   = document.getElementById('fileTitle');
-  const fileClose   = document.getElementById('fileClose');
   const fileVisual  = document.getElementById('fileVisual');
   const fvTab       = document.getElementById('fvTab');
   const book        = document.getElementById('book');
@@ -363,7 +360,7 @@
   const cardNotes   = document.getElementById('cardNotes');
   const btnPrev     = document.getElementById('btnPrev');
   const btnNext     = document.getElementById('btnNext');
-  const fileBody    = document.getElementById('fileBody');
+  const fileClose   = document.getElementById('fileClose');
 
   /* Utils */
   const collator = new Intl.Collator('ko-KR',{numeric:true,sensitivity:'base'});
@@ -433,10 +430,8 @@
   function openOverlay(m){
     openOverlayId = m.id;
 
-    // 컬러/제목/탭
-    const cls = binderClass(m);
-    applyColorVars(fileVisual, cls);
-    fileTitle.textContent = `${m.name} · ${m.level || m.grade || '일반'}`;
+    // 컬러/탭/타이틀
+    applyColorVars(fileVisual, binderClass(m));
     fvTab.textContent = `${m.name}고객님`;
     p1Title.textContent = `${m.name} 고객님 요약`;
 
@@ -472,31 +467,36 @@
     `;
     cardNotes.innerHTML = `<h3>메모</h3><div style="font-size:13px; color:#374151">${escapeHtml(m.memo||m.note||'메모가 없습니다.')}</div>`;
 
-    // 버튼 연결(경로는 프로젝트에 맞게 교체)
-    document.getElementById('ovGoJournal').onclick = ()=> location.href = `/personal-training-log.html?id=${encodeURIComponent(m.id)}`; // TODO: 실제 경로
-    document.getElementById('ovGoEdit').onclick    = ()=> location.href = `/edit-member.html?id=${encodeURIComponent(m.id)}`;         // TODO: 실제 경로
+    // 버튼 연결(경로는 서비스에 맞게 교체)
+    document.getElementById('ovGoJournal').onclick = ()=> location.href = `/personal-training-log.html?id=${encodeURIComponent(m.id)}`;
+    document.getElementById('ovGoEdit').onclick    = ()=> location.href = `/edit-member.html?id=${encodeURIComponent(m.id)}`;
     document.getElementById('ovConsume').onclick   = async ()=>{
       if ((m.remaining||0) <= 0){ alert('잔여 세션이 없습니다'); return; }
       try{ await updateDoc(doc(db,'members',m.id), { remainingSessions: increment(-1) }); }
       catch(err){ console.error(err); alert('소진 처리 실패'); }
     };
 
-    // 다음예약 채우기
     fetchNextSchedule(m.id).then(nx=>{ const el=document.getElementById('ovNext'); if(el) el.textContent = nx; });
 
-    // 열기 애니메이션
+    // 오버레이 열기 + 덮개 펼침
     setPage(false);
     fileOverlay.classList.add('open');
     fileOverlay.setAttribute('aria-hidden','false');
     document.body.style.overflow='hidden';
-    fileVisual.classList.remove('open');
-    setTimeout(()=> fileVisual.classList.add('open'), 160); // 태블릿에서도 충분히 열리도록 약간 지연
+    const cover = fileVisual.querySelector('.fv-cover');
+    cover.style.transition='none';
+    cover.getBoundingClientRect(); // 강제 리플로우
+    cover.style.transition='transform .8s cubic-bezier(.175,.885,.32,1.275)';
+    setTimeout(()=> cover.style.transform = (matchMedia('(min-width:768px)').matches? 'translateX(-85%) rotateY(-18deg)' : 'translateX(-76%) rotateY(-14deg)'), 50);
   }
   function closeOverlay(){
     openOverlayId=null;
     fileOverlay.classList.remove('open');
     fileOverlay.setAttribute('aria-hidden','true');
     document.body.style.overflow='';
+    // 덮개 닫기 상태로 복원
+    const cover = fileVisual.querySelector('.fv-cover');
+    cover.style.transform='translateX(0) rotateY(0)';
   }
   fileOverlay.addEventListener('click',(e)=>{ if(e.target===fileOverlay) closeOverlay(); });
   fileClose.addEventListener('click', closeOverlay);
@@ -570,11 +570,12 @@
         </div>
 
         <div class="foot-date"><span class="dot"></span> 최근 등록: <strong>${m.recentReg || m.first || '-'}</strong></div>
+        <div class="peek" aria-hidden="true"></div>
       `;
 
-      // 액션
-      art.querySelector('[data-act="journal"]').onclick = (e)=>{ e.stopPropagation(); location.href=`/personal-training-log.html?id=${encodeURIComponent(m.id)}`; }; // TODO 변경
-      art.querySelector('[data-act="extend"]').onclick  = (e)=>{ e.stopPropagation(); location.href=`/edit-member.html?id=${encodeURIComponent(m.id)}`; }; // TODO 변경
+      // 액션 링크 (경로는 서비스 맞게 교체)
+      art.querySelector('[data-act="journal"]').onclick = (e)=>{ e.stopPropagation(); location.href=`/personal-training-log.html?id=${encodeURIComponent(m.id)}`; };
+      art.querySelector('[data-act="extend"]').onclick  = (e)=>{ e.stopPropagation(); location.href=`/edit-member.html?id=${encodeURIComponent(m.id)}`; };
       art.querySelector('[data-act="consume"]').onclick = async (e)=>{
         e.stopPropagation();
         if ((m.remaining||0) <= 0){ alert('잔여 세션이 없습니다'); return; }
@@ -582,15 +583,38 @@
         catch(err){ console.error(err); alert('소진 처리 실패'); }
       };
 
-      // 탭 클릭/더블클릭/롱프레스 모두 열기 지원
-      const open = (ev)=>{ ev.stopPropagation(); openOverlay(m); };
-      art.querySelector('.edge-tab').addEventListener('click', open);
-      art.addEventListener('dblclick', open);
-      // 롱프레스
-      let t=null; art.addEventListener('pointerdown', ()=>{ t=setTimeout(()=>open(new Event('open')),600); }, {passive:true});
-      ['pointerup','pointerleave','pointercancel'].forEach(ev=> art.addEventListener(ev, ()=>clearTimeout(t), {passive:true}));
+      // === 제스처: 한 번 터치 → 퀵뷰, 롱프레스 → 바인더 열기 ===
+      const peekEl = art.querySelector('.peek');
+      let longTimer=null, longFired=false;
 
-      // 다음예약 지연 로딩
+      function showPeek(){
+        peekEl.textContent = `${m.name}고객님 (${m.total||0}/${m.remaining||0})`;
+        peekEl.classList.add('show');
+        setTimeout(()=> peekEl.classList.remove('show'), 1600);
+      }
+
+      art.addEventListener('pointerdown', ()=>{
+        longFired=false;
+        longTimer = setTimeout(()=>{ longFired=true; openOverlay(m); }, 600); // 롱프레스 열기
+      }, {passive:true});
+      ['pointerup','pointerleave','pointercancel'].forEach(ev=>{
+        art.addEventListener(ev, ()=>{
+          clearTimeout(longTimer); longTimer=null;
+        }, {passive:true});
+      });
+
+      // 짧은 탭(클릭) → 퀵뷰만 (롱프레스가 아니었을 때)
+      art.addEventListener('click', (e)=>{
+        if(longFired) return; // 롱프레스 후 클릭 무시
+        e.stopPropagation();
+        showPeek();
+        art.classList.add('pulse'); setTimeout(()=>art.classList.remove('pulse'), 500);
+      });
+
+      // 왼쪽 인덱스 탭 탭해도 퀵뷰만
+      art.querySelector('.edge-tab').addEventListener('click',(ev)=>{ ev.stopPropagation(); showPeek(); });
+
+      // 다음 예약 지연 로딩
       let fetched=false;
       const ensureNext = async ()=>{
         if (fetched) return; fetched=true;
@@ -599,9 +623,6 @@
       };
       art.addEventListener('mouseenter', ensureNext, {passive:true});
       art.addEventListener('focus', ensureNext, {passive:true});
-
-      // 미세 피드백
-      art.addEventListener('click', ()=>{ art.classList.add('pulse'); setTimeout(()=>art.classList.remove('pulse'), 500); });
 
       shelf.appendChild(art);
     });
@@ -643,6 +664,8 @@
     if (u) startMembers();
     else signInAnonymously(auth).catch((e)=>{ console.error(e); empty.hidden=false; empty.textContent='로그인 실패로 데이터를 볼 수 없어요.'; });
   });
+
+  function toISOor(d, fallback=""){ return toISO(d)||fallback; }
 
   function startMembers(){
     onSnapshot(
