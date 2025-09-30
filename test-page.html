@@ -1,1050 +1,240 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>More Than Fitness · Dashboard</title>
-<style>
-  :root{
-    --navy:#0d1b2a;
-    --gold:#d4af37;
-    --bg:#f5f0e8;
-    --ink:#1e293b;
-    --grid:#e5e7eb;
-    --row-h:44px;
-  }
-  *{box-sizing:border-box;margin:0;padding:0}
-  html,body{height:100%}
-  body{
-    display:flex;flex-direction:column;
-    background:var(--bg);
-    font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,sans-serif;
-    color:var(--ink);
-    overflow:hidden;
-  }
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
-  /* Topbar */
-  .topbar{
-    position:fixed;top:0;left:0;right:0;height:56px;
-    background:#fff;
-    display:flex;align-items:center;justify-content:space-between;
-    padding:0 16px;
-    box-shadow:0 2px 6px rgba(0,0,0,.1);
-    z-index:1001;
-  }
-  .topbar h1{
-    font-size:18px;font-weight:900;color:var(--navy);letter-spacing:-0.3px;
-  }
-  .hamburger,.logout-btn{
-    background:#fff;border:1px solid #e2e8f0;border-radius:10px;
-    padding:6px 12px;cursor:pointer;font-size:13px;transition:.2s;
-  }
-  .hamburger:hover,.logout-btn:hover{background:#f8fafc}
-  .goldBtn{
-    background:var(--gold);color:var(--navy);
-    border:none;border-radius:12px;padding:8px 14px;
-    font-weight:800;cursor:pointer;font-size:13px;transition:.2s;
-  }
-  .goldBtn:hover{filter:brightness(1.05)}
+// Dual‑Theme Timetable App // - One self‑contained React component // - TailwindCSS styling (no imports needed in this environment) // - Two visual themes: "Sleek" and "Cute" (toggle at top‑right) // - Features: add/edit/delete class blocks, span multiple hours, localStorage persistence, //             weekend toggle, time‑range control, export/import JSON, print, today highlight, //             current‑time indicator line, mobile friendly horizontal scroll. // - All labels are KR‑first for your context.
 
-  /* Sidebar */
-  .sidebar{
-    position:fixed;top:56px;left:0;bottom:0;width:210px;
-    background:var(--navy);color:#fff;padding:16px;
-    transform:translateX(-100%);transition:transform .25s;z-index:1002;
-  }
-  .sidebar.active{transform:translateX(0)}
-  .sidebar button{
-    display:block;width:100%;
-    background:none;border:none;color:#fff;text-align:left;
-    margin:8px 0;padding:8px 10px;border-radius:8px;
-    font-size:14px;cursor:pointer;transition:.2s;
-  }
-  .sidebar button:hover{background:rgba(255,255,255,.1)}
-  .submenu button{color:#cbd5e1;padding-left:16px;font-size:13px}
+export default function TimetableApp() { // ---------- THEME ---------- const THEMES = { sleek: { name: "Sleek", bg: "bg-[#f5f0e8]", ink: "text-[#0d1b2a]", panel: "bg-white", header: "from-[#0d1b2a] to-[#1b263b] text-white", headerGradient: "bg-gradient-to-r", subtext: "text-[#4b5563]", grid: "border-[#e5e7eb]", card: "bg-[#0d1b2a] text-white", accent: "text-[#d4af37]", chip: "bg-[#eae7df] text-[#0d1b2a]", ring: "ring-[#d4af37]", }, cute: { name: "Cute", bg: "bg-[#fffafc]", ink: "text-[#3a2f2f]", panel: "bg-white", header: "from-[#ffc6d9] to-[#c7f0ff] text-[#3a2f2f]", headerGradient: "bg-gradient-to-r", subtext: "text-[#6b7280]", grid: "border-[#f3e8ff]", card: "bg-[#ffdfe9] text-[#3a2f2f]", accent: "text-[#ff7aa2]", chip: "bg-[#fff0f6] text-[#3a2f2f]", ring: "ring-[#ff9ec1]", }, } as const;
 
-  /* Main */
-  .main{margin-top:56px;flex:1;overflow:auto;padding:16px 16px 90px}
-  .card{
-    background:#fff;padding:14px 16px;border-radius:14px;
-    box-shadow:0 2px 8px rgba(0,0,0,.08);margin-bottom:16px;
-  }
-  .section-title{
-    font-weight:900;font-size:15px;margin:12px 0 8px;color:var(--navy);
-    border-left:4px solid var(--gold);padding-left:8px;
-  }
+const [themeKey, setThemeKey] = useState<keyof typeof THEMES>("sleek"); const T = THEMES[themeKey];
 
-  /* Schedule wrappers */
-  .schedule-wrapper{
-    background:#fff;border:1px solid #e2e8f0;border-radius:14px;
-    padding:10px;box-shadow:0 2px 8px rgba(0,0,0,.08);margin-bottom:16px;
-  }
+// ---------- SETTINGS ---------- const ALL_DAYS = ["월", "화", "수", "목", "금", "토", "일"]; const [showWeekend, setShowWeekend] = useState(true); const [startHour, setStartHour] = useState(8); // 08:00 const [endHour, setEndHour] = useState(20); // 20:00 (exclusive line)
 
-  /* Table */
-  table{width:100%;table-layout:fixed;border-collapse:collapse;font-size:12px}
-  thead th{position:sticky;top:0;background:var(--navy);color:#fff;z-index:1;font-weight:700}
-  th,td{border:1px solid var(--grid);text-align:center;vertical-align:top;position:relative}
-  th{padding:6px;font-size:12px}
-  td{padding:2px;transition:.2s}
-  .time-head,.time-cell{width:12vw;max-width:12vw}
-  .time-cell{background:#f8fafc;white-space:nowrap;font-weight:600}
-  #scheduleTableCurr tbody td,#scheduleTableNext tbody td,#scheduleTableLast tbody td{height:var(--row-h)}
+// ---------- DATA ---------- type TimetableEvent = { id: string; title: string; memo?: string; day: number; // 0 = Mon(월) start: number; // 24h integer hour end: number; // exclusive hour color?: string; // CSS color for background emoji?: string; // optional icon };
 
-  /* Today highlight + current time line */
-  .today-col{background:rgba(212,175,55,.12)!important}
-  .current-time-line{position:absolute;left:0;right:0;height:2px;background:#FF3B30;animation:pulse 5s ease-in-out infinite}
-  @keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
+const STORAGE_KEY = "timetable.v1"; const [events, setEvents] = useState<TimetableEvent[]>(() => { try { const raw = localStorage.getItem(STORAGE_KEY); if (!raw) return []; const parsed = JSON.parse(raw); if (Array.isArray(parsed)) return parsed; return []; } catch { return []; } });
 
-  /* Filled cell */
-  td.filled{color:#fff;font-weight:700;border-radius:6px;overflow:hidden}
-  td.filled .label{display:block;padding:4px 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11px}
+useEffect(() => { localStorage.setItem(STORAGE_KEY, JSON.stringify(events)); }, [events]);
 
-  /* Overlay / Popups */
-  .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000}
-  .popup{
-    display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
-    background:#fff;padding:20px;border-radius:14px;z-index:1001;
-    width:340px;max-width:92%;max-height:84vh;overflow:auto;box-shadow:0 12px 32px rgba(0,0,0,.2);
-  }
-  .popup h3{font-size:16px;font-weight:800;margin-bottom:10px;color:var(--navy)}
-  .popup input,.popup select,.popup textarea{
-    width:100%;padding:10px;border:1px solid #e2e8f0;border-radius:10px;margin:6px 0;font-size:13px;
-  }
-  .button-group{display:flex;gap:8px;margin-top:10px}
-  .button-group button{flex:1;padding:10px;background:#f1f5f9;border:1px solid #ddd;border-radius:10px;cursor:pointer;font-size:13px;transition:.2s}
-  .button-group button:hover{filter:brightness(1.05)}
-  .btn-primary{background:var(--navy)!important;color:#fff!important;border:none!important}
+// ---------- TIME / TODAY ---------- const now = useNowMinuteTick(); const todayIndex = (new Date().getDay() + 6) % 7; // make Monday=0
 
-  /* Cell action sheet */
-  #cellSheet{position:fixed;background:#111;color:#fff;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.35);padding:8px;z-index:1101;display:none;min-width:220px}
-  #cellSheet button{display:block;width:100%;text-align:left;background:transparent;border:none;color:#fff;padding:10px;border-bottom:1px solid rgba(255,255,255,.1);cursor:pointer;font-size:13px}
-  #cellSheet button:last-child{border-bottom:none}
-  #cellSheet .danger{color:#ffb4b4}
+// ---------- DERIVED ---------- const visibleDays = useMemo(() => (showWeekend ? ALL_DAYS : ALL_DAYS.slice(0, 5)), [showWeekend]); const hours = useMemo(() => range(startHour, endHour), [startHour, endHour]);
 
-  /* DOW multi-select */
-  .dow-group{display:flex;gap:8px;justify-content:center;margin:6px 0 10px}
-  .dow{width:34px;height:34px;border-radius:999px;border:1px solid #e5e7eb;background:#fff;cursor:pointer;font-weight:700}
-  .dow.active{background:#e9efff;border-color:#8aa2ff;color:#1e3a8a}
+// ---------- EDITOR STATE ---------- type Draft = { id?: string; title: string; memo?: string; day: number; start: number; duration: number; // hours color: string; emoji?: string; } | null;
 
-  /* Quick register / toast / banner */
-  #quickRegisterCard{
-    position:fixed;top:70px;right:16px;width:300px;background:#fff;border-radius:14px;
-    box-shadow:0 8px 22px rgba(0,0,0,.18);padding:16px;z-index:1001;display:none
-  }
-  #quickRegisterCard h3{font-size:15px;margin-bottom:10px;font-weight:800}
-  #quickRegisterCard label{font-size:12px;color:#334155}
-  #quickRegisterCard input{width:100%;margin:6px 0 12px;padding:8px;border:1px solid #e2e8f0;border-radius:10px}
+const [draft, setDraft] = useState<Draft>(null); const openEditor = (pre: Partial<TimetableEvent>) => { const d: Draft = { id: pre.id, title: pre.title ?? "수업/과목명", memo: pre.memo ?? "", day: pre.day ?? todayIndex, start: clamp(pre.start ?? startHour, startHour, Math.max(startHour, endHour - 1)), duration: Math.max(1, (pre.end ?? (pre.start ?? startHour) + 1) - (pre.start ?? startHour)), color: pre.color ?? defaultColor(themeKey), emoji: pre.emoji ?? (themeKey === "cute" ? "✨" : ""), }; setDraft(d); }; const closeEditor = () => setDraft(null);
 
-  #toast{position:fixed;top:60px;left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:8px 14px;border-radius:16px;opacity:0;transition:opacity .2s;z-index:1100;font-size:12px}
+const saveDraft = () => { if (!draft) return; const end = Math.min(endHour, draft.start + draft.duration); const e: TimetableEvent = { id: draft.id ?? ev_${Date.now()}_${Math.random().toString(36).slice(2, 7)}, title: draft.title.trim() || "무제", memo: draft.memo?.trim(), day: draft.day, start: draft.start, end, color: draft.color, emoji: draft.emoji?.trim(), }; setEvents((prev) => { const has = prev.some((x) => x.id === e.id); return has ? prev.map((x) => (x.id === e.id ? e : x)) : [...prev, e]; }); closeEditor(); };
 
-  .banner{position:fixed;top:56px;left:50%;transform:translateX(-50%);background:#fff8e1;border:1px solid #f59e0b;color:#7c5200;padding:8px 12px;border-radius:10px;z-index:1005;display:none}
-  .banner button{margin-left:8px;border:1px solid #f59e0b;background:#fff;border-radius:8px;padding:4px 8px;cursor:pointer}
+const deleteEvent = (id: string) => setEvents((prev) => prev.filter((x) => x.id !== id)); const clearAll = () => { if (confirm("정말 전체 삭제할까요? 되돌릴 수 없습니다.")) setEvents([]); };
 
-  @media (max-width:768px){ th{font-size:11px} td{font-size:11px} }
-</style>
-</head>
-<body>
-  <!-- Top bar -->
-  <div class="topbar">
-    <button class="hamburger" id="hamburger">☰</button>
-    <h1>More Than Fitness</h1>
-    <div style="display:flex;gap:8px;align-items:center">
-      <label style="display:flex;align-items:center;gap:6px;font-size:12px"><input type="checkbox" id="autoConsumeToggle"> 자동 소진</label>
-      <button class="goldBtn" id="quickOpenBtn">+ 빠른 등록</button>
-      <button class="logout-btn" id="btnLogout">로그아웃</button>
-    </div>
-  </div>
+// ---------- EXPORT / IMPORT ---------- const exportJSON = () => downloadFile("timetable.json", JSON.stringify({ meta: { version: 1, exportedAt: new Date().toISOString() }, events, settings: { startHour, endHour, showWeekend }, }, null, 2));
 
-  <!-- Auto consume ask -->
-  <div id="autoAsk" class="banner">
-    자동 소진 기능을 켤까요?
-    <button id="btnEnableAuto">지금 켜기</button><button id="btnLaterAuto">나중에</button>
-  </div>
+const fileInputRef = useRef<HTMLInputElement>(null); const importJSON = () => fileInputRef.current?.click(); const onImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => { const f = e.target.files?.[0]; if (!f) return; try { const text = await f.text(); const parsed = JSON.parse(text); if (Array.isArray(parsed.events)) setEvents(parsed.events); if (parsed.settings) { setStartHourSafe(parsed.settings.startHour ?? startHour); setEndHourSafe(parsed.settings.endHour ?? endHour); setShowWeekend(!!parsed.settings.showWeekend); } alert("가져오기 완료!"); } catch (err) { alert("가져오기 실패: JSON 형식을 확인하세요."); } finally { e.target.value = ""; // allow re-import same file } };
 
-  <!-- Sidebar -->
-  <div class="sidebar" id="sidebar">
-    <button onclick="location.href='MTF-F.html'" style="font-weight:800;background:#222;border-radius:8px;padding:8px 10px">MORE THAN FITNESS</button>
-    <button onclick="toggleSubmenu('member')" aria-expanded="false" aria-controls="submenu-member">회원 관리</button>
-    <div id="submenu-member" class="submenu" style="display:none">
-      <button onclick="location.href='/member-registration.html'">회원 신규 등록</button>
-      <button onclick="location.href='/member-list-edit.html'">회원 확인/수정</button>
-      <button onclick="location.href='personal-training-log.html'">고객 트레이닝 일지</button>
-    </div>
-    <button onclick="location.href='client-card.html'">고객 카드</button>
-    <button onclick="location.href='#'">상품 구매</button>
-    <button onclick="location.href='#'">운동 AI </button>
-    <button onclick="location.href='test-page.html'">테스트 페이지</button>
-  </div>
+// ---------- HELPERS ---------- function setStartHourSafe(h: number) { const s = clamp(Math.floor(h), 0, 22); const e = Math.max(s + 2, endHour); // keep at least 2h window setStartHour(s); setEndHour(e); } function setEndHourSafe(h: number) { const e = clamp(Math.ceil(h), 2, 24); const s = Math.min(startHour, e - 2); setStartHour(s); setEndHour(e); }
 
-  <!-- Main -->
-  <div class="main" id="main">
-    <div class="card">
-      <div class="section-title">오늘 다음 레슨</div>
-      <ul id="todayLessonList" style="padding-left:18px"></ul>
-    </div>
+const onCellClick = (dayIdx: number, hour: number) => { openEditor({ day: dayIdx, start: hour, end: hour + 1 }); };
 
-    <div class="section-title">이번 주 레슨 일정</div>
-    <div class="schedule-wrapper">
-      <table id="scheduleTableCurr" data-wo="0" aria-label="이번 주 레슨 일정">
-        <thead>
-          <tr>
-            <th id="headerCurr" class="time-head" title="클릭해 시간범위 설정">시간</th>
-            <th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th><th>일</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
+const gridHoursCount = endHour - startHour;
 
-    <div class="section-title" id="titleNext" style="cursor:pointer">다음 주 레슨 일정 (클릭하여 열기/닫기)</div>
-    <div class="schedule-wrapper" id="wrapNext" style="display:none">
-      <table id="scheduleTableNext" data-wo="1" aria-label="다음 주 레슨 일정">
-        <thead><tr><th class="time-head">시간</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th><th>일</th></tr></thead>
-        <tbody></tbody>
-      </table>
-    </div>
+// ---------- RENDER ---------- return ( <div className={${T.bg} ${T.ink} min-h-screen w-full overflow-hidden}> {/* Header */} <div className={${T.headerGradient} ${T.header} px-4 sm:px-6 py-3 sm:py-4 sticky top-0 z-30 shadow}> <div className="max-w-7xl mx-auto flex items-center gap-3 sm:gap-6"> <div className="flex items-center gap-2 sm:gap-3"> <LogoMark theme={themeKey} /> <div className="leading-tight"> <div className="text-lg sm:text-2xl font-bold tracking-tight flex items-center gap-2"> 시간표 <span className={${T.accent} hidden sm:inline}>Timetable</span> </div> <div className={text-xs sm:text-sm ${T.subtext} opacity-90}>클릭으로 수업 추가 · JSON 내보내기/가져오기 · 인쇄</div> </div> </div>
 
-    <div class="section-title" id="titleLast" style="cursor:pointer">지난 주 레슨 일정 (클릭하여 열기/닫기)</div>
-    <div class="schedule-wrapper" id="wrapLast" style="display:none">
-      <table id="scheduleTableLast" data-wo="-1" aria-label="지난 주 레슨 일정">
-        <thead><tr><th class="time-head">시간</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th><th>일</th></tr></thead>
-        <tbody></tbody>
-      </table>
-    </div>
+<div className="ml-auto flex items-center gap-2 sm:gap-3">
+        {/* Theme Toggle */}
+        <div className="flex items-center rounded-xl overflow-hidden border border-white/20">
+          {(["sleek", "cute"] as const).map((k) => (
+            <button
+              key={k}
+              onClick={() => setThemeKey(k)}
+              className={`px-3 py-1.5 text-sm font-medium ${themeKey === k ? (k === "sleek" ? "bg-white/10 text-white" : "bg-white/60") : "bg-transparent"}`}
+              title={`테마: ${THEMES[k].name}`}
+            >{THEMES[k].name}</button>
+          ))}
+        </div>
 
-    <!-- 위젯(선택). mtf-widgets.js가 준비되어 있다면 아래 주석을 해제하세요.
-    <div class="card">
-      <div class="section-title">위젯 미리보기</div>
-      <mtf-next-lessons limit="2"></mtf-next-lessons>
-      <div style="height:8px"></div>
-      <mtf-schedule week-offset="0" start="06" end="21"></mtf-schedule>
-      <mtf-schedule week-offset="1" start="06" end="21"></mtf-schedule>
-      <mtf-schedule week-offset="-1" start="06" end="21"></mtf-schedule>
-    </div>
-    -->
-  </div>
+        {/* Weekend Toggle */}
+        <button
+          onClick={() => setShowWeekend((v) => !v)}
+          className={`px-3 py-1.5 rounded-lg text-sm font-medium border ${T.grid} ${T.panel} hover:opacity-90 transition`}
+          title="주말 표시 토글"
+        >{showWeekend ? "주말 표시" : "주말 숨김"}</button>
 
-  <!-- Overlay / Popups -->
-  <div class="overlay" id="popupOverlay"></div>
+        {/* Time Range */}
+        <div className={`hidden sm:flex items-center gap-2 px-2 py-1.5 rounded-lg border ${T.grid} ${T.panel}`}>
+          <label className="text-xs opacity-70">시간</label>
+          <select value={startHour} onChange={(e) => setStartHourSafe(parseInt(e.target.value))} className="bg-transparent text-sm outline-none">
+            {range(5, 20).map((h) => (
+              <option key={h} value={h}>{pad2(h)}:00</option>
+            ))}
+          </select>
+          <span className="text-xs">~</span>
+          <select value={endHour} onChange={(e) => setEndHourSafe(parseInt(e.target.value))} className="bg-transparent text-sm outline-none">
+            {range(7, 24).map((h) => (
+              <option key={h} value={h}>{pad2(h)}:00</option>
+            ))}
+          </select>
+        </div>
 
-  <div class="popup" id="popupRange" role="dialog" aria-modal="true" aria-labelledby="popupRangeTitle">
-    <h3 id="popupRangeTitle">시간 범위 설정</h3>
-    <label>시작: <input type="time" id="rangeStart" value="06:00"></label>
-    <label>종료: <input type="time" id="rangeEnd" value="21:00"></label>
-    <div class="button-group"><button class="btn-primary" id="btnApplyRange">적용</button><button id="btnCancelRange">취소</button></div>
-  </div>
-
-  <div class="popup" id="popupMinute" role="dialog" aria-modal="true" aria-labelledby="popupMinuteTitle">
-    <h3 id="popupMinuteTitle">분 단위 설정</h3>
-    <select id="minuteSelect"><option>00</option><option>10</option><option>20</option><option>30</option><option>40</option><option>50</option></select>
-    <div class="button-group"><button class="btn-primary" id="btnSaveMinute">저장</button><button id="btnCancelMinute">취소</button></div>
-  </div>
-
-  <div class="popup" id="popupLesson" role="dialog" aria-modal="true" aria-labelledby="popupLessonTitle">
-    <h3 id="popupLessonTitle">레슨 정보 <span id="slotHint" class="slot-badge" style="display:none"></span></h3>
-
-    <!-- 요일 멀티선택 -->
-    <div class="dow-group" id="dowGroup" aria-label="요일 선택">
-      <button type="button" class="dow" data-di="1">월</button>
-      <button type="button" class="dow" data-di="2">화</button>
-      <button type="button" class="dow" data-di="3">수</button>
-      <button type="button" class="dow" data-di="4">목</button>
-      <button type="button" class="dow" data-di="5">금</button>
-      <button type="button" class="dow" data-di="6">토</button>
-      <button type="button" class="dow" data-di="7">일</button>
-    </div>
-
-    <input id="nameInput" placeholder="회원 이름" />
-    <div style="display:flex;gap:8px">
-      <input id="enrolledInput" type="number" placeholder="회차" />
-      <input id="capacityInput" type="number" placeholder="총" />
-    </div>
-    <input id="memberIdInput" placeholder="회원ID(전화, 선택)" list="membersList" />
-    <datalist id="membersList"></datalist>
-    <div class="button-group">
-      <button class="btn-primary" id="btnSaveLesson">저장</button>
-      <button id="btnDeleteLesson">삭제</button>
-    </div>
-  </div>
-
-  <!-- Member history / renewal popup -->
-  <div class="popup" id="popupMember" role="dialog" aria-modal="true" aria-labelledby="popupMemberTitle" style="width:360px">
-    <h3 id="popupMemberTitle">회원 히스토리 / 재등록</h3>
-    <div id="memInfo" style="font-size:12px;color:#334155;margin-bottom:6px"></div>
-    <div id="memHistoryList" style="max-height:34vh;overflow:auto;border:1px solid #e5e7eb;border-radius:8px;padding:8px;margin-bottom:8px"></div>
-    <div style="border-top:1px dashed #e5e7eb;padding-top:8px;margin-top:6px">
-      <div style="font-weight:800;margin-bottom:6px">➕ 재등록</div>
-      <input type="number" id="reAmount" placeholder="금액(원)" />
-      <input type="number" id="reSessions" placeholder="회차(+)" />
-      <textarea id="reMemo" rows="2" placeholder="메모(선택)"></textarea>
-      <div class="button-group" style="margin-top:8px">
-        <button id="btnMemberClose">닫기</button>
-        <button class="btn-primary" id="btnRenewalSave">재등록 저장</button>
+        {/* Actions */}
+        <button onClick={exportJSON} className={`px-3 py-1.5 rounded-lg text-sm font-semibold border ${T.grid} ${T.panel} hover:opacity-90`}>내보내기</button>
+        <button onClick={importJSON} className={`px-3 py-1.5 rounded-lg text-sm font-semibold border ${T.grid} ${T.panel} hover:opacity-90`}>가져오기</button>
+        <input ref={fileInputRef} type="file" accept="application/json" className="hidden" onChange={onImportFile} />
+        <button onClick={() => window.print()} className={`px-3 py-1.5 rounded-lg text-sm font-semibold border ${T.grid} ${T.panel} hover:opacity-90`}>인쇄</button>
+        <button onClick={clearAll} className={`px-3 py-1.5 rounded-lg text-sm font-semibold border ${T.grid} ${T.panel} hover:opacity-90`}>전체삭제</button>
       </div>
     </div>
   </div>
 
-  <!-- Cell action sheet -->
-  <div id="cellSheet" role="menu">
-    <button id="sheetConsume">✅ 소진 처리(–1)</button>
-    <button id="sheetUndoConsume">↩️ 소진 취소(+1)</button>
-    <button id="sheetNoShow" class="danger">🚫 노쇼 차감(–1)</button>
-    <button id="sheetUndoNoShow">🧺 노쇼 취소(+1)</button>
-    <button id="sheetHistory">📜 히스토리</button>
-    <button id="sheetRenewal">➕ 재등록(+회차)</button>
-    <button id="sheetProfile">👤 프로필 열기</button>
-    <button id="sheetClose">닫기</button>
+  {/* Main Grid */}
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
+    <div className={`w-full rounded-2xl shadow-sm border ${T.grid} ${T.panel} overflow-hidden`}> 
+      {/* Day Header Row */}
+      <div className="grid" style={{ gridTemplateColumns: `80px repeat(${visibleDays.length}, minmax(140px, 1fr))` }}>
+        {/* time col spacer */}
+        <div className={`px-3 py-2 text-xs sm:text-sm ${T.subtext} bg-white sticky top-[52px] sm:top-[64px] z-20`}>시간</div>
+        {visibleDays.map((d, idx) => (
+          <div key={d} className={`px-3 py-2 text-xs sm:text-sm font-semibold flex items-center justify-between bg-white border-l ${T.grid} sticky top-[52px] sm:top-[64px] z-20`}>
+            <span className="flex items-center gap-2">
+              <span>{d}</span>
+              {todayIndex === idx && (
+                <span className={`px-2 py-0.5 text-[10px] rounded-full ${T.chip}`}>오늘</span>
+              )}
+            </span>
+            <span className={`text-[10px] ${T.subtext}`}>{dayEmoji(themeKey, d)}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Body Grid */}
+      <div className="relative w-full overflow-x-auto">
+        <div className="min-w-full">
+          {/* Columns: time + days */}
+          <div className="grid" style={{ gridTemplateColumns: `80px repeat(${visibleDays.length}, minmax(140px, 1fr))` }}>
+            {/* Time column */}
+            <div className="relative">
+              <div className="grid" style={{ gridTemplateRows: `repeat(${gridHoursCount}, 56px)` }}>
+                {hours.map((h, i) => (
+                  <div key={i} className={`relative border-t ${T.grid} text-xs sm:text-sm pl-2 flex items-start pt-1`}> {pad2(h)}:00 </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Day columns */}
+            {visibleDays.map((d, dayIdx) => (
+              <div key={d} className="relative border-l" style={{ borderColor: colorFrom(T.grid) }}>
+                {/* Hour cells for click */}
+                <div className="grid" style={{ gridTemplateRows: `repeat(${gridHoursCount}, 56px)` }}>
+                  {hours.map((h) => (
+                    <button
+                      key={`${dayIdx}-${h}`}
+                      onClick={() => onCellClick(dayIdx, h)}
+                      className={`w-full h-full border-t ${T.grid} hover:bg-black/5 transition`} aria-label={`${d} ${pad2(h)}:00에 추가`}
+                    />
+                  ))}
+                </div>
+
+                {/* Events layer (absolute on top of the cell grid) */}
+                <div className="absolute inset-0 pointer-events-none">
+                  <div className="grid h-full" style={{ gridTemplateRows: `repeat(${gridHoursCount}, 56px)` }}>
+                    {events.filter((e) => e.day === dayIdx && inRange(e, startHour, endHour)).map((e) => {
+                      const startRow = Math.max(1, e.start - startHour + 1);
+                      const endRow = Math.max(startRow + 1, Math.min(gridHoursCount + 1, e.end - startHour + 1));
+                      return (
+                        <div key={e.id} className="relative" style={{ gridRow: `${startRow} / ${endRow}` }}>
+                          <EventCard
+                            theme={T}
+                            event={e}
+                            onEdit={() => openEditor(e)}
+                            onDelete={() => deleteEvent(e.id)}
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Current time line (today only) */}
+                {todayIndex === dayIdx && nowInRange(now, startHour, endHour) && (
+                  <div className="absolute left-0 right-0" style={{ top: `${timeToPercent(now, startHour, endHour)}%` }}>
+                    <div className="h-0.5 bg-rose-500/80" />
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {/* Footer Tips */}
+    <div className="mt-4 text-xs sm:text-sm opacity-80 flex flex-wrap items-center gap-2">
+      <span className={`px-2 py-1 rounded-lg ${T.chip}`}>Tip: 빈 칸을 클릭하여 수업을 추가하세요.</span>
+      <span className={`px-2 py-1 rounded-lg ${T.chip}`}>수업 카드를 클릭하면 수정/삭제 가능</span>
+      <span className={`px-2 py-1 rounded-lg ${T.chip}`}>테마 전환으로 "세련" vs "귀여움" 즉시 비교</span>
+    </div>
   </div>
 
-  <!-- Quick Register -->
-  <div id="quickRegisterCard" role="dialog" aria-modal="true" aria-labelledby="qrTitle">
-    <div style="position:absolute;top:8px;right:8px"><button id="btnGoRegister" style="font-size:11px;background:#f5f0e8;border:1px solid #ccc;border-radius:6px;padding:4px 8px;color:var(--ink);cursor:pointer">자세히 등록</button></div>
-    <h3 id="qrTitle">빠른 회원 등록</h3>
-    <label>이름</label><input type="text" id="quickName" autocomplete="name">
-    <label>휴대폰번호(문서ID)</label><input type="text" id="quickPhone" inputmode="numeric" placeholder="010-0000-0000" autocomplete="tel">
-    <label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="quickAgree"> 개인정보 이용 동의</label>
-    <button id="btnQuickSubmit" class="btn-primary" style="width:100%;margin-top:10px">등록</button>
-  </div>
+  {/* Editor Modal */}
+  {draft && (
+    <div className="fixed inset-0 z-40 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/40" onClick={closeEditor} />
+      <div className={`relative w-full max-w-md rounded-2xl shadow-xl ${T.panel} p-4 sm:p-6 border ${T.grid} ${themeKey === "cute" ? "animate-[pop_0.25s_ease]" : ""}`}>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-lg font-semibold flex items-center gap-2">
+            {themeKey === "cute" && <span>🗓️</span>} 수업 편집
+          </h3>
+          <button onClick={closeEditor} className="text-sm opacity-70 hover:opacity-100">닫기</button>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <TextField label="제목" value={draft.title} onChange={(v) => setDraft({ ...draft, title: v })} placeholder="예: 피티/영어/수학" />
+          <TextField label="메모" value={draft.memo ?? ""} onChange={(v) => setDraft({ ...draft, memo: v })} placeholder="장소/트레이너 등" />
+
+          <SelectField label="요일" value={String(draft.day)} onChange={(v) => setDraft({ ...draft, day: parseInt(v) })} options={ALL_DAYS.map((d, i) => ({ value: String(i), label: d }))} />
+
+          <div className="grid grid-cols-2 gap-2">
+            <SelectField label="시작" value={String(draft.start)} onChange={(v) => setDraft({ ...draft, start: parseInt(v) })} options={range(startHour, endHour).map((h) => ({ value: String(h), label: `${pad2(h)}:00` }))} />
+            <SelectField label="기간" value={String(draft.duration)} onChange={(v) => setDraft({ ...draft, duration: parseInt(v) })} options={[1,2,3,4,5].filter(n=>draft.start+n<=endHour).map((n) => ({ value: String(n), label: `${n}시간` }))} />
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            <ColorField label="색상" value={draft.color} onChange={(v) => setDraft({ ...draft, color: v })} palette={paletteFor(themeKey)} />
+            <TextField label="이모지" value={draft.emoji ?? ""} onChange={(v) => setDraft({ ...draft, emoji: v })} placeholder="예: ✨🎾📚" />
+          </div>
+        </div>
+
+        <div className="mt-5 flex items-center justify-between">
+          <div className="text-xs opacity-70">시간 범위: {pad2(startHour)}:00 ~ {pad2(endHour)}:00</div>
+          <div className="flex gap-2">
+            {draft.id && (
+              <button onClick={() => { if(confirm("삭제할까요?")) { deleteEvent(draft.id!); closeEditor(); } }} className={`px-3 py-2 rounded-lg border ${T.grid} hover:opacity-90`}>
+                삭제
+              </button>
+            )}
+            <button onClick={saveDraft} className={`px-4 py-2 rounded-lg font-semibold ${T.card} shadow`}>저장</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )}
+
+  <style>{`
+    @keyframes pop { 0%{ transform: scale(.96); opacity:.0 } 100%{ transform: scale(1); opacity:1 } }
+  `}</style>
+</div>
+
+); }
+
+// ---------- Subcomponents ---------- function LogoMark({ theme }: { theme: "sleek" | "cute" }) { if (theme === "cute") { return ( <div className="w-9 h-9 rounded-2xl bg-white flex items-center justify-center shadow-inner border border-white/50"> <span role="img" aria-label="sparkle" className="text-xl">✨</span> </div> ); } return ( <div className="w-9 h-9 rounded-2xl bg-white/10 flex items-center justify-center ring-1 ring-white/30"> <div className="w-4 h-4 rounded-full bg-[#d4af37]" /> </div> ); }
+
+function TextField({ label, value, onChange, placeholder }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string }) { return ( <label className="flex flex-col gap-1 text-sm"> <span className="opacity-70">{label}</span> <input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className="px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white" /> </label> ); }
+
+function SelectField({ label, value, onChange, options }: { label: string; value: string; onChange: (v: string) => void; options: { value: string; label: string }[] }) { return ( <label className="flex flex-col gap-1 text-sm"> <span className="opacity-70">{label}</span> <select value={value} onChange={(e) => onChange(e.target.value)} className="px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white"> {options.map((o) => ( <option key={o.value} value={o.value}>{o.label}</option> ))} </select> </label> ); }
+
+function ColorField({ label, value, onChange, palette }: { label: string; value: string; onChange: (v: string) => void; palette: string[] }) { return ( <label className="flex flex-col gap-1 text-sm"> <span className="opacity-70">{label}</span> <div className="flex items-center gap-2"> <input type="color" value={value} onChange={(e) => onChange(e.target.value)} className="w-12 h-9 p-0 rounded cursor-pointer" /> <div className="flex gap-1 flex-wrap"> {palette.map((c) => ( <button key={c} title={c} onClick={() => onChange(c)} className="w-6 h-6 rounded-full border border-black/10" style={{ background: c }} /> ))} </div> </div> </label> ); }
+
+function EventCard({ theme, event, onEdit, onDelete }: { theme: any; event: { id: string; title: string; memo?: string; start: number; end: number; color?: string; emoji?: string }; onEdit: () => void; onDelete: () => void; }) { const duration = Math.max(1, event.end - event.start); const handleClick = () => onEdit(); return ( <div className="absolute inset-x-1 top-1 bottom-1 pointer-events-auto"> <div onClick={handleClick} className={w-full h-full rounded-xl shadow ${theme.ring} ring-2 flex flex-col justify-between p-2} style={{ background: event.color || "#111827" }} title={${event.title} (${pad2(event.start)}:00~${pad2(event.end)}:00)} > <div className="flex items-start justify-between gap-2"> <div className="text-sm font-semibold leading-tight">{event.emoji ? ${event.emoji}  : ""}{event.title}</div> <div className="text-[10px] opacity-80">{pad2(event.start)}~{pad2(event.end)}</div> </div> {event.memo && <div className="text-[11px] opacity-90 leading-snug line-clamp-2">{event.memo}</div>} <div className="flex items-center justify-end gap-2 text-[10px]"> <button onClick={(e)=>{e.stopPropagation(); onDelete();}} className="px-2 py-0.5 rounded bg-white/30 hover:bg-white/50">삭제</button> <button onClick={(e)=>{e.stopPropagation(); onEdit();}} className="px-2 py-0.5 rounded bg-white/30 hover:bg-white/50">편집</button> </div> </div> </div> ); }
+
+// ---------- Hooks & Utils ---------- function useNowMinuteTick() { const [now, setNow] = useState(new Date()); useEffect(() => { const t = setInterval(() => setNow(new Date()), 60 * 1000); return () => clearInterval(t); }, []); return now; }
+
+function range(a: number, b: number) { // [a..b) return Array.from({ length: Math.max(0, b - a) }, (_, i) => a + i); } function pad2(n: number) { return String(n).padStart(2, "0"); } function clamp(n: number, lo: number, hi: number) { return Math.max(lo, Math.min(hi, n)); } function colorFrom(tailwindBorder: string) { // expects format like "border-[#e5e7eb]"; fallback to #e5e7eb const m = tailwindBorder.match(/]+)]/); return m ? m[1] : "#e5e7eb"; } function inRange(e: { start: number; end: number }, s: number, ed: number) { return e.end > s && e.start < ed; } function nowInRange(now: Date, s: number, e: number) { const h = now.getHours() + now.getMinutes() / 60; return h >= s && h <= e; } function timeToPercent(now: Date, s: number, e: number) { const h = now.getHours() + now.getMinutes() / 60; const ratio = (h - s) / (e - s); return clamp(ratio * 100, 0, 100); } function defaultColor(theme: "sleek" | "cute") { return theme === "sleek" ? "#0d1b2a" : "#ffdfe9"; } function paletteFor(theme: "sleek" | "cute") { return theme === "sleek" ? ["#0d1b2a", "#1b263b", "#415a77", "#778da9", "#d4af37", "#065f46", "#1f2937"] : ["#ffdfe9", "#ffe8bb", "#e6ffcc", "#c7f0ff", "#e8d7ff", "#ff9ec1", "#ffd1dc"]; } function dayEmoji(theme: "sleek" | "cute", d: string) { if (theme === "cute") { const map: Record<string, string> = { 월: "🌸", 화: "🍑", 수: "💧", 목: "🍀", 금: "⭐", 토: "🦄", 일: "🌈" }; return map[d] ?? "✨"; } return ""; } function downloadFile(filename: string, text: string) { const blob = new Blob([text], { type: "application/json" }); const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = filename; a.click(); URL.revokeObjectURL(url); }
 
-  <!-- Fixed buttons -->
-  <div class="bottom-right" style="position:fixed;right:12px;bottom:12px;display:flex;gap:8px;z-index:1003">
-    <button id="toggleQuickBtn" class="goldBtn">+ 빠른 등록</button>
-    <button id="saveScheduleBtn" class="btn-primary">이번 주 스케줄 저장</button>
-  </div>
-
-  <div id="toast" role="status" aria-live="polite"></div>
-
-  <!-- ===== UI / TABLE SCRIPT (기능 그대로) ===== -->
-  <script>
-  const $ = (id) => document.getElementById(id);
-  let currentCell=null, currentTableId='scheduleTableCurr', currentWeekOffset=0;
-  let scheduleStart=6, scheduleEnd=21;
-  let lpTimer=null, lpFired=false;
-  const LS_KEY = (wo)=>`scheduleData_${wo}`;  // localStorage per week
-
-  function toast(msg){ const t=$('toast'); t.textContent=msg; t.style.opacity=1; setTimeout(()=>t.style.opacity=0,1700); }
-  function showOverlay(){ $('popupOverlay').style.display='block'; }
-  function hideOverlay(){ $('popupOverlay').style.display='none'; }
-  function showPopup(el){ showOverlay(); el.style.display='block'; }
-  function hidePopups(){ document.querySelectorAll('.popup').forEach(p => p.style.display = 'none'); const hint=$('slotHint'); if(hint){hint.style.display='none'; hint.textContent='';} }
-  function hideAll(){ hidePopups(); $('cellSheet').style.display='none'; $('quickRegisterCard').style.display='none'; hideOverlay(); }
-  function toggleSubmenu(id){ document.querySelectorAll('.submenu').forEach(el=> el.style.display='none'); const t=$('submenu-'+id); if(t) t.style.display='block'; }
-
-  /* 색상 */
-  const COLORS = ['#6b5bd2','#60a5fa','#10b981','#f59e0b','#ef4444','#ec4899','#22c55e'];
-  function colorForName(name=''){ let h=0; for(let i=0;i<name.length;i++) h=(h*31+name.charCodeAt(i))>>>0; return COLORS[h % COLORS.length]; }
-
-  /* 셀 렌더링 */
-  function renderCell(td, info){
-    const labelFull = info.name || (info.memberId ? `[${info.memberId}]` : '—');
-    const short = labelFull.slice(0,4);
-    td.classList.add('filled');
-    td.style.background = colorForName(labelFull);
-    td.innerHTML = `<span class="label" title="${labelFull}">${short}</span>`;
-    td.dataset.info = JSON.stringify(info);
-  }
-
-  /* 레이아웃 */
-  function fitGridToScreen(){
-    const topH=document.querySelector('.topbar')?.offsetHeight||0;
-    const todayH=document.querySelector('.card')?.offsetHeight||0;
-    const headH=document.querySelector('#scheduleTableCurr thead')?.offsetHeight||32;
-    const avail = window.innerHeight - (topH + todayH + headH + 84);
-    const hours = Math.max(1, (scheduleEnd - scheduleStart));
-    const row = Math.max(26, Math.floor(avail / hours));
-    document.documentElement.style.setProperty('--row-h', row + 'px');
-  }
-  function highlightToday(){
-    const di=new Date().getDay(); const idx=di===0?7:di;
-    const ths=document.querySelectorAll('#scheduleTableCurr thead th');
-    if(ths[idx]){ ths[idx].style.background='var(--gold)'; ths[idx].style.color='var(--navy)'; }
-    document.querySelectorAll('#scheduleTableCurr tbody tr').forEach(r=>{
-      if(r.children[idx]) r.children[idx].classList.add('today-col');
-    });
-  }
-
-  /* 표 구성 */
-  function buildTables(){
-    buildOne('#scheduleTableCurr tbody');
-    buildOne('#scheduleTableNext tbody');
-    buildOne('#scheduleTableLast tbody');
-    fitGridToScreen();
-  }
-  function buildOne(sel){
-    const tb=document.querySelector(sel); tb.innerHTML='';
-    for (let h=scheduleStart; h<scheduleEnd; h++){
-      const hh=(h%24).toString().padStart(2,'0');
-      const tr=document.createElement('tr');
-
-      const minute = localStorage.getItem(`minute-${hh}`) || '00';
-      const td0=document.createElement('td');
-      td0.textContent = `${hh}:${minute}`;
-      td0.className   = 'time-cell';
-      tr.appendChild(td0);
-
-      for (let i=0;i<7;i++){
-        const td=document.createElement('td');
-        td.dataset.weekcol = String(i+1);
-        tr.appendChild(td);
-      }
-      tb.appendChild(tr);
-    }
-  }
-
-  /* 표 유틸 */
-  function getRows(tableId){ return [...document.querySelectorAll(`#${tableId} tbody tr`)]; }
-  function cellBy(tableId, di, time){
-    const row = getRows(tableId).find(r => (r.firstElementChild?.textContent||'')===time);
-    return row ? row.children[di] : null;
-  }
-  function tableIdFromCell(td){ return td.closest('table')?.id || 'scheduleTableCurr'; }
-  function weekOffsetFromCell(td){ const t = td.closest('table'); return parseInt(t?.dataset?.wo || '0', 10); }
-
-  /* 로컬로드 */
-  function loadFromLocal(tableId, wo){
-    const data = JSON.parse(localStorage.getItem(LS_KEY(wo))||'[]');
-    const rows = getRows(tableId);
-    data.forEach(i=>{
-      const row = rows.find(r => (r.firstElementChild?.textContent||'') === i.time);
-      if(row){ const c=row.children[i.di]; if(c) renderCell(c, i); }
-    });
-  }
-
-  /* 오늘 리스트 & 타임라인 */
-  function updateTodayList(){
-    const now = new Date();
-    const col = (now.getDay()||7); // Sun → 7
-    const nowMin = now.getHours()*60 + now.getMinutes();
-    const arr=[];
-    getRows('scheduleTableCurr').forEach(r=>{
-      const [h,m]=(r.firstElementChild?.textContent||'00:00').split(':').map(Number);
-      const total=h*60+(m||0);
-      const cell=r.children[col];
-      if(cell && cell.dataset.info){
-        const v=JSON.parse(cell.dataset.info);
-        const dn=v.name || (v.memberId ? `[${v.memberId}]` : '—');
-        if(total>=nowMin) arr.push({t:total, text:`${v.time} ${dn} (${v.enrolled||0}/${v.cap||0})`});
-      }
-    });
-    arr.sort((a,b)=>a.t-b.t);
-    const ul=$('todayLessonList'); ul.innerHTML='';
-    arr.slice(0,2).forEach(i=>{ const li=document.createElement('li'); li.textContent=i.text; ul.appendChild(li); });
-  }
-  function updateTimeLine(){
-    document.querySelectorAll('.current-time-line').forEach(e=>e.remove());
-    const now=new Date(); const dayIdx=(now.getDay()||7);
-    getRows('scheduleTableCurr').forEach(r=>{
-      const [hh,mm]=(r.firstElementChild?.textContent||'00:00').split(':').map(Number);
-      const rowTime=hh*60+(mm||0), nv=now.getHours()*60+now.getMinutes();
-      if(nv>=rowTime && nv<rowTime+60){
-        const pct=((nv-rowTime)/60)*100;
-        const cell = r.children[dayIdx]; if(!cell) return;
-        const line=document.createElement('div'); line.className='current-time-line'; line.style.top=`${pct}%`; cell.appendChild(line);
-      }
-    });
-  }
-
-  /* 요일 멀티선택 */
-  function initDowGroup(){
-    const g = $('dowGroup');
-    if(!g) return;
-    g.addEventListener('click', (e)=>{
-      const b = e.target.closest('.dow'); if(!b) return;
-      b.classList.toggle('active');
-    });
-  }
-  function setDowSelection(arr){
-    const g = $('dowGroup'); if(!g) return;
-    g.querySelectorAll('.dow').forEach(b=>{
-      const di = +b.dataset.di;
-      b.classList.toggle('active', arr.includes(di));
-    });
-  }
-  function getCheckedDays(){
-    return [...document.querySelectorAll('#dowGroup .dow.active')]
-      .map(b=>+b.dataset.di).sort((a,b)=>a-b);
-  }
-  function getDaysForAdd(baseDi){
-    const checked = getCheckedDays();
-    if (checked.length === 0) return [baseDi];
-    if (!checked.includes(baseDi)) checked.push(baseDi);
-    return [...new Set(checked)].sort((a,b)=>a-b);
-  }
-  function getDaysForDelete(baseDi){
-    const checked = getCheckedDays();
-    return checked.length === 0 ? [baseDi] : checked.slice().sort((a,b)=>a-b);
-  }
-
-  /* 이벤트 바인딩 */
-  (function wireUI(){
-    $('btnLogout').onclick=()=>{ alert('로그아웃되었습니다'); location.href='/login.html'; };
-    $('hamburger').onclick=()=>{ $('sidebar').classList.toggle('active'); };
-    $('popupOverlay').addEventListener('click', hideAll);
-    document.addEventListener('keydown',(e)=>{ if(e.key==='Escape') hideAll(); });
-
-    $('btnApplyRange').onclick=applyRangeAll; $('btnCancelRange').onclick=hideAll;
-    $('btnSaveMinute').onclick=saveMinute; $('btnCancelMinute').onclick=hideAll;
-    $('btnSaveLesson').onclick=saveLesson; $('btnDeleteLesson').onclick=deleteLesson;
-
-    $('toggleQuickBtn').onclick=()=>{ $('quickRegisterCard').style.display='block'; showOverlay(); };
-    $('quickOpenBtn').onclick=()=>{ $('quickRegisterCard').style.display='block'; showOverlay(); };
-    $('btnGoRegister').onclick=()=>location.href='/member-registration.html';
-    $('btnQuickSubmit').onclick = ()=> window.submitQuickMember && window.submitQuickMember();
-
-    $('titleNext').onclick=()=>{ const w=$('wrapNext'); w.style.display=(w.style.display==='none'||!w.style.display)?'block':'none'; };
-    $('titleLast').onclick=()=>{ const w=$('wrapLast'); w.style.display=(w.style.display==='none'||!w.style.display)?'block':'none'; };
-
-    const saved=JSON.parse(localStorage.getItem('scheduleRange')||'{}');
-    if(Number.isFinite(+saved.start) && Number.isFinite(+saved.end)){
-      let s=+saved.start, e=+saved.end; if(e<=s) e+=24; if(e-s>=3 && e-s<=24){ scheduleStart=s; scheduleEnd=e; }
-    }
-
-    buildTables();
-    attachDelegationFor('scheduleTableCurr', 0);
-    attachDelegationFor('scheduleTableNext', +1);
-    attachDelegationFor('scheduleTableLast', -1);
-
-    loadFromLocal('scheduleTableCurr', 0);
-    loadFromLocal('scheduleTableNext', +1);
-    loadFromLocal('scheduleTableLast', -1);
-
-    highlightToday();
-    updateTodayList(); updateTimeLine(); setInterval(updateTimeLine,60000);
-    $('headerCurr').onclick = openRangePopup;
-
-    $('autoConsumeToggle').checked = localStorage.getItem('autoConsume')==='1';
-    $('btnEnableAuto').onclick = ()=> window.enableAutoConsume && window.enableAutoConsume();
-    $('btnLaterAuto').onclick  = ()=> window.dismissAutoAsk && window.dismissAutoAsk();
-    $('autoConsumeToggle').addEventListener('change',(e)=>{
-      localStorage.setItem('autoConsume', e.target.checked?'1':'0');
-      if(e.target.checked) window.runAutoConsumeIfNeeded && window.runAutoConsumeIfNeeded(true);
-    });
-    setTimeout(()=>{ window.maybeAskAuto && window.maybeAskAuto(); }, 200);
-
-    $('saveScheduleBtn').addEventListener('click', ()=>bulkSave(0)); // 이번 주만
-    window.addEventListener('resize', fitGridToScreen);
-
-    initDowGroup();
-
-    // Member modal buttons (UI쪽 바인딩)
-    $('btnMemberClose').onclick = hideAll;
-    $('btnRenewalSave').onclick = async ()=>{
-      const mid = $('popupMember').dataset.mid || '';
-      if(!mid){ toast('회원ID가 없습니다'); return; }
-      const amt = +($('reAmount').value||0);
-      const ses = +($('reSessions').value||0);
-      const memo = ($('reMemo').value||'').trim();
-      await (window.saveRenewal && window.saveRenewal({memberId:mid, amount:amt, sessions:ses, memo}));
-    };
-  })();
-
-  function attachDelegationFor(tableId, wo){
-    const tb = document.querySelector(`#${tableId} tbody`);
-    tb.replaceWith(tb.cloneNode(true));
-    const tbn = document.querySelector(`#${tableId} tbody`);
-
-    tbn.addEventListener('pointerdown', (e)=>{
-      const td = e.target.closest('td'); if(!td) return; lpFired=false;
-      if(td.cellIndex===0){
-        td._longPressed=false;
-        td._holdTimer=setTimeout(()=>{ td._longPressed=true; openRangePopup(); },600);
-      }else{
-        lpTimer=setTimeout(()=>{ lpFired=true; openCellSheet(td); },600);
-      }
-    }, {passive:true});
-    ['pointerup','pointerleave','pointercancel'].forEach(ev=>{
-      tbn.addEventListener(ev,(e)=>{ const td=e.target.closest('td'); if(td&&td._holdTimer){ clearTimeout(td._holdTimer); } clearTimeout(lpTimer); lpTimer=null; },{passive:true});
-    });
-    tbn.addEventListener('click',(e)=>{
-      const td=e.target.closest('td'); if(!td) return;
-      if(td.cellIndex===0){ if(td._longPressed){ td._longPressed=false; return; } openMinute(td); return; }
-      if(lpFired){ lpFired=false; return; }
-      $('cellSheet').style.display='none';
-      openLesson(td, tableId, wo);
-    });
-    tbn.addEventListener('contextmenu', e=>e.preventDefault());
-  }
-
-  function openCellSheet(td){
-    if(!td.dataset.info){ toast('먼저 레슨을 저장하세요'); return; }
-    const sheet=$('cellSheet'); const r=td.getBoundingClientRect();
-    sheet.style.left=Math.min(window.innerWidth-240,Math.max(8,r.left))+'px';
-    sheet.style.top =Math.min(window.innerHeight-10,r.bottom+6)+'px';
-    sheet.style.display='block';
-    bindSheetHandlers(td);
-  }
-  function bindSheetHandlers(td){
-    const info=JSON.parse(td.dataset.info||'{}'); const memberId=info.memberId||null;
-    const wo = weekOffsetFromCell(td);
-    $('sheetConsume').onclick    = async()=>{ await consumeAdjust(memberId,-1,{flag:'consumed',value:true},td,wo); };
-    $('sheetUndoConsume').onclick= async()=>{ await consumeAdjust(memberId,+1,{flag:'consumed',value:false},td,wo); };
-    $('sheetNoShow').onclick     = async()=>{ await consumeAdjust(memberId,-1,{flag:'noShowDeducted',value:true},td,wo); };
-    $('sheetUndoNoShow').onclick = async()=>{ await consumeAdjust(memberId,+1,{flag:'noShowDeducted',value:false},td,wo); };
-    $('sheetHistory').onclick    = async()=>{ if(!memberId){ toast('회원ID가 없습니다'); return; } await (window.openMemberModal && window.openMemberModal(memberId)); showPopup($('popupMember')); };
-    $('sheetRenewal').onclick    = async()=>{ if(!memberId){ toast('회원ID가 없습니다'); return; } await (window.openMemberModal && window.openMemberModal(memberId)); showPopup($('popupMember')); };
-    $('sheetProfile').onclick    = ()=>{ if(!memberId){ toast('회원ID가 없습니다'); return; } location.href=`/member-registration.html?id=${memberId}`; };
-    $('sheetClose').onclick=()=>{ $('cellSheet').style.display='none'; };
-  }
-
-  function openMinute(cell){
-    currentCell = cell;
-    const curMin=(cell.textContent.split(':')[1]||'00');
-    $('minuteSelect').value = curMin;
-    showPopup($('popupMinute'));
-  }
-  function saveMinute(){
-    const m=$('minuteSelect').value;
-    const h=currentCell.textContent.split(':')[0];
-    const old=`${h}:${localStorage.getItem(`minute-${h}`)||'00'}`;
-    const neu=`${h}:${m}`;
-    localStorage.setItem(`minute-${h}`, m);
-
-    // 화면(3표) 모두 갱신
-    ['scheduleTableCurr','scheduleTableNext','scheduleTableLast'].forEach(id=>{
-      getRows(id).forEach(r=>{
-        if((r.firstElementChild?.textContent||'')===old) r.firstElementChild.textContent=neu;
-      });
-    });
-
-    // 로컬 데이터(3주)에서 동일 시간 교체
-    [-1,0,1].forEach(wo=>{
-      let arr=JSON.parse(localStorage.getItem(LS_KEY(wo))||'[]');
-      arr.forEach(x=>{ if(x.time===old) x.time=neu; });
-      localStorage.setItem(LS_KEY(wo), JSON.stringify(arr));
-    });
-
-    updateTimeLine(); hideAll();
-  }
-
-  function openRangePopup(){
-    const s=String(scheduleStart%24).padStart(2,'0');
-    const e=String(scheduleEnd%24).padStart(2,'0');
-    $('rangeStart').value=`${s}:00`; $('rangeEnd').value=`${e}:00`;
-    showPopup($('popupRange'));
-  }
-  function applyRangeAll(){
-    const rawS=$('rangeStart').value||'06:00', rawE=$('rangeEnd').value||'21:00';
-    let sH=parseInt(rawS.slice(0,2),10), eH=parseInt(rawE.slice(0,2),10);
-    if(rawE.startsWith('00')) eH=24; if(eH<=sH) eH+=24;
-    if(eH-sH<3){ toast('최소 3시간 이상으로 설정하세요'); return; }
-
-    scheduleStart=sH; scheduleEnd=eH;
-    localStorage.setItem('scheduleRange', JSON.stringify({start:scheduleStart,end:scheduleEnd}));
-
-    currentCell=null;
-    buildTables();
-    attachDelegationFor('scheduleTableCurr', 0);
-    attachDelegationFor('scheduleTableNext', +1);
-    attachDelegationFor('scheduleTableLast', -1);
-
-    loadFromLocal('scheduleTableCurr', 0);
-    loadFromLocal('scheduleTableNext', +1);
-    loadFromLocal('scheduleTableLast', -1);
-
-    highlightToday();
-    updateTodayList();
-    requestAnimationFrame(updateTimeLine);
-    hideAll();
-    fitGridToScreen();
-  }
-
-  /* 팝업 오픈 */
-  function openLesson(cell, tableId='scheduleTableCurr', wo=0){
-    currentCell = cell;
-    currentTableId = tableId;
-    currentWeekOffset = wo;
-
-    const dayNames=['','월','화','수','목','금','토','일'];
-    const di=+cell.dataset.weekcol;
-    const time=rowHour(cell);
-    const hint=$('slotHint');
-    if(hint){ hint.textContent=`${dayNames[di]} ${time}`; hint.style.display='inline-block'; }
-    const d=cell.dataset.info?JSON.parse(cell.dataset.info):{};
-    $('nameInput').value=d.name||'';
-    $('enrolledInput').value=d.enrolled||'';
-    $('capacityInput').value=d.cap||'';
-    $('memberIdInput').value=d.memberId||'';
-
-    setDowSelection([di]);  // 기본: 현재 요일만 선택
-    showPopup($('popupLesson'));
-  }
-  function rowHour(cell){ const td0=cell?.parentElement?.firstElementChild; return td0 ? td0.textContent : ''; }
-
-  /* 저장 */
-  async function saveLesson(){
-    if(!currentCell) return;
-
-    const name = ($('nameInput').value||'').trim();
-    const enrolled = +($('enrolledInput').value||0);
-    const cap = +($('capacityInput').value||0);
-    const memberId = ($('memberIdInput').value||'').replace(/\D/g,'');
-    if(!name && !memberId && !enrolled && !cap){ toast('내용을 입력해주세요'); return; }
-
-    const time = rowHour(currentCell);
-    const baseDi = +currentCell.dataset.weekcol;
-
-    const days = getDaysForAdd(baseDi);
-    const infos = days.map(di => ({ name, enrolled, cap, time, di, memberId: memberId || null }));
-
-    // UI + localStorage
-    let data = JSON.parse(localStorage.getItem(LS_KEY(currentWeekOffset))||'[]');
-    infos.forEach(i=>{
-      const target = (i.di===baseDi && tableIdFromCell(currentCell)===currentTableId)
-        ? currentCell : cellBy(currentTableId, i.di, time);
-      if(target) renderCell(target, i);
-      data = data.filter(x=>!(x.time===i.time && x.di===i.di));
-      data.push(i);
-    });
-    localStorage.setItem(LS_KEY(currentWeekOffset), JSON.stringify(data));
-
-    // Firestore (고정키)
-    try{
-      await Promise.all(infos.map(i => window.upsertScheduleByKey && window.upsertScheduleByKey(i, currentWeekOffset)));
-      toast(days.length>1 ? '여러 요일 저장 완료' : '스케줄 저장 완료');
-    }catch(e){ console.error(e); toast('저장 실패: '+(e.message||e.code)); }
-
-    updateTodayList(); updateTimeLine(); hideAll();
-  }
-
-  /* 삭제 */
-  async function deleteLesson(){
-    if(!currentCell) return;
-
-    const time = rowHour(currentCell);
-    const baseDi = +currentCell.dataset.weekcol;
-    const days = getDaysForDelete(baseDi);
-
-    if (days.length > 1){
-      const label = days.map(n => "월화수목금토일".charAt(n-1)).join('/');
-      if (!confirm(`${label} 동일스케줄을 일괄삭제하시겠습니까?`)){
-        hideAll(); return;
-      }
-    }
-
-    // UI + localStorage
-    let arr = JSON.parse(localStorage.getItem(LS_KEY(currentWeekOffset))||'[]');
-    days.forEach(di=>{
-      const target = (di===baseDi) ? currentCell : cellBy(currentTableId, di, time);
-      if(target){
-        target.innerHTML=''; target.classList.remove('filled'); target.style.background='';
-        delete target.dataset.info; delete target.dataset.docId;
-      }
-      arr = arr.filter(x => !(x.time===time && x.di===di));
-    });
-    localStorage.setItem(LS_KEY(currentWeekOffset), JSON.stringify(arr));
-
-    // Firestore (고정키)
-    try{
-      await Promise.all(days.map(di => window.deleteScheduleByKey && window.deleteScheduleByKey({di,time}, currentWeekOffset)));
-      toast(days.length>1 ? '여러 요일 삭제 완료' : '삭제 완료');
-    }catch(e){ console.error(e); toast("삭제 실패: "+(e.message||e.code)); }
-
-    updateTodayList(); updateTimeLine(); hideAll();
-  }
-
-  /* 이번 주 일괄 저장 (현재 표 스캔) */
-  async function bulkSave(wo=0){
-    const tableId = wo===0 ? 'scheduleTableCurr' : (wo>0?'scheduleTableNext':'scheduleTableLast');
-    const cells=[...document.querySelectorAll(`#${tableId} tbody td`)].filter(td=>td.cellIndex>0 && td.dataset.info);
-    try{
-      await Promise.all(cells.map(c=>{ const i=JSON.parse(c.dataset.info); return window.upsertScheduleByKey && window.upsertScheduleByKey(i, wo); }));
-      toast("스케줄 저장 완료");
-    }catch(e){ console.error(e); toast("저장 실패: "+(e.message||e.code)); }
-  }
-  </script>
-
-  <!-- ===== Firebase / 저장 & 자동소진 & 히스토리/재등록 (기능 그대로) ===== -->
-  <script type="module">
-  import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
-  import {getFirestore, collection, setDoc, deleteDoc, doc, serverTimestamp, updateDoc, increment, query, where, getDocs, getDoc, addDoc, runTransaction, limit} from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
-  import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
-
-  const firebaseConfig={ apiKey:"AIzaSyCjdyveDx0qFPUzmaChnEy9Ni0VjTysYnM", authDomain:"more-than-fitness-f6adb.firebaseapp.com", projectId:"more-than-fitness-f6adb", storageBucket:"more-than-fitness-f6adb.appspot.com", messagingSenderId:"993248877411", appId:"1:993248877411:web:c0e6785162cf252fbcd156", measurementId:"G-MK0RVFG296" };
-
-  const app=getApps().length?getApp():initializeApp(firebaseConfig);
-  const db=getFirestore(app);
-  const auth=getAuth(app);
-  onAuthStateChanged(auth,(u)=>{ if(!u) signInAnonymously(auth).catch(console.error); });
-
-  const p2=n=>String(n).padStart(2,'0');
-  const add60=(t)=>{const [hh,mm]=t.split(':').map(Number);const m=hh*60+(mm||0)+60;return `${p2(Math.floor(m/60)%24)}:${p2(m%60)}`;};
-  const yesterLocalISO=()=>{const d=new Date();d.setDate(d.getDate()-1);return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;};
-
-  // 이번 주 월요일 기준 + weekOffset(–1,0,+1)에서 di(1~7)의 ISO 날짜
-  function isoFromDi(di, weekOffset=0){
-    const now=new Date();
-    const monday=new Date(now);
-    const offset=(now.getDay()+6)%7; // Sun(0) → 6
-    monday.setDate(now.getDate()-offset + weekOffset*7);
-    const d=new Date(monday);
-    d.setDate(monday.getDate()+(di-1));
-    return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;
-  }
-  const docIdFrom = ({date,di,start}) => `${date}-${di}-${start}`;
-
-  // ===== 스케줄 업서트/삭제 (createdAt 중복 세팅 방지) =====
-  window.upsertScheduleByKey = async (i, weekOffset=0)=>{
-    const date = isoFromDi(i.di, weekOffset);
-    const id   = docIdFrom({date,di:i.di,start:i.time});
-    const ref  = doc(db,"schedules",id);
-    const payload={
-      date, di:i.di, start:i.time, end:add60(i.time),
-      name:i.name||"", cap:i.cap||0, enrolled:i.enrolled||0,
-      trainer:"트레이너 A", memberId:i.memberId||null,
-      updatedAt:serverTimestamp()
-    };
-    try{
-      const ex = await getDoc(ref);
-      if(!ex.exists()){
-        await setDoc(ref, { ...payload, createdAt: serverTimestamp() }, { merge:true });
-      }else{
-        await setDoc(ref, payload, { merge:true });
-      }
-    }catch(e){ console.error(e); throw e; }
-    return id;
-  };
-
-  window.deleteScheduleByKey = async ({di,time}, weekOffset=0)=>{
-    const date = isoFromDi(di, weekOffset);
-    const id   = docIdFrom({date,di,start:time});
-    await deleteDoc(doc(db,"schedules",id));
-  };
-
-  // ===== 빠른 등록 =====
-  window.submitQuickMember = async ()=>{
-    const name=(document.getElementById('quickName').value||"").trim();
-    const phoneRaw=(document.getElementById('quickPhone').value||"").replace(/\D/g,'');
-    const agree=document.getElementById('quickAgree').checked;
-    const toast=(m)=>{ const t=document.getElementById('toast'); t.textContent=m; t.style.opacity=1; setTimeout(()=>t.style.opacity=0,1700); };
-    if(!name || phoneRaw.length<10){ toast("이름/전화 확인"); return; }
-    if(!agree){ toast("개인정보 동의를 체크하세요"); return; }
-    try{
-      await setDoc(doc(db,"members",phoneRaw),{
-        name, phone:phoneRaw, phoneDisplay:formatPhone(phoneRaw),
-        createdAt:serverTimestamp(), level:"일반", lessonType:"PT",
-        remainingSessions:0, totalSessionsPurchased:0,
-        noShowDeducted:0, noShowUndeducted:0, renewalCount:0, updatedAt: serverTimestamp()
-      },{merge:true});
-      membersCache.set(phoneRaw, { name, remainingSessions: 0 });
-      window.refreshMembersDatalist && window.refreshMembersDatalist();
-      toast("빠른 등록 완료");
-      document.getElementById('quickName').value=""; document.getElementById('quickPhone').value="";
-      document.getElementById('popupOverlay').click();
-    }catch(e){ console.error(e); toast("등록 실패: "+(e.message||e.code)); }
-  };
-  function formatPhone(v){ v=String(v).replace(/\D/g,'').slice(0,11); if(v.length<=3)return v; if(v.length<=7)return v.slice(0,3)+'-'+v.slice(3); return v.slice(0,3)+'-'+v.slice(3,7)+'-'+v.slice(7); }
-
-  // ===== 멤버 캐시 & datalist 선로딩 =====
-  const membersCache=new Map();
-  async function preloadMembers(){
-    try{
-      const snap = await getDocs(query(collection(db,'members'), limit(300)));
-      snap.forEach(d=>{
-        const v=d.data();
-        membersCache.set(d.id, { name: v.name||d.id, remainingSessions: v.remainingSessions||0 });
-      });
-      refreshMembersDatalist();
-    }catch(e){ console.error(e); }
-  }
-  window.refreshMembersDatalist=function(){
-    const dl=document.getElementById('membersList'); if(!dl) return; dl.innerHTML='';
-    membersCache.forEach((m,id)=>{ const opt=document.createElement('option'); opt.value=id; opt.label=`${m?.name||''} (${formatPhone(id)}) · 잔여 ${m?.remainingSessions||0}`; dl.appendChild(opt); });
-  };
-  preloadMembers();
-
-  const memberIdEl=document.getElementById('memberIdInput');
-  if(memberIdEl){ memberIdEl.addEventListener('change',onMemberPicked); memberIdEl.addEventListener('blur',onMemberPicked); }
-  async function onMemberPicked(){
-    const id=(memberIdEl.value||'').replace(/\D/g,''); if(!id) return;
-    let m=membersCache.get(id);
-    if(!m){ try{ const ds=await getDoc(doc(db,'members',id)); if(ds.exists()){ m=ds.data(); membersCache.set(id,{ name:m.name||id, remainingSessions:m.remainingSessions||0 }); refreshMembersDatalist(); } }catch(e){ console.error(e); } }
-    if(!m) return;
-    const nameEl=document.getElementById('nameInput'); if(nameEl && !nameEl.value) nameEl.value=m.name||'';
-    showRemainBadge(m.remainingSessions);
-  }
-  function showRemainBadge(remain){
-    const hint=document.getElementById('slotHint'); if(!hint) return;
-    const base=(hint.textContent||'').split(' · ')[0]; hint.textContent=`${base} · 잔여 ${remain ?? 0}`; hint.style.display='inline-block';
-  }
-
-  // ===== 소진/노쇼 처리 + 히스토리/원장부 기록 =====
-  window.consumeAdjust = async (memberId,deltaRemain,flagUpdate,td,weekOffset=0)=>{
-    document.getElementById('cellSheet').style.display='none';
-    try{
-      const nowInfo = td?.dataset.info ? JSON.parse(td.dataset.info) : null;
-      const dateStr = nowInfo ? isoFromDi(nowInfo.di, weekOffset) : null;
-      const schedId = nowInfo ? `${dateStr}-${nowInfo.di}-${nowInfo.time}` : null;
-      const type = (flagUpdate.flag==='noShowDeducted'
-        ? (flagUpdate.value?'noshow':'noshow.undo')
-        : (flagUpdate.value?'consume':'consume.undo'));
-
-      if(memberId){
-        await updateDoc(doc(db,"members",memberId),{
-          remainingSessions:increment(deltaRemain),
-          ...(flagUpdate.flag==='noShowDeducted'?{noShowDeducted:increment(flagUpdate.value?+1:-1)}:{})
-        });
-        // ledger + history
-        try{
-          await addDoc(collection(db,'session_ledger'),{
-            memberId, scheduleId:schedId, type, delta: deltaRemain,
-            date: dateStr, time: nowInfo?.time||null, createdAt: serverTimestamp()
-          });
-          await addDoc(collection(db,'members',memberId,'history'),{
-            kind:type, note:`${dateStr||''} ${nowInfo?.time||''}`, createdAt: serverTimestamp()
-          });
-        }catch(e){ console.warn('log failed', e); }
-      }
-      if(td?.dataset.info){
-        await updateDoc(doc(db,"schedules",schedId),{
-          [flagUpdate.flag]:flagUpdate.value,
-          [`${flagUpdate.flag}At`]:serverTimestamp()
-        }).catch(()=>{});
-      }
-      const t=document.getElementById('toast');
-      t.textContent=(flagUpdate.flag==='noShowDeducted'
-        ? (flagUpdate.value?'노쇼 차감 완료':'노쇼 취소 완료')
-        : (flagUpdate.value?'소진 처리 완료':'소진 취소 완료'));
-      t.style.opacity=1; setTimeout(()=>t.style.opacity=0,1700);
-    }catch(e){ console.error(e);
-      const t=document.getElementById('toast'); t.textContent="처리 실패: "+(e.message||e.code); t.style.opacity=1; setTimeout(()=>t.style.opacity=0,1700);
-    }
-  };
-
-  // ===== Member modal (히스토리/재등록) =====
-  async function renderMemberHistory(memberId){
-    const box = document.getElementById('memHistoryList');
-    box.innerHTML = '<div style="font-size:12px;color:#6b7280">불러오는 중…</div>';
-    try{
-      const items = [];
-      const hs = await getDocs(collection(db,'members',memberId,'history'));
-      hs.forEach(d=>{ const v=d.data(); const ts=v.createdAt?.toDate?.()||new Date(); items.push({ when: ts, kind:v.kind||'update', note:v.note||'' }); });
-      const rs = await getDocs(collection(db,'members',memberId,'renewals'));
-      rs.forEach(d=>{ const v=d.data(); const ts=v.createdAt?.toDate?.()||new Date(); items.push({ when: ts, kind:'renewal', note:`+${v.sessions}회 / ${Number(v.amount||0).toLocaleString()}원${v.memo?` - ${v.memo}`:''}` }); });
-      const ls = await getDocs(query(collection(db,'session_ledger'), where('memberId','==',memberId)));
-      ls.forEach(d=>{ const v=d.data(); const ts=v.createdAt?.toDate?.()||new Date(); items.push({ when: ts, kind:`ledger.${v.type}`, note:`${v.date||''} ${v.time||''}` }); });
-
-      items.sort((a,b)=> b.when - a.when);
-      if(items.length===0){ box.innerHTML = '<div style="font-size:12px;color:#6b7280">기록이 없습니다.</div>'; return; }
-      box.innerHTML='';
-      items.forEach(it=>{
-        const div=document.createElement('div');
-        div.style.borderBottom='1px solid #eee'; div.style.padding='6px 2px';
-        div.innerHTML = `<div style="font-weight:700">${it.kind}</div><div style="font-size:12px;color:#6b7280">${it.when.toLocaleString()} · ${it.note||''}</div>`;
-        box.appendChild(div);
-      });
-    }catch(e){
-      console.error(e);
-      box.innerHTML = '<div style="font-size:12px;color:#6b7280">히스토리 로드 실패</div>';
-    }
-  }
-
-  window.openMemberModal = async (memberId)=>{
-    const pop = document.getElementById('popupMember');
-    pop.dataset.mid = memberId;
-    try{
-      const snap = await getDoc(doc(db,'members',memberId));
-      const d = snap.data()||{};
-      document.getElementById('memInfo').textContent =
-        `${d.name||memberId} · ${ (d.phoneDisplay||memberId.replace(/\D/g,'')).replace(/(\d{3})(\d{3,4})(\d{4})/,'$1-$2-$3') } · 잔여 ${d.remainingSessions||0}회`;
-      await renderMemberHistory(memberId);
-    }catch(e){
-      console.error(e);
-      document.getElementById('memInfo').textContent = `회원ID: ${memberId}`;
-    }
-  };
-
-  window.saveRenewal = async ({memberId, amount=0, sessions=0, memo=''})=>{
-    const toast=(m)=>{ const t=document.getElementById('toast'); t.textContent=m; t.style.opacity=1; setTimeout(()=>t.style.opacity=0,1700); };
-    if(!memberId) return;
-    if(!sessions || sessions<=0){ toast('회차를 입력하세요'); return; }
-    try{
-      const mref = doc(db,'members',memberId);
-      const now = new Date();
-      const iso = `${now.getFullYear()}-${p2(now.getMonth()+1)}-${p2(now.getDate())}`;
-      await runTransaction(db, async (tx)=>{
-        const snap = await tx.get(mref);
-        if(!snap.exists()) throw new Error('회원 문서가 없습니다.');
-        const d = snap.data();
-        const total = (d.totalSessionsPurchased||0) + sessions;
-        const remain = (d.remainingSessions||0) + sessions;
-        const renewCnt = (d.renewalCount||0) + 1;
-        tx.update(mref,{
-          totalSessionsPurchased: total,
-          remainingSessions: remain,
-          lastPurchaseAmount: amount,
-          lastPurchaseSessions: sessions,
-          lastPurchaseDate: iso,
-          renewalCount: renewCnt,
-          updatedAt: serverTimestamp()
-        });
-      });
-      await addDoc(collection(db,'members',memberId,'renewals'),{
-        amount, sessions, memo, date: iso, createdAt: serverTimestamp()
-      });
-      await addDoc(collection(db,'members',memberId,'history'),{
-        kind:'renewal', note:`+${sessions}회 / ${Number(amount||0).toLocaleString()}원${memo?` - ${memo}`:''}`, createdAt: serverTimestamp()
-      });
-
-      // 캐시/뷰 갱신
-      const msnap = await getDoc(doc(db,'members',memberId));
-      const md = msnap.data()||{};
-      if(md.name) membersCache.set(memberId, { name: md.name, remainingSessions: md.remainingSessions||0 });
-      window.refreshMembersDatalist && window.refreshMembersDatalist();
-      document.getElementById('reAmount').value=''; document.getElementById('reSessions').value=''; document.getElementById('reMemo').value='';
-      await renderMemberHistory(memberId);
-      document.getElementById('memInfo').textContent =
-        `${md.name||memberId} · ${(md.phoneDisplay||memberId).replace(/(\d{3})(\d{3,4})(\d{4})/,'$1-$2-$3')} · 잔여 ${md.remainingSessions||0}회`;
-      toast('재등록 저장 완료');
-    }catch(e){
-      console.error(e);
-      toast('재등록 실패: '+(e.message||e));
-    }
-  };
-
-  // ===== 자동 소진 (전날) =====
-  window.maybeAskAuto=function(){
-    const asked=localStorage.getItem('autoAsked')==='1';
-    const enabled=localStorage.getItem('autoConsume')==='1';
-    if(!asked && !enabled) document.getElementById('autoAsk').style.display='block';
-    window.runAutoConsumeIfNeeded && window.runAutoConsumeIfNeeded(false);
-  };
-  window.enableAutoConsume=function(){
-    localStorage.setItem('autoAsked','1'); localStorage.setItem('autoConsume','1');
-    document.getElementById('autoAsk').style.display='none';
-    document.getElementById('autoConsumeToggle').checked=true;
-    window.runAutoConsumeIfNeeded && window.runAutoConsumeIfNeeded(true);
-  };
-  window.dismissAutoAsk=function(){
-    localStorage.setItem('autoAsked','1');
-    document.getElementById('autoAsk').style.display='none';
-  };
-
-  window.runAutoConsumeIfNeeded = async function(forceNow){
-    const enabled=localStorage.getItem('autoConsume')==='1'; if(!enabled) return;
-    const target=yesterLocalISO(); const last=localStorage.getItem('autoConsumeLast'); if(!forceNow && last===target) return;
-    try{
-      const qy=query(collection(db,"schedules"),where("date","==",target)); const snap=await getDocs(qy);
-      const tasks=[];
-      snap.forEach(docSnap=>{
-        const s=docSnap.data(); if(s.consumed || s.noShowDeducted) return;
-        if(s.memberId){
-          tasks.push(
-            updateDoc(doc(db,"members",s.memberId),{remainingSessions:increment(-1)})
-              .then(()=>addDoc(collection(db,'session_ledger'),{memberId:s.memberId, scheduleId:docSnap.id, type:'consume.auto', delta:-1, date:s.date, time:s.start, createdAt:serverTimestamp()}))
-              .then(()=>addDoc(collection(db,'members',s.memberId,'history'),{kind:'consume.auto', note:`${s.date} ${s.start}`, createdAt:serverTimestamp()}))
-              .then(()=>updateDoc(doc(db,"schedules",docSnap.id),{consumed:true,consumedAt:serverTimestamp()}))
-          );
-        } else {
-          tasks.push(updateDoc(doc(db,"schedules",docSnap.id),{consumed:true,consumedAt:serverTimestamp()}).catch(()=>{}));
-        }
-      });
-      await Promise.all(tasks); localStorage.setItem('autoConsumeLast',target);
-      if(tasks.length>0){ const t=document.getElementById('toast'); t.textContent=`어제 (${target}) 자동 소진 ${tasks.length}건`; t.style.opacity=1; setTimeout(()=>t.style.opacity=0,1700); }
-    }catch(e){ console.error(e); }
-  };
-  </script>
-
-  <!-- 커스텀 위젯 스크립트(있다면) -->
-  <script type="module" src="/mtf-widgets.js"></script>
-</body>
-</html>
